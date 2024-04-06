@@ -1,0 +1,9 @@
+[workspace]
+members = ["thorn", "thorn-core", "thorn-crypto", "thorn-seal"]
+
+[workspace.dependencies]
+serde = { version = "1.0.144", features = ["derive"] }
+thiserror = "1.0.44"
+anyhow = "1.0.81"
+tracing = "0.1.40"
+

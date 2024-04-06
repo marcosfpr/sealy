@@ -1,0 +1,34 @@
+[package]
+name = "thorn-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["marcosfpr <mfprezende@gmail.com>"]
+description = "Thorn communication primitives"
+repository = "https://github.com/marcosfpr/thorn"
+readme = "../README.md"
+license-file = "../LICENSE"
+keywords = ["federated-learning", "fl", "ai", "machine-learning"]
+categories = ["science", "cryptography", "federated-learning"]
+
+
+[badges]
+maintenance = { status = "passively-maintained" }
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+anyhow = "1.0.62"
+serde = { version = "1.0.144", features = ["derive"] }
+rand = "0.8.5"
+tonic = "0.11.0"
+prost = "0.12.2"
+prost-types = "0.12.2"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"]}
+uuid = { version = "1.7.0", features = ["fast-rng", "v4"]}
+tracing = "0.1.40"
+
+[build-dependencies]
+tonic-build = "0.11"

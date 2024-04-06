@@ -1,0 +1,26 @@
+[package]
+name = "thorn-crypto"
+version = "0.1.0"
+edition = "2021"
+authors = ["marcosfpr <mfprezende@gmail.com>"]
+description = "Thorn cryptography"
+repository = "https://github.com/marcosfpr/thorn"
+readme = "../README.md"
+license-file = "../LICENSE"
+keywords = ["federated-learning", "fl", "ai", "machine-learning"]
+categories = ["science", "cryptography"]
+
+
+[badges]
+maintenance = { status = "passively-maintained" }
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+anyhow = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+

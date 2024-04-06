@@ -1,0 +1,22 @@
+# Reference, check to see what all the configs mean (with examples)
+# https://rust-lang.github.io/rustfmt/?version=v1.7.0
+
+# When defining a function, put each argument on its own line
+# Default value: "Tall"
+fn_params_layout = "Vertical"
+
+# Use tab characters for indentation, spaces for alignment
+# Default value: false
+hard_tabs = true
+
+# Maximum width of each line.
+# Default value: 100
+max_width = 100
+
+# Unix or Windows line endings
+# Default value: "Auto"
+newline_style = "Unix"
+
+# Maximum width in the body of a struct lit before falling back to vertical formatting.
+# Default value: 18
+struct_lit_width = 0
