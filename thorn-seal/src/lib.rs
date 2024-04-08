@@ -21,26 +21,26 @@ extern crate link_cplusplus;
 #[allow(dead_code)]
 #[allow(non_camel_case_types)]
 mod bindgen {
-    use std::os::raw::c_long;
+	use std::os::raw::c_long;
 
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-    pub const E_OK: c_long = 0x0;
-    pub const E_POINTER: c_long = 0x80004003u32 as c_long;
-    pub const E_INVALIDARG: c_long = 0x80070057u32 as c_long;
-    pub const E_OUTOFMEMORY: c_long = 0x8007000Eu32 as c_long;
-    pub const E_UNEXPECTED: c_long = 0x8000FFFFu32 as c_long;
-    pub const COR_E_IO: c_long = 0x80131620u32 as c_long;
-    pub const COR_E_INVALIDOPERATION: c_long = 0x80131509u32 as c_long;
+	pub const E_OK: c_long = 0x0;
+	pub const E_POINTER: c_long = 0x80004003u32 as c_long;
+	pub const E_INVALIDARG: c_long = 0x80070057u32 as c_long;
+	pub const E_OUTOFMEMORY: c_long = 0x8007000Eu32 as c_long;
+	pub const E_UNEXPECTED: c_long = 0x8000FFFFu32 as c_long;
+	pub const COR_E_IO: c_long = 0x80131620u32 as c_long;
+	pub const COR_E_INVALIDOPERATION: c_long = 0x80131509u32 as c_long;
 }
 
 mod serialization {
-    #[repr(u8)]
-    pub enum CompressionType {
-        // None = 0,
-        // ZLib = 1,
-        ZStd = 2,
-    }
+	#[repr(u8)]
+	pub enum CompressionType {
+		// None = 0,
+		// ZLib = 1,
+		ZStd = 2,
+	}
 }
 
 mod bfv_evaluator;
@@ -62,8 +62,8 @@ pub use data_structures::PolynomialArray;
 pub use encoder::{BFVEncoder, BFVScalarEncoder};
 pub use encryption_parameters::*;
 pub use encryptor_decryptor::{
-    marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Decryptor, Encryptor,
-    Sym, SymAsym, SymmetricComponents, SymmetricEncryptor,
+	marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Decryptor, Encryptor,
+	Sym, SymAsym, SymmetricComponents, SymmetricEncryptor,
 };
 pub use error::{Error, Result};
 pub use evaluator::Evaluator;
@@ -71,25 +71,20 @@ pub use key_generator::{GaloisKeys, KeyGenerator, PublicKey, RelinearizationKeys
 pub use modulus::{CoefficientModulus, Modulus, PlainModulus, SecurityLevel};
 pub use plaintext_ciphertext::{Ciphertext, Plaintext};
 
-/**
- * A trait for converting objects into byte arrays.
- */
+/// A trait for converting objects into byte arrays.
 pub trait ToBytes {
-    /**
-     * Returns the object as a byte array.
-     */
-    fn as_bytes(&self) -> Result<Vec<u8>>;
+	/// Returns the object as a byte array.
+	fn as_bytes(&self) -> Result<Vec<u8>>;
 }
 
-/**
- * A trait for converting data from a byte slice under a given SEAL context.
- */
+/// A trait for converting data from a byte slice under a given SEAL context.
 pub trait FromBytes {
-    /**
-     * Deserialize an object from the given bytes using the given
-     * context.
-     */
-    fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self>
-    where
-        Self: Sized;
+	/// Deserialize an object from the given bytes using the given
+	/// context.
+	fn from_bytes(
+		context: &Context,
+		bytes: &[u8],
+	) -> Result<Self>
+	where
+		Self: Sized;
 }
