@@ -1,6 +1,6 @@
 use std::ptr::null_mut;
 
-use crate::evaluator_base::EvaluatorBase;
+use crate::evaluator::base::EvaluatorBase;
 use crate::{
 	bindgen, error::convert_seal_error, Ciphertext, Context, Evaluator, GaloisKeys, Plaintext,
 	RelinearizationKeys, Result,

@@ -43,33 +43,36 @@ mod serialization {
 	}
 }
 
-mod bfv_evaluator;
+mod ciphertext;
 mod context;
-mod data_structures;
+mod decryptor;
 mod encoder;
-mod encryption_parameters;
-mod encryptor_decryptor;
+mod encryptor;
 mod error;
 mod evaluator;
-mod evaluator_base;
 mod key_generator;
 mod modulus;
-mod plaintext_ciphertext;
+mod parameters;
+mod plaintext;
+mod poly_array;
 
-pub use bfv_evaluator::BFVEvaluator;
+pub use ciphertext::Ciphertext;
 pub use context::Context;
-pub use data_structures::PolynomialArray;
-pub use encoder::{BFVEncoder, BFVScalarEncoder};
-pub use encryption_parameters::*;
-pub use encryptor_decryptor::{
-	marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Decryptor, Encryptor,
-	Sym, SymAsym, SymmetricComponents, SymmetricEncryptor,
+pub use decryptor::Decryptor;
+pub use encoder::bfv::{BFVEncoder, BFVScalarEncoder};
+pub use encryptor::{
+	marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Encryptor, Sym, SymAsym,
+	SymmetricComponents, SymmetricEncryptor,
 };
 pub use error::{Error, Result};
+pub use evaluator::bfv::BFVEvaluator;
+pub use evaluator::ckks::CKKSEvaluator;
 pub use evaluator::Evaluator;
 pub use key_generator::{GaloisKeys, KeyGenerator, PublicKey, RelinearizationKeys, SecretKey};
 pub use modulus::{CoefficientModulus, Modulus, PlainModulus, SecurityLevel};
-pub use plaintext_ciphertext::{Ciphertext, Plaintext};
+pub use parameters::*;
+pub use plaintext::Plaintext;
+pub use poly_array::PolynomialArray;
 
 /// A trait for converting objects into byte arrays.
 pub trait ToBytes {
