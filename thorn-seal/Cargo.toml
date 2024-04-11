@@ -33,5 +33,7 @@ deterministic = []
 insecure-params = []
 
 [[example]]
-name = "sum"
+name = "sum_int"
 
+[[example]]
+name = "sum_float"

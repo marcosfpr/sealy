@@ -56,6 +56,10 @@ pub enum Error {
 	/// Serialization failed.
 	#[error("Serialization failed {0}")]
 	SerializationError(Box<String>),
+
+	/// Float encoder not set.
+	#[error("Float encoder not set")]
+	FloatEncoderNotSet,
 }
 
 const_assert!(std::mem::size_of::<Error>() <= 16);

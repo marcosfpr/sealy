@@ -5,6 +5,8 @@ use crate::bindgen;
 use crate::error::*;
 use crate::{Context, Plaintext};
 
+use super::bfv_float::BFVFloatEncoder;
+
 /// Provides functionality for CRT batching. If the polynomial modulus degree is N, and
 /// the plaintext modulus is a prime number T such that T is congruent to 1 modulo 2N,
 /// then BatchEncoder allows the plaintext elements to be viewed as 2-by-(N/2)
@@ -29,6 +31,14 @@ use crate::{Context, Plaintext};
 /// subgroups of the Galois group, we can effectively view the plaintext as a `2`-by-`(N/2)`
 /// matrix, and enable cyclic row rotations, and column rotations (row swaps).
 ///
+/// # Floating point numbers
+///
+/// In SEAL the batching functionality is only defined for integer plaintext elements, but
+/// we can interpret the input and output as integer representations of fixed-point numbers
+/// with a certain base. This is a rough model of fixed-point arithmetic. The base can be
+/// configured by the user.
+///     
+///
 /// # Valid Parameters
 /// Whether batching can be used depends on whether the plaintext modulus has been chosen
 /// appropriately. Thus, to construct a BatchEncoder the user must provide an instance
@@ -36,6 +46,11 @@ use crate::{Context, Plaintext};
 /// flags ParametersSet and EnableBatching set to true.
 pub struct BFVEncoder {
 	handle: *mut c_void,
+
+	/// This is a workaround for the fact that SEAL doesn't provide a way
+	/// to encode floating point numbers. This is a rough model of fixed-point
+	/// arithmetic.
+	float_encoder: Option<BFVFloatEncoder>,
 }
 
 unsafe impl Sync for BFVEncoder {}
@@ -54,6 +69,26 @@ impl BFVEncoder {
 
 		Ok(Self {
 			handle,
+			float_encoder: None,
+		})
+	}
+
+	/// Creates a BatchEncoder that allows floating point numbers to be encoded.
+	/// This uses a base value that is recommended to be a really large number.
+	///
+	/// * `ctx` - The Context
+	/// * `base` - The base value to use for encoding floating point numbers.
+	pub fn new_with_base(
+		ctx: &Context,
+		base: u64,
+	) -> Result<Self> {
+		let mut handle: *mut c_void = null_mut();
+
+		convert_seal_error(unsafe { bindgen::BatchEncoder_Create(ctx.get_handle(), &mut handle) })?;
+
+		Ok(Self {
+			handle,
+			float_encoder: Some(BFVFloatEncoder::new(base)),
 		})
 	}
 
@@ -104,6 +139,43 @@ impl BFVEncoder {
 		data: &[i64],
 	) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
+
+		// We pinky promise SEAL won't mutate data, the C bindings just aren't
+		// const correct.
+		convert_seal_error(unsafe {
+			bindgen::BatchEncoder_Encode2(
+				self.handle,
+				data.len() as u64,
+				data.as_ptr() as *mut i64,
+				plaintext.get_handle(),
+			)
+		})?;
+
+		Ok(plaintext)
+	}
+
+	/// Creates a plaintext from a given matrix. This function "batches" a given matrix
+	/// of integers modulo the plaintext modulus into a plaintext element, and stores
+	/// the result in the destination parameter. The input vector must have size at most equal
+	/// to the degree of the polynomial modulus. The first half of the elements represent the
+	/// first row of the matrix, and the second half represent the second row. The numbers
+	/// in the matrix can be at most equal to the plaintext modulus for it to represent
+	/// a valid plaintext.
+	///
+	/// The matrix's elements are of type `i64`.
+	///
+	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
+	pub fn encode_float(
+		&self,
+		data: &[f64],
+	) -> Result<Plaintext> {
+		let Some(float_encoder) = self.float_encoder.as_ref() else {
+			return Err(Error::FloatEncoderNotSet);
+		};
+
+		let plaintext = Plaintext::new()?;
+
+		let data = float_encoder.encode_slice(data);
 
 		// We pinky promise SEAL won't mutate data, the C bindings just aren't
 		// const correct.
@@ -197,6 +269,49 @@ impl BFVEncoder {
 		Ok(data)
 	}
 
+	/// Inverse of encode. This function "unbatches" a given plaintext into a matrix
+	/// of integers modulo the plaintext modulus, and stores the result in the destination
+	/// parameter. The input plaintext must have degrees less than the polynomial modulus,
+	/// and coefficients less than the plaintext modulus, i.e. it must be a valid plaintext
+	/// for the encryption parameters. Dynamic memory allocations in the process are
+	/// allocated from the memory pool pointed to by the given MemoryPoolHandle.
+	///
+	/// The input plaintext matrix should be known to contain `f64` elements.
+	///
+	///  * `plain` - The plaintext polynomial to unbatch
+	pub fn decode_float(
+		&self,
+		plaintext: &Plaintext,
+	) -> Result<Vec<f64>> {
+		let Some(float_encoder) = self.float_encoder.as_ref() else {
+			return Err(Error::FloatEncoderNotSet);
+		};
+
+		let mut data = Vec::with_capacity(self.get_slot_count());
+		let data_ptr = data.as_mut_ptr();
+		let mut size: u64 = 0;
+
+		convert_seal_error(unsafe {
+			bindgen::BatchEncoder_Decode2(
+				self.handle,
+				plaintext.get_handle(),
+				&mut size,
+				data_ptr as *mut i64,
+				null_mut(),
+			)
+		})?;
+
+		if data.capacity() < size as usize {
+			panic!("Allocation overflow BVTEncoder::decode_unsigned");
+		}
+
+		unsafe {
+			data.set_len(size as usize);
+		}
+
+		Ok(float_encoder.decode_slice(&data))
+	}
+
 	/// Returns the number of "Batched" slots in this encoder produces.
 	pub fn get_slot_count(&self) -> usize {
 		let mut count: u64 = 0;
@@ -284,7 +399,7 @@ impl Default for BFVScalarEncoder {
 
 #[cfg(test)]
 mod tests {
-	use crate::*;
+	use crate::{encoder::bfv_float::consts::DEFAULT_BASE, *};
 
 	#[test]
 	fn can_create_and_drop_bfv_encoder() {
@@ -392,5 +507,32 @@ mod tests {
 		let p = encoder.encode_signed(42).unwrap();
 
 		assert_eq!(encoder.decode_signed(&p).unwrap(), 42);
+	}
+
+	#[test]
+	#[ignore]
+	fn can_get_encode_and_decode_float() {
+		let params = BfvEncryptionParametersBuilder::new()
+			.set_poly_modulus_degree(8192)
+			.set_coefficient_modulus(
+				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+			)
+			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.build()
+			.unwrap();
+
+		let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
+
+		let encoder = BFVEncoder::new_with_base(&ctx, 100).unwrap();
+
+		let mut data = Vec::with_capacity(5);
+
+		for i in 0..data.len() {
+			data.push(i as f64);
+		}
+
+		encoder.encode_float(data.as_slice()).unwrap();
+
+		todo!("I need to understand this")
 	}
 }

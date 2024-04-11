@@ -1,5 +1,5 @@
 /// BFV encoder.
 pub mod bfv;
 
-// /// CKKS encoder.
-// pub mod ckks;
+/// BFV workaround for float point encoding.
+pub mod bfv_float;
