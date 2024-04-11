@@ -36,12 +36,16 @@ fn main() -> anyhow::Result<()> {
 	let x_enc = encryptor.encrypt(&encoder.encode_signed(&[x])?)?;
 	let y_enc = encryptor.encrypt(&encoder.encode_signed(&[y])?)?;
 
+	println!("Summing x + y...");
+	println!("x: {:#?}", x_enc);
+	println!("y: {:#?}", y_enc);
+
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
 
 	let sum_dec = encoder.decode_signed(&sum_dec)?;
 
-	println!("Sum: {:?}", sum_dec);
+	println!("Sum: {:?}", sum_dec.first());
 
 	Ok(())
 }
