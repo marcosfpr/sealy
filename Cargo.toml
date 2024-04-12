@@ -1,5 +1,5 @@
 [workspace]
-members = ["thorn", "thorn-core", "thorn-crypto", "thorn-seal"]
+members = ["thorn", "thorn-core", "thorn-crypto"] 
 
 [workspace.dependencies]
 serde = { version = "1.0.144", features = ["derive"] }
