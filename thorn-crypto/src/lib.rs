@@ -51,6 +51,7 @@ mod encryptor;
 mod error;
 mod evaluator;
 mod key_generator;
+mod memory;
 mod modulus;
 mod parameters;
 mod plaintext;
@@ -59,7 +60,8 @@ mod poly_array;
 pub use ciphertext::Ciphertext;
 pub use context::Context;
 pub use decryptor::Decryptor;
-pub use encoder::bfv::{BFVEncoder, BFVScalarEncoder};
+pub use encoder::bfv::{BFVDecimalEncoder, BFVEncoder, BFVScalarEncoder};
+pub use encoder::ckks::CKKSEncoder;
 pub use encryptor::{
 	marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Encryptor, Sym, SymAsym,
 	SymmetricComponents, SymmetricEncryptor,
@@ -69,6 +71,7 @@ pub use evaluator::bfv::BFVEvaluator;
 pub use evaluator::ckks::CKKSEvaluator;
 pub use evaluator::Evaluator;
 pub use key_generator::{GaloisKeys, KeyGenerator, PublicKey, RelinearizationKeys, SecretKey};
+pub use memory::MemoryPool;
 pub use modulus::{CoefficientModulus, Modulus, PlainModulus, SecurityLevel};
 pub use parameters::*;
 pub use plaintext::Plaintext;
@@ -84,10 +87,7 @@ pub trait ToBytes {
 pub trait FromBytes {
 	/// Deserialize an object from the given bytes using the given
 	/// context.
-	fn from_bytes(
-		context: &Context,
-		bytes: &[u8],
-	) -> Result<Self>
+	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self>
 	where
 		Self: Sized;
 }

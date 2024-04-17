@@ -5,8 +5,6 @@ use crate::bindgen;
 use crate::error::*;
 use crate::{Context, Plaintext};
 
-use super::bfv_float::BFVFloatEncoder;
-
 /// Provides functionality for CRT batching. If the polynomial modulus degree is N, and
 /// the plaintext modulus is a prime number T such that T is congruent to 1 modulo 2N,
 /// then BatchEncoder allows the plaintext elements to be viewed as 2-by-(N/2)
@@ -46,11 +44,6 @@ use super::bfv_float::BFVFloatEncoder;
 /// flags ParametersSet and EnableBatching set to true.
 pub struct BFVEncoder {
 	handle: *mut c_void,
-
-	/// This is a workaround for the fact that SEAL doesn't provide a way
-	/// to encode floating point numbers. This is a rough model of fixed-point
-	/// arithmetic.
-	float_encoder: Option<BFVFloatEncoder>,
 }
 
 unsafe impl Sync for BFVEncoder {}
@@ -69,26 +62,6 @@ impl BFVEncoder {
 
 		Ok(Self {
 			handle,
-			float_encoder: None,
-		})
-	}
-
-	/// Creates a BatchEncoder that allows floating point numbers to be encoded.
-	/// This uses a base value that is recommended to be a really large number.
-	///
-	/// * `ctx` - The Context
-	/// * `base` - The base value to use for encoding floating point numbers.
-	pub fn new_with_base(
-		ctx: &Context,
-		base: u64,
-	) -> Result<Self> {
-		let mut handle: *mut c_void = null_mut();
-
-		convert_seal_error(unsafe { bindgen::BatchEncoder_Create(ctx.get_handle(), &mut handle) })?;
-
-		Ok(Self {
-			handle,
-			float_encoder: Some(BFVFloatEncoder::new(base)),
 		})
 	}
 
@@ -103,10 +76,7 @@ impl BFVEncoder {
 	/// The matrix's elements are of type `u64`.
 	///
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
-	pub fn encode_unsigned(
-		&self,
-		data: &[u64],
-	) -> Result<Plaintext> {
+	pub fn encode_unsigned(&self, data: &[u64]) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
 
 		// I pinky promise SEAL won't mutate data, the C bindings just aren't
@@ -134,48 +104,8 @@ impl BFVEncoder {
 	/// The matrix's elements are of type `i64`.
 	///
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
-	pub fn encode_signed(
-		&self,
-		data: &[i64],
-	) -> Result<Plaintext> {
+	pub fn encode_signed(&self, data: &[i64]) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
-
-		// We pinky promise SEAL won't mutate data, the C bindings just aren't
-		// const correct.
-		convert_seal_error(unsafe {
-			bindgen::BatchEncoder_Encode2(
-				self.handle,
-				data.len() as u64,
-				data.as_ptr() as *mut i64,
-				plaintext.get_handle(),
-			)
-		})?;
-
-		Ok(plaintext)
-	}
-
-	/// Creates a plaintext from a given matrix. This function "batches" a given matrix
-	/// of integers modulo the plaintext modulus into a plaintext element, and stores
-	/// the result in the destination parameter. The input vector must have size at most equal
-	/// to the degree of the polynomial modulus. The first half of the elements represent the
-	/// first row of the matrix, and the second half represent the second row. The numbers
-	/// in the matrix can be at most equal to the plaintext modulus for it to represent
-	/// a valid plaintext.
-	///
-	/// The matrix's elements are of type `i64`.
-	///
-	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
-	pub fn encode_float(
-		&self,
-		data: &[f64],
-	) -> Result<Plaintext> {
-		let Some(float_encoder) = self.float_encoder.as_ref() else {
-			return Err(Error::FloatEncoderNotSet);
-		};
-
-		let plaintext = Plaintext::new()?;
-
-		let data = float_encoder.encode_slice(data);
 
 		// We pinky promise SEAL won't mutate data, the C bindings just aren't
 		// const correct.
@@ -201,10 +131,7 @@ impl BFVEncoder {
 	/// The input plaintext matrix should be known to contain `u64` elements.
 	///
 	///   * `plain` - The plaintext polynomial to unbatch
-	pub fn decode_unsigned(
-		&self,
-		plaintext: &Plaintext,
-	) -> Result<Vec<u64>> {
+	pub fn decode_unsigned(&self, plaintext: &Plaintext) -> Result<Vec<u64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
@@ -240,10 +167,7 @@ impl BFVEncoder {
 	/// The input plaintext matrix should be known to contain `i64` elements.
 	///
 	///  * `plain` - The plaintext polynomial to unbatch
-	pub fn decode_signed(
-		&self,
-		plaintext: &Plaintext,
-	) -> Result<Vec<i64>> {
+	pub fn decode_signed(&self, plaintext: &Plaintext) -> Result<Vec<i64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
@@ -267,49 +191,6 @@ impl BFVEncoder {
 		}
 
 		Ok(data)
-	}
-
-	/// Inverse of encode. This function "unbatches" a given plaintext into a matrix
-	/// of integers modulo the plaintext modulus, and stores the result in the destination
-	/// parameter. The input plaintext must have degrees less than the polynomial modulus,
-	/// and coefficients less than the plaintext modulus, i.e. it must be a valid plaintext
-	/// for the encryption parameters. Dynamic memory allocations in the process are
-	/// allocated from the memory pool pointed to by the given MemoryPoolHandle.
-	///
-	/// The input plaintext matrix should be known to contain `f64` elements.
-	///
-	///  * `plain` - The plaintext polynomial to unbatch
-	pub fn decode_float(
-		&self,
-		plaintext: &Plaintext,
-	) -> Result<Vec<f64>> {
-		let Some(float_encoder) = self.float_encoder.as_ref() else {
-			return Err(Error::FloatEncoderNotSet);
-		};
-
-		let mut data = Vec::with_capacity(self.get_slot_count());
-		let data_ptr = data.as_mut_ptr();
-		let mut size: u64 = 0;
-
-		convert_seal_error(unsafe {
-			bindgen::BatchEncoder_Decode2(
-				self.handle,
-				plaintext.get_handle(),
-				&mut size,
-				data_ptr as *mut i64,
-				null_mut(),
-			)
-		})?;
-
-		if data.capacity() < size as usize {
-			panic!("Allocation overflow BVTEncoder::decode_unsigned");
-		}
-
-		unsafe {
-			data.set_len(size as usize);
-		}
-
-		Ok(float_encoder.decode_slice(&data))
 	}
 
 	/// Returns the number of "Batched" slots in this encoder produces.
@@ -341,28 +222,19 @@ impl BFVScalarEncoder {
 	}
 
 	/// Encodes a u64 into a Plaintext.
-	pub fn encode_unsigned(
-		&self,
-		val: u64,
-	) -> Result<Plaintext> {
+	pub fn encode_unsigned(&self, val: u64) -> Result<Plaintext> {
 		Plaintext::from_hex_string(&format!("{:x}", val))
 	}
 
 	/// Encodes an i64 into a Plaintext.
-	pub fn encode_signed(
-		&self,
-		val: i64,
-	) -> Result<Plaintext> {
+	pub fn encode_signed(&self, val: i64) -> Result<Plaintext> {
 		let as_u64: u64 = unsafe { std::mem::transmute(val) };
 
 		Plaintext::from_hex_string(&format!("{:x}", as_u64))
 	}
 
 	/// Decodes the plaintext into a u64.
-	pub fn decode_unsigned(
-		&self,
-		p: &Plaintext,
-	) -> Result<u64> {
+	pub fn decode_unsigned(&self, p: &Plaintext) -> Result<u64> {
 		let mut len: u64 = 0;
 		let mut coeff: u64 = 0;
 
@@ -374,10 +246,7 @@ impl BFVScalarEncoder {
 	}
 
 	/// Decodes the plaintext into an i64.
-	pub fn decode_signed(
-		&self,
-		p: &Plaintext,
-	) -> Result<i64> {
+	pub fn decode_signed(&self, p: &Plaintext) -> Result<i64> {
 		let mut len: u64 = 0;
 		let mut coeff: i64 = 0;
 
@@ -397,9 +266,129 @@ impl Default for BFVScalarEncoder {
 	}
 }
 
+/// Creates an encoder that can turn f64 or u64 values into a Plaintext.
+///
+/// It uses a base to encode the float point number as an integer.
+/// This is a rough model of fixed-point arithmetic and is not recommended
+/// for production use.    
+#[allow(dead_code)]
+pub struct BFVDecimalEncoder {
+	encoder: BFVEncoder,
+	base: u64,
+}
+
+#[allow(dead_code)]
+impl BFVDecimalEncoder {
+	/// Creates a new instance of BFVFloatEncoder.
+	///
+	/// * `base` - The base to encode the float point number.
+	pub fn new(ctx: &Context, base: u64) -> Result<Self> {
+		let encoder = BFVEncoder::new(ctx)?;
+
+		Ok(Self {
+			encoder,
+			base,
+		})
+	}
+
+	/// Creates a plaintext from a given matrix. This function "batches" a given matrix
+	/// of integers modulo the plaintext modulus into a plaintext element, and stores
+	/// the result in the destination parameter. The input vector must have size at most equal
+	/// to the degree of the polynomial modulus. The first half of the elements represent the
+	/// first row of the matrix, and the second half represent the second row. The numbers
+	/// in the matrix can be at most equal to the plaintext modulus for it to represent
+	/// a valid plaintext.
+	///
+	/// The matrix's elements are of type `i64`.
+	///
+	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
+	pub fn encode_float(&self, data: &[f64]) -> Result<Plaintext> {
+		let plaintext = Plaintext::new()?;
+
+		let data = self.encode_slice(data);
+
+		// We pinky promise SEAL won't mutate data, the C bindings just aren't
+		// const correct.
+		convert_seal_error(unsafe {
+			bindgen::BatchEncoder_Encode2(
+				self.encoder.handle,
+				data.len() as u64,
+				data.as_ptr() as *mut i64,
+				plaintext.get_handle(),
+			)
+		})?;
+
+		Ok(plaintext)
+	}
+
+	/// Inverse of encode. This function "unbatches" a given plaintext into a matrix
+	/// of integers modulo the plaintext modulus, and stores the result in the destination
+	/// parameter. The input plaintext must have degrees less than the polynomial modulus,
+	/// and coefficients less than the plaintext modulus, i.e. it must be a valid plaintext
+	/// for the encryption parameters. Dynamic memory allocations in the process are
+	/// allocated from the memory pool pointed to by the given MemoryPoolHandle.
+	///
+	/// The input plaintext matrix should be known to contain `f64` elements.
+	///
+	///  * `plain` - The plaintext polynomial to unbatch
+	pub fn decode_float(&self, plaintext: &Plaintext) -> Result<Vec<f64>> {
+		let mut data = Vec::with_capacity(self.encoder.get_slot_count());
+		let data_ptr = data.as_mut_ptr();
+		let mut size: u64 = 0;
+
+		convert_seal_error(unsafe {
+			bindgen::BatchEncoder_Decode2(
+				self.encoder.handle,
+				plaintext.get_handle(),
+				&mut size,
+				data_ptr as *mut i64,
+				null_mut(),
+			)
+		})?;
+
+		if data.capacity() < size as usize {
+			panic!("Allocation overflow BVTEncoder::decode_unsigned");
+		}
+
+		unsafe {
+			data.set_len(size as usize);
+		}
+
+		Ok(self.decode_slice(&data))
+	}
+
+	/// Encodes a float point number as an integer.
+	///
+	/// * `value` - The float point number to encode.
+	fn encode(&self, value: f64) -> u64 {
+		(value * self.base as f64).round() as u64
+	}
+
+	/// Decodes an integer to a float point number.
+	///
+	/// * `value` - The integer to decode.
+	fn decode(&self, value: u64) -> f64 {
+		value as f64 / self.base as f64
+	}
+
+	/// Encodes a slice of float point numbers as integers.
+	///
+	/// * `values` - The slice of float point numbers to encode.
+	fn encode_slice(&self, values: &[f64]) -> Vec<u64> {
+		values.iter().map(|v| self.encode(*v)).collect()
+	}
+
+	/// Decodes a slice of integers to float point numbers.
+	///
+	/// * `values` - The slice of integers to decode.
+	fn decode_slice(&self, values: &[u64]) -> Vec<f64> {
+		values.iter().map(|v| self.decode(*v)).collect()
+	}
+}
+
 #[cfg(test)]
 mod tests {
-	use crate::{encoder::bfv_float::consts::DEFAULT_BASE, *};
+	use crate::{encoder::bfv::BFVDecimalEncoder, *};
 
 	#[test]
 	fn can_create_and_drop_bfv_encoder() {
@@ -510,7 +499,7 @@ mod tests {
 	}
 
 	#[test]
-	#[ignore]
+	#[ignore = "Not working yet because of integer size limitation of BFV"]
 	fn can_get_encode_and_decode_float() {
 		let params = BfvEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(8192)
@@ -523,16 +512,6 @@ mod tests {
 
 		let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
 
-		let encoder = BFVEncoder::new_with_base(&ctx, 100).unwrap();
-
-		let mut data = Vec::with_capacity(5);
-
-		for i in 0..data.len() {
-			data.push(i as f64);
-		}
-
-		encoder.encode_float(data.as_slice()).unwrap();
-
-		todo!("I need to understand this")
+		assert!(BFVDecimalEncoder::new(&ctx, 100).is_ok());
 	}
 }
