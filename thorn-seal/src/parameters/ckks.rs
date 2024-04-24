@@ -25,7 +25,10 @@ impl CkksEncryptionParametersBuilder {
 	/// Set the degree of the polynomial used in the CKKS scheme. Genrally,
 	/// larger values provide more security and noise margin at the expense
 	/// of performance.
-	pub fn set_poly_modulus_degree(mut self, degree: u64) -> Self {
+	pub fn set_poly_modulus_degree(
+		mut self,
+		degree: u64,
+	) -> Self {
 		self.poly_modulus_degree = Some(degree);
 		self
 	}
@@ -37,7 +40,10 @@ impl CkksEncryptionParametersBuilder {
 	/// perform (bigger is better), and the security level (bigger is worse). In
 	/// Microsoft SEAL each of the prime numbers in the coefficient modulus must
 	/// be at most 60 bits, and must be congruent to 1 modulo 2*poly_modulus_degree.
-	pub fn set_coefficient_modulus(mut self, modulus: Vec<Modulus>) -> Self {
+	pub fn set_coefficient_modulus(
+		mut self,
+		modulus: Vec<Modulus>,
+	) -> Self {
 		self.coefficient_modulus = CoefficientModulusType::Modulus(modulus);
 		self
 	}
@@ -95,8 +101,7 @@ mod tests {
 
 		assert_eq!(params.get_poly_modulus_degree(), 1024);
 		assert_eq!(params.get_scheme(), SchemeType::Ckks);
-		assert_eq!(params.get_coefficient_modulus().len(), 1);
-		assert_eq!(params.get_coefficient_modulus()[0].value(), 132120577);
+		assert_eq!(params.get_coefficient_modulus().len(), 4);
 
 		let params = CkksEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(1024)

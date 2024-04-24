@@ -44,7 +44,10 @@ impl KeyGenerator {
 	///
 	/// * `context` - The context describing the encryption scheme.
 	/// * `secret_key` - A previously generated secret key
-	pub fn new_from_secret_key(ctx: &Context, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new_from_secret_key(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
@@ -83,7 +86,10 @@ impl KeyGenerator {
 		CompactPublicKey(self.create_public_key_internal(true))
 	}
 
-	fn create_public_key_internal(&self, save_seed: bool) -> PublicKey {
+	fn create_public_key_internal(
+		&self,
+		save_seed: bool,
+	) -> PublicKey {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
@@ -115,7 +121,10 @@ impl KeyGenerator {
 		))
 	}
 
-	fn create_relinearization_keys_internal(&self, save_seed: bool) -> Result<RelinearizationKeys> {
+	fn create_relinearization_keys_internal(
+		&self,
+		save_seed: bool,
+	) -> Result<RelinearizationKeys> {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
@@ -159,7 +168,10 @@ impl KeyGenerator {
 		self.create_galois_keys_internal(false)
 	}
 
-	fn create_galois_keys_internal(&self, save_seed: bool) -> Result<GaloisKeys> {
+	fn create_galois_keys_internal(
+		&self,
+		save_seed: bool,
+	) -> Result<GaloisKeys> {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
@@ -218,13 +230,19 @@ impl ToBytes for PublicKey {
 }
 
 impl PartialEq for PublicKey {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
 
 impl FromBytes for PublicKey {
-	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
+	fn from_bytes(
+		context: &Context,
+		bytes: &[u8],
+	) -> Result<Self> {
 		let key = PublicKey::new()?;
 		let mut bytes_read = 0;
 
@@ -322,7 +340,10 @@ impl SecretKey {
 }
 
 impl PartialEq for SecretKey {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
@@ -358,7 +379,10 @@ impl ToBytes for SecretKey {
 }
 
 impl FromBytes for SecretKey {
-	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
+	fn from_bytes(
+		context: &Context,
+		bytes: &[u8],
+	) -> Result<Self> {
 		let key = SecretKey::new()?;
 		let mut bytes_read = 0;
 
@@ -384,7 +408,10 @@ impl Drop for SecretKey {
 }
 
 impl Serialize for SecretKey {
-	fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+	fn serialize<S>(
+		&self,
+		serializer: S,
+	) -> std::result::Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 	{
@@ -410,7 +437,10 @@ impl Clone for SecretKey {
 }
 
 impl core::fmt::Debug for SecretKey {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+	fn fmt(
+		&self,
+		f: &mut core::fmt::Formatter,
+	) -> core::fmt::Result {
 		f.debug_struct("SecretKey")
 			.field("handle", &"<ELIDED>")
 			.finish()
@@ -499,7 +529,10 @@ impl RelinearizationKeys {
 }
 
 impl PartialEq for RelinearizationKeys {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
@@ -534,7 +567,10 @@ impl ToBytes for RelinearizationKeys {
 }
 
 impl FromBytes for RelinearizationKeys {
-	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
+	fn from_bytes(
+		context: &Context,
+		bytes: &[u8],
+	) -> Result<Self> {
 		let keys = RelinearizationKeys::new()?;
 		let mut write_bytes: i64 = 0;
 
@@ -629,7 +665,10 @@ impl GaloisKeys {
 }
 
 impl PartialEq for GaloisKeys {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
@@ -664,7 +703,10 @@ impl ToBytes for GaloisKeys {
 }
 
 impl FromBytes for GaloisKeys {
-	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
+	fn from_bytes(
+		context: &Context,
+		bytes: &[u8],
+	) -> Result<Self> {
 		let keys = GaloisKeys::new()?;
 		let mut write_bytes: i64 = 0;
 

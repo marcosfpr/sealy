@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+# Concurrency is employed to avoid multiple identical workflows from running concurrently. When a new event is triggered
+# while this workflow is active, the new workflow will be executed, and the previous one will be terminated. It's
+# important to note that the group is the current ref, typically the current branch, and as a result, different branches
+# won't affect each other.
+concurrency:
+  group: ${{ github.ref }}-core-test
+  cancel-in-progress: true
+
+jobs:
+  linux_tests:
+    timeout-minutes: 20
+    name: Rust project
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        name: Cloning repo
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Install Protobuff
+        run: sudo apt install protobuf-compiler
+
+      # Install Rust
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Tests
+        run: cargo test --release

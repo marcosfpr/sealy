@@ -50,7 +50,12 @@ impl CKKSEncoder {
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
 	///  * `scale` - The scaling factor
 	///  * `context` - The context
-	pub fn encode(&self, data: &[f64], ctx: &Context, scale: f64) -> Result<Plaintext> {
+	pub fn encode(
+		&self,
+		data: &[f64],
+		ctx: &Context,
+		scale: f64,
+	) -> Result<Plaintext> {
 		let mem = MemoryPool::new()?;
 
 		let plaintext = Plaintext::new()?;
@@ -85,7 +90,10 @@ impl CKKSEncoder {
 	}
 
 	/// Decodes a float plaintext.
-	pub fn decode(&self, plaintext: &Plaintext) -> Result<Vec<f64>> {
+	pub fn decode(
+		&self,
+		plaintext: &Plaintext,
+	) -> Result<Vec<f64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
