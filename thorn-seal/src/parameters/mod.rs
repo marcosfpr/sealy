@@ -1,5 +1,6 @@
 use std::ffi::c_void;
 use std::mem::forget;
+use std::os::raw::c_ulong;
 use std::ptr::null_mut;
 
 use crate::bindgen::{self};
@@ -66,15 +67,17 @@ impl SchemeType {
 /// and computation of the desired application. We highly recommend consulting an
 /// expert in RLWE-based encryption when selecting parameters, as this is where
 /// inexperienced users seem to most often make critical mistakes.
+#[derive(Debug)]
 pub struct EncryptionParameters {
-	handle: *mut c_void,
+	pub(crate) handle: *mut c_void,
 }
 
 unsafe impl Sync for EncryptionParameters {}
 unsafe impl Send for EncryptionParameters {}
 
 impl EncryptionParameters {
-	fn new(scheme: SchemeType) -> Result<Self, Error> {
+	/// Creates a new `EncryptionParameters` instance given a scheme type.
+	pub fn new(scheme: SchemeType) -> Result<Self, Error> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe { bindgen::EncParams_Create1(scheme as u8, &mut handle) })?;
@@ -82,6 +85,13 @@ impl EncryptionParameters {
 		Ok(Self {
 			handle,
 		})
+	}
+
+	/// The block size is always 4 for SEAL. That means every
+	/// parms_id is a 4-tuple of 64-bit integers. representing the
+	/// hash of the encryption parameters.
+	pub const fn block_size() -> u8 {
+		4
 	}
 
 	/// Returns the handle to the underlying SEAL object.
@@ -177,6 +187,18 @@ impl EncryptionParameters {
 			})
 			.collect()
 	}
+
+	/// Returns the parms id.
+	pub fn get_parms_id(&self) -> Result<u64, Error> {
+		let mut parms_id: c_ulong = 0;
+
+		unsafe {
+			convert_seal_error(bindgen::EncParams_GetParmsId(self.handle, &mut parms_id))
+				.expect("Internal error");
+		}
+
+		Ok(parms_id)
+	}
 }
 
 enum CoefficientModulusType {
@@ -192,6 +214,7 @@ enum PlainModulusType {
 
 impl Drop for EncryptionParameters {
 	fn drop(&mut self) {
-		unsafe { bindgen::EncParams_Destroy(self.handle) };
+		convert_seal_error(unsafe { bindgen::EncParams_Destroy(self.handle) })
+			.expect("Internal error in EncryptionParameters::drop().");
 	}
 }

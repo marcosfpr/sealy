@@ -2,16 +2,15 @@ use std::ffi::c_void;
 
 use crate::{bindgen, error::convert_seal_error, EncryptionParameters, Error, Modulus, SchemeType};
 
-use super::{CoefficientModulusType, PlainModulusType};
+use super::CoefficientModulusType;
 
 /// Represents a builder that sets up and creates encryption scheme parameters.
-/// The parameters (most importantly PolyModulus, CoeffModulus, PlainModulus)
+/// The parameters (most importantly PolyModulus, CoeffModulus)
 /// significantly affect the performance, capabilities, and security of the
 /// encryption scheme.
 pub struct CkksEncryptionParametersBuilder {
 	poly_modulus_degree: Option<u64>,
 	coefficient_modulus: CoefficientModulusType,
-	plain_modulus: PlainModulusType,
 }
 
 impl CkksEncryptionParametersBuilder {
@@ -20,17 +19,13 @@ impl CkksEncryptionParametersBuilder {
 		Self {
 			poly_modulus_degree: None,
 			coefficient_modulus: CoefficientModulusType::NotSet,
-			plain_modulus: PlainModulusType::NotSet,
 		}
 	}
 
-	/// Set the degree of the polynomial used in the BFV scheme. Genrally,
+	/// Set the degree of the polynomial used in the CKKS scheme. Genrally,
 	/// larger values provide more security and noise margin at the expense
 	/// of performance.
-	pub fn set_poly_modulus_degree(
-		mut self,
-		degree: u64,
-	) -> Self {
+	pub fn set_poly_modulus_degree(mut self, degree: u64) -> Self {
 		self.poly_modulus_degree = Some(degree);
 		self
 	}
@@ -42,38 +37,14 @@ impl CkksEncryptionParametersBuilder {
 	/// perform (bigger is better), and the security level (bigger is worse). In
 	/// Microsoft SEAL each of the prime numbers in the coefficient modulus must
 	/// be at most 60 bits, and must be congruent to 1 modulo 2*poly_modulus_degree.
-	pub fn set_coefficient_modulus(
-		mut self,
-		modulus: Vec<Modulus>,
-	) -> Self {
+	pub fn set_coefficient_modulus(mut self, modulus: Vec<Modulus>) -> Self {
 		self.coefficient_modulus = CoefficientModulusType::Modulus(modulus);
-		self
-	}
-
-	/// Set the plaintext modulus to a fixed size. Not recommended.
-	/// Ideally, create a PlainModulus to set up batching and call
-	/// set_plain_modulus.
-	pub fn set_plain_modulus_u64(
-		mut self,
-		modulus: u64,
-	) -> Self {
-		self.plain_modulus = PlainModulusType::Constant(modulus);
-		self
-	}
-
-	/// Set the plaintext modulus. This method enables batching, use
-	/// `PlainModulus::batching()` to create a suitable modulus chain.
-	pub fn set_plain_modulus(
-		mut self,
-		modulus: Modulus,
-	) -> Self {
-		self.plain_modulus = PlainModulusType::Modulus(modulus);
 		self
 	}
 
 	/// Validate the parameter choices and return the encryption parameters.
 	pub fn build(self) -> Result<EncryptionParameters, Error> {
-		let params = EncryptionParameters::new(SchemeType::Bfv)?;
+		let params = EncryptionParameters::new(SchemeType::Ckks)?;
 
 		convert_seal_error(unsafe {
 			bindgen::EncParams_SetPolyModulusDegree(
@@ -97,20 +68,6 @@ impl CkksEncryptionParametersBuilder {
 			}
 		};
 
-		match self.plain_modulus {
-			PlainModulusType::NotSet => return Err(Error::PlainModulusNotSet),
-			PlainModulusType::Constant(p) => {
-				convert_seal_error(unsafe {
-					bindgen::EncParams_SetPlainModulus2(params.handle, p)
-				})?;
-			}
-			PlainModulusType::Modulus(m) => {
-				convert_seal_error(unsafe {
-					bindgen::EncParams_SetPlainModulus1(params.handle, m.get_handle())
-				})?;
-			}
-		};
-
 		Ok(params)
 	}
 }
@@ -127,35 +84,32 @@ mod tests {
 
 	#[test]
 	fn can_build_params() {
+		let bit_sizes = [60, 40, 40, 60];
+		let modulus_chain = CoefficientModulus::create(1024, bit_sizes.as_slice()).unwrap();
+
 		let params = CkksEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(1024)
-			.set_coefficient_modulus(
-				CoefficientModulus::bfv_default(1024, SecurityLevel::default()).unwrap(),
-			)
-			.set_plain_modulus_u64(1234)
+			.set_coefficient_modulus(modulus_chain)
 			.build()
 			.unwrap();
 
 		assert_eq!(params.get_poly_modulus_degree(), 1024);
-		assert_eq!(params.get_scheme(), SchemeType::Bfv);
-		assert_eq!(params.get_plain_modulus().value(), 1234);
+		assert_eq!(params.get_scheme(), SchemeType::Ckks);
 		assert_eq!(params.get_coefficient_modulus().len(), 1);
 		assert_eq!(params.get_coefficient_modulus()[0].value(), 132120577);
 
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = CkksEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(1024)
 			.set_coefficient_modulus(
 				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus_u64(1234)
 			.build()
 			.unwrap();
 
 		let modulus = params.get_coefficient_modulus();
 
 		assert_eq!(params.get_poly_modulus_degree(), 1024);
-		assert_eq!(params.get_scheme(), SchemeType::Bfv);
-		assert_eq!(params.get_plain_modulus().value(), 1234);
+		assert_eq!(params.get_scheme(), SchemeType::Ckks);
 		assert_eq!(modulus.len(), 5);
 		assert_eq!(modulus[0].value(), 1125899905744897);
 		assert_eq!(modulus[1].value(), 1073643521);

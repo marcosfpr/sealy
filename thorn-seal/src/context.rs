@@ -1,9 +1,10 @@
+use std::ffi::c_int;
 use std::ffi::c_void;
-use std::os::raw::c_int;
 use std::ptr::null_mut;
 
 use crate::bindgen;
 use crate::error::*;
+use crate::ContextData;
 use crate::EncryptionParameters;
 use crate::SecurityLevel;
 
@@ -85,10 +86,7 @@ impl Context {
 	/// * `expand_mod_chain` - Determines whether the modulus switching chain
 	/// should be created.
 	#[cfg(feature = "insecure-params")]
-	pub fn new_insecure(
-		params: &EncryptionParameters,
-		expand_mod_chain: bool,
-	) -> Result<Self> {
+	pub fn new_insecure(params: &EncryptionParameters, expand_mod_chain: bool) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -103,6 +101,95 @@ impl Context {
 	/// Returns handle to the underlying SEAL object.
 	pub fn get_handle(&self) -> *mut c_void {
 		self.handle
+	}
+
+	/// Returns the key ContextData in the modulus switching chain.
+	pub fn get_key_parms_id(&self) -> Result<Vec<u64>> {
+		let mut parms_id: Vec<u64> =
+			Vec::with_capacity(EncryptionParameters::block_size() as usize);
+		convert_seal_error(unsafe {
+			let parms_id_ptr = parms_id.as_mut_ptr();
+			bindgen::SEALContext_KeyParmsId(self.handle, parms_id_ptr)
+		})?;
+		unsafe { parms_id.set_len(4) };
+		Ok(parms_id)
+	}
+
+	/// Returns the last ContextData in the modulus switching chain.
+	pub fn get_last_parms_id(&self) -> Result<Vec<u64>> {
+		let mut parms_id: Vec<u64> =
+			Vec::with_capacity(EncryptionParameters::block_size() as usize);
+		convert_seal_error(unsafe {
+			let parms_id_ptr = parms_id.as_mut_ptr();
+			bindgen::SEALContext_LastParmsId(self.handle, parms_id_ptr)
+		})?;
+		unsafe { parms_id.set_len(EncryptionParameters::block_size() as usize) };
+		Ok(parms_id)
+	}
+
+	/// Returns the first ContextData in the modulus switching chain.
+	pub fn get_first_parms_id(&self) -> Result<Vec<u64>> {
+		let mut parms_id: Vec<u64> =
+			Vec::with_capacity(EncryptionParameters::block_size() as usize);
+		convert_seal_error(unsafe {
+			let parms_id_ptr = parms_id.as_mut_ptr();
+			bindgen::SEALContext_FirstParmsId(self.handle, parms_id_ptr)
+		})?;
+		unsafe { parms_id.set_len(EncryptionParameters::block_size() as usize) };
+		Ok(parms_id)
+	}
+
+	/// Returns the ContextData given a parms_id.
+	pub fn get_context_data(&self, parms_id: &[u64]) -> Result<ContextData> {
+		let mut context_data: *mut c_void = null_mut();
+
+		convert_seal_error(unsafe {
+			let mut parms_id = parms_id.to_vec();
+			let parms_id_ptr = parms_id.as_mut_ptr();
+			bindgen::SEALContext_GetContextData(self.handle, parms_id_ptr, &mut context_data)
+		})?;
+
+		if context_data.is_null() {
+			return Err(Error::InvalidPointer);
+		}
+
+		Ok(crate::context_data::ContextData {
+			handle: context_data,
+		})
+	}
+
+	/// Returns the first ContextData in the modulus switching chain.
+	pub fn get_first_context_data(&self) -> Result<ContextData> {
+		let mut context_data: *mut c_void = null_mut();
+
+		convert_seal_error(unsafe {
+			bindgen::SEALContext_FirstContextData(self.handle, &mut context_data)
+		})?;
+
+		if context_data.is_null() {
+			return Err(Error::InvalidPointer);
+		}
+
+		Ok(ContextData {
+			handle: context_data,
+		})
+	}
+
+	/// Returns the last ContextData in the modulus switching chain.
+	pub fn get_last_context_data(&self) -> Result<ContextData> {
+		let mut context_data: *mut c_void = null_mut();
+
+		convert_seal_error(unsafe {
+			bindgen::SEALContext_LastContextData(self.handle, &mut context_data)
+		})?;
+
+		if context_data.is_null() {
+			return Err(Error::InvalidPointer);
+		}
+
+		Ok(ContextData {
+			handle: context_data,
+		})
 	}
 }
 

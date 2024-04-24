@@ -9,42 +9,25 @@ pub mod ckks;
 pub trait Evaluator {
 	/// Negates a ciphertext inplace.
 	///   * `a` - the value to negate
-	fn negate_inplace(
-		&self,
-		a: &mut Ciphertext,
-	) -> Result<()>;
+	fn negate_inplace(&self, a: &mut Ciphertext) -> Result<()>;
 
 	/// Negates a ciphertext into a new ciphertext.
 	///   * `a` - the value to negate
-	fn negate(
-		&self,
-		a: &Ciphertext,
-	) -> Result<Ciphertext>;
+	fn negate(&self, a: &Ciphertext) -> Result<Ciphertext>;
 
 	/// Add `a` and `b` and store the result in `a`.
 	///  * `a` - the accumulator
 	///  * `b` - the added value
-	fn add_inplace(
-		&self,
-		a: &mut Ciphertext,
-		b: &Ciphertext,
-	) -> Result<()>;
+	fn add_inplace(&self, a: &mut Ciphertext, b: &Ciphertext) -> Result<()>;
 
 	/// Adds `a` and `b`.
 	///  * `a` - first operand
 	///  * `b` - second operand
-	fn add(
-		&self,
-		a: &Ciphertext,
-		b: &Ciphertext,
-	) -> Result<Ciphertext>;
+	fn add(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext>;
 
 	/// Performs an addition reduction of multiple ciphertexts packed into a slice.
 	///  * `a` - a slice of ciphertexts to sum.
-	fn add_many(
-		&self,
-		a: &[Ciphertext],
-	) -> Result<Ciphertext>;
+	fn add_many(&self, a: &[Ciphertext]) -> Result<Ciphertext>;
 
 	/// Performs an multiplication reduction of multiple ciphertexts packed into a slice. This
 	///  method creates a tree of multiplications with relinearization after each operation.
@@ -59,52 +42,30 @@ pub trait Evaluator {
 	/// Subtracts `b` from `a` and stores the result in `a`.
 	///  * `a` - the left operand and destination
 	///  * `b` - the right operand
-	fn sub_inplace(
-		&self,
-		a: &mut Ciphertext,
-		b: &Ciphertext,
-	) -> Result<()>;
+	fn sub_inplace(&self, a: &mut Ciphertext, b: &Ciphertext) -> Result<()>;
 
 	/// Subtracts `b` from `a`.
 	///  * `a` - the left operand
 	///  * `b` - the right operand
-	fn sub(
-		&self,
-		a: &Ciphertext,
-		b: &Ciphertext,
-	) -> Result<Ciphertext>;
+	fn sub(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext>;
 
 	/// Multiplies `a` and `b` and stores the result in `a`.
 	///  * `a` - the left operand and destination.
 	///  * `b` - the right operand.
-	fn multiply_inplace(
-		&self,
-		a: &mut Ciphertext,
-		b: &Ciphertext,
-	) -> Result<()>;
+	fn multiply_inplace(&self, a: &mut Ciphertext, b: &Ciphertext) -> Result<()>;
 
 	/// Multiplies `a` and `b`.
 	///  * `a` - the left operand.
 	///  * `b` - the right operand.
-	fn multiply(
-		&self,
-		a: &Ciphertext,
-		b: &Ciphertext,
-	) -> Result<Ciphertext>;
+	fn multiply(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext>;
 
 	/// Squares `a` and stores the result in `a`.
 	///  * `a` - the value to square.
-	fn square_inplace(
-		&self,
-		a: &mut Ciphertext,
-	) -> Result<()>;
+	fn square_inplace(&self, a: &mut Ciphertext) -> Result<()>;
 
 	/// Squares `a`.
 	///  * `a` - the value to square.
-	fn square(
-		&self,
-		a: &Ciphertext,
-	) -> Result<Ciphertext>;
+	fn square(&self, a: &Ciphertext) -> Result<Ciphertext>;
 
 	/// Given a ciphertext encrypted modulo q_1...q_k, this function switches the modulus down to q_1...q_{k-1} and
 	/// stores the result in the destination parameter.
@@ -116,10 +77,7 @@ pub trait Evaluator {
 	/// If you haven't set up a modulus chain, don't use this.
 	///
 	/// TODO: what does this mean for CKKS?
-	fn mod_switch_to_next(
-		&self,
-		a: &Ciphertext,
-	) -> Result<Ciphertext>;
+	fn mod_switch_to_next(&self, a: &Ciphertext) -> Result<Ciphertext>;
 
 	/// Given a ciphertext encrypted modulo q_1...q_k, this function switches the modulus down to q_1...q_{k-1} and
 	/// stores the result in the destination parameter. This does function does so in-place.
@@ -131,23 +89,14 @@ pub trait Evaluator {
 	/// If you haven't set up a modulus chain, don't use this.
 	///
 	/// TODO: what does this mean for CKKS?
-	fn mod_switch_to_next_inplace(
-		&self,
-		a: &Ciphertext,
-	) -> Result<()>;
+	fn mod_switch_to_next_inplace(&self, a: &Ciphertext) -> Result<()>;
 
 	/// Modulus switches an NTT transformed plaintext from modulo q_1...q_k down to modulo q_1...q_{k-1}.
-	fn mod_switch_to_next_plaintext(
-		&self,
-		a: &Plaintext,
-	) -> Result<Plaintext>;
+	fn mod_switch_to_next_plaintext(&self, a: &Plaintext) -> Result<Plaintext>;
 
 	/// Modulus switches an NTT transformed plaintext from modulo q_1...q_k down to modulo q_1...q_{k-1}.
 	/// This variant does so in-place.
-	fn mod_switch_to_next_inplace_plaintext(
-		&self,
-		a: &Plaintext,
-	) -> Result<()>;
+	fn mod_switch_to_next_inplace_plaintext(&self, a: &Plaintext) -> Result<()>;
 
 	/// This functions raises encrypted to a power and stores the result in the destination parameter. Dynamic
 	/// memory allocations in the process are allocated from the memory pool pointed to by the given
@@ -176,56 +125,32 @@ pub trait Evaluator {
 	/// Adds a ciphertext and a plaintext.
 	/// * `a` - the ciphertext
 	/// * `b` - the plaintext
-	fn add_plain(
-		&self,
-		a: &Ciphertext,
-		b: &Plaintext,
-	) -> Result<Ciphertext>;
+	fn add_plain(&self, a: &Ciphertext, b: &Plaintext) -> Result<Ciphertext>;
 
 	/// Adds a ciphertext and a plaintext.
 	/// * `a` - the ciphertext
 	/// * `b` - the plaintext
-	fn add_plain_inplace(
-		&self,
-		a: &mut Ciphertext,
-		b: &Plaintext,
-	) -> Result<()>;
+	fn add_plain_inplace(&self, a: &mut Ciphertext, b: &Plaintext) -> Result<()>;
 
 	/// Subtract a plaintext from a ciphertext.
 	/// * `a` - the ciphertext
 	/// * `b` - the plaintext
-	fn sub_plain(
-		&self,
-		a: &Ciphertext,
-		b: &Plaintext,
-	) -> Result<Ciphertext>;
+	fn sub_plain(&self, a: &Ciphertext, b: &Plaintext) -> Result<Ciphertext>;
 
 	/// Subtract a plaintext from a ciphertext and store the result in the ciphertext.
 	///  * `a` - the ciphertext
 	///  * `b` - the plaintext
-	fn sub_plain_inplace(
-		&self,
-		a: &mut Ciphertext,
-		b: &Plaintext,
-	) -> Result<()>;
+	fn sub_plain_inplace(&self, a: &mut Ciphertext, b: &Plaintext) -> Result<()>;
 
 	/// Multiply a ciphertext by a plaintext.
 	///  * `a` - the ciphertext
 	///  * `b` - the plaintext
-	fn multiply_plain(
-		&self,
-		a: &Ciphertext,
-		b: &Plaintext,
-	) -> Result<Ciphertext>;
+	fn multiply_plain(&self, a: &Ciphertext, b: &Plaintext) -> Result<Ciphertext>;
 
 	/// Multiply a ciphertext by a plaintext and store in the ciphertext.
 	///  * `a` - the ciphertext
 	///  * `b` - the plaintext
-	fn multiply_plain_inplace(
-		&self,
-		a: &mut Ciphertext,
-		b: &Plaintext,
-	) -> Result<()>;
+	fn multiply_plain_inplace(&self, a: &mut Ciphertext, b: &Plaintext) -> Result<()>;
 
 	/// This functions relinearizes a ciphertext in-place, reducing it to 2 polynomials. This
 	/// reduces future noise growth under multiplication operations.
@@ -237,11 +162,7 @@ pub trait Evaluator {
 
 	/// This functions relinearizes a ciphertext, reducing it to 2 polynomials. This
 	/// reduces future noise growth under multiplication operations.
-	fn relinearize(
-		&self,
-		a: &Ciphertext,
-		relin_keys: &RelinearizationKeys,
-	) -> Result<Ciphertext>;
+	fn relinearize(&self, a: &Ciphertext, relin_keys: &RelinearizationKeys) -> Result<Ciphertext>;
 
 	/// Rotates plaintext matrix rows cyclically.
 	///
@@ -286,11 +207,7 @@ pub trait Evaluator {
 	///
 	/// * `encrypted` - The ciphertext to rotate
 	/// * `galoisKeys` - The Galois keys
-	fn rotate_columns(
-		&self,
-		a: &Ciphertext,
-		galois_keys: &GaloisKeys,
-	) -> Result<Ciphertext>;
+	fn rotate_columns(&self, a: &Ciphertext, galois_keys: &GaloisKeys) -> Result<Ciphertext>;
 
 	/// Rotates plaintext matrix columns cyclically. This variant does so in-place.
 	///
@@ -301,9 +218,5 @@ pub trait Evaluator {
 	///
 	/// * `encrypted` - The ciphertext to rotate
 	/// * `galoisKeys` - The Galois keys
-	fn rotate_columns_inplace(
-		&self,
-		a: &Ciphertext,
-		galois_keys: &GaloisKeys,
-	) -> Result<()>;
+	fn rotate_columns_inplace(&self, a: &Ciphertext, galois_keys: &GaloisKeys) -> Result<()>;
 }
