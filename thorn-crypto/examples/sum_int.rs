@@ -7,14 +7,14 @@ use thorn_seal::{
 fn main() -> anyhow::Result<()> {
 	// generate keypair to encrypt and decrypt data.
 	let degree = 8192;
-	let lane_bits = 17;
+	let bit_size = 60;
 	let security_level = SecurityLevel::TC128;
 
 	let expand_mod_chain = false;
 	let encryption_parameters: EncryptionParameters = BfvEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(CoefficientModulus::bfv_default(degree, security_level)?)
-		.set_plain_modulus(PlainModulus::batching(degree, lane_bits)?)
+		.set_plain_modulus(PlainModulus::batching(degree, bit_size)?)
 		.build()?;
 
 	let ctx = Context::new(&encryption_parameters, expand_mod_chain, security_level)?;
@@ -30,11 +30,17 @@ fn main() -> anyhow::Result<()> {
 
 	let evaluator = BFVEvaluator::new(&ctx)?;
 
-	let x = 5;
-	let y = 10;
+	let x = 5000001231231313;
+	let y = 1000123123132131;
 
-	let x_enc = encryptor.encrypt(&encoder.encode_signed(&[x])?)?;
-	let y_enc = encryptor.encrypt(&encoder.encode_signed(&[y])?)?;
+	let x_encoded = encoder.encode_signed(&[x])?;
+	let y_encoded = encoder.encode_signed(&[y])?;
+
+	println!("x_encoded: {:?}", x_encoded);
+	println!("y_encoded: {:?}", y_encoded);
+
+	let x_enc = encryptor.encrypt(&x_encoded)?;
+	let y_enc = encryptor.encrypt(&y_encoded)?;
 
 	println!("Summing x + y...");
 	println!("x: {:#?}", x_enc);
