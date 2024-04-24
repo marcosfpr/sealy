@@ -45,6 +45,7 @@ mod serialization {
 
 mod ciphertext;
 mod context;
+mod context_data;
 mod decryptor;
 mod encoder;
 mod encryptor;
@@ -59,6 +60,7 @@ mod poly_array;
 
 pub use ciphertext::Ciphertext;
 pub use context::Context;
+pub use context_data::ContextData;
 pub use decryptor::Decryptor;
 pub use encoder::bfv::{BFVDecimalEncoder, BFVEncoder, BFVScalarEncoder};
 pub use encoder::ckks::CKKSEncoder;

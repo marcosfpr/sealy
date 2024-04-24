@@ -123,9 +123,8 @@ impl Modulus {
 
 impl Drop for Modulus {
 	fn drop(&mut self) {
-		unsafe {
-			bindgen::Modulus_Destroy(self.handle);
-		}
+		convert_seal_error(unsafe { bindgen::Modulus_Destroy(self.handle) })
+			.expect("Internal error in Modulus::drop().");
 	}
 }
 

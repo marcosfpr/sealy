@@ -2,7 +2,7 @@ use std::ffi::c_void;
 use std::ptr::null_mut;
 
 use crate::error::{convert_seal_error, Result};
-use crate::{bindgen, Context, Plaintext};
+use crate::{bindgen, Context, MemoryPool, Plaintext};
 
 /// To create CKKS plaintexts we need a special encoder: there is no other way
 /// to create them. The BatchEncoder cannot be used with the
@@ -10,6 +10,7 @@ use crate::{bindgen, Context, Plaintext};
 /// Plaintext objects, which can subsequently be encrypted. At a high level this
 /// looks a lot like what BatchEncoder does for the BFV scheme, but the theory
 /// behind it is completely different.
+#[derive(Debug)]
 pub struct CKKSEncoder {
 	handle: *mut c_void,
 }
@@ -40,7 +41,6 @@ impl CKKSEncoder {
 	/// integer coefficients. It is instructive to think of the scale as determining
 	/// the bit-precision of the encoding; naturally it will affect the precision of
 	/// the result.
-
 	/// In CKKS the message is stored modulo coeff_modulus (in BFV it is stored modulo
 	/// plain_modulus), so the scaled message must not get too close to the total size
 	/// of coeff_modulus. In this case our coeff_modulus is quite large (200 bits) so
@@ -49,20 +49,25 @@ impl CKKSEncoder {
 	///
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
 	///  * `scale` - The scaling factor
-	pub fn encode(&self, data: &[f64], scale: f64) -> Result<Plaintext> {
+	///  * `context` - The context
+	pub fn encode(&self, data: &[f64], ctx: &Context, scale: f64) -> Result<Plaintext> {
+		let mem = MemoryPool::new()?;
+
 		let plaintext = Plaintext::new()?;
 
 		// I pinky promise SEAL won't mutate data, the C bindings just aren't
 		// const correct.
 		convert_seal_error(unsafe {
+			let mut parms_id = ctx.get_first_parms_id()?;
+			let parms_id_ptr = parms_id.as_mut_ptr();
 			bindgen::CKKSEncoder_Encode1(
 				self.handle,
 				data.len() as u64,
 				data.as_ptr() as *mut f64,
-				null_mut(),
+				parms_id_ptr,
 				scale,
 				plaintext.get_handle(),
-				null_mut(),
+				mem.get_handle(),
 			)
 		})?;
 

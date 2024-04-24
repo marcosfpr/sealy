@@ -22,7 +22,7 @@ impl CkksEncryptionParametersBuilder {
 		}
 	}
 
-	/// Set the degree of the polynomial used in the BFV scheme. Genrally,
+	/// Set the degree of the polynomial used in the CKKS scheme. Genrally,
 	/// larger values provide more security and noise margin at the expense
 	/// of performance.
 	pub fn set_poly_modulus_degree(mut self, degree: u64) -> Self {
@@ -44,7 +44,7 @@ impl CkksEncryptionParametersBuilder {
 
 	/// Validate the parameter choices and return the encryption parameters.
 	pub fn build(self) -> Result<EncryptionParameters, Error> {
-		let params = EncryptionParameters::new(SchemeType::Bfv)?;
+		let params = EncryptionParameters::new(SchemeType::Ckks)?;
 
 		convert_seal_error(unsafe {
 			bindgen::EncParams_SetPolyModulusDegree(
@@ -84,16 +84,17 @@ mod tests {
 
 	#[test]
 	fn can_build_params() {
+		let bit_sizes = [60, 40, 40, 60];
+		let modulus_chain = CoefficientModulus::create(1024, bit_sizes.as_slice()).unwrap();
+
 		let params = CkksEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(1024)
-			.set_coefficient_modulus(
-				CoefficientModulus::bfv_default(1024, SecurityLevel::default()).unwrap(),
-			)
+			.set_coefficient_modulus(modulus_chain)
 			.build()
 			.unwrap();
 
 		assert_eq!(params.get_poly_modulus_degree(), 1024);
-		assert_eq!(params.get_scheme(), SchemeType::Bfv);
+		assert_eq!(params.get_scheme(), SchemeType::Ckks);
 		assert_eq!(params.get_coefficient_modulus().len(), 1);
 		assert_eq!(params.get_coefficient_modulus()[0].value(), 132120577);
 
@@ -108,7 +109,7 @@ mod tests {
 		let modulus = params.get_coefficient_modulus();
 
 		assert_eq!(params.get_poly_modulus_degree(), 1024);
-		assert_eq!(params.get_scheme(), SchemeType::Bfv);
+		assert_eq!(params.get_scheme(), SchemeType::Ckks);
 		assert_eq!(modulus.len(), 5);
 		assert_eq!(modulus[0].value(), 1125899905744897);
 		assert_eq!(modulus[1].value(), 1073643521);

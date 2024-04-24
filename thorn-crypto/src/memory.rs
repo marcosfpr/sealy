@@ -24,13 +24,17 @@ impl MemoryPool {
 			handle,
 		})
 	}
+
+	/// Returns handle to the underlying SEAL object.
+	pub fn get_handle(&self) -> *mut c_void {
+		self.handle
+	}
 }
 
 impl Drop for MemoryPool {
 	fn drop(&mut self) {
-		unsafe {
-			bindgen::MemoryPoolHandle_Destroy(self.handle);
-		}
+		convert_seal_error(unsafe { bindgen::MemoryPoolHandle_Destroy(self.handle) })
+			.expect("Internal error in MemoryPool::drop().");
 	}
 }
 
