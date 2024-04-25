@@ -1,10 +1,7 @@
 use thorn_seal::*;
 
-pub fn run_bfv_test<F>(
-	lane_bits: u32,
-	degree: u64,
-	test: F,
-) where
+pub fn run_bfv_test<F>(lane_bits: u32, degree: u64, test: F)
+where
 	F: FnOnce(Decryptor, BFVEncoder, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 {
 	let params = BfvEncryptionParametersBuilder::new()
