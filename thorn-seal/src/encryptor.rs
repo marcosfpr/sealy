@@ -35,7 +35,10 @@ pub struct SymmetricComponents {
 }
 
 impl core::fmt::Debug for AsymmetricComponents {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+	fn fmt(
+		&self,
+		f: &mut core::fmt::Formatter,
+	) -> core::fmt::Result {
 		f.debug_struct("AsymmetricComponents")
 			.field("u", &"<ELIDED>")
 			.field("e", &"<ELIDED>")
@@ -45,7 +48,10 @@ impl core::fmt::Debug for AsymmetricComponents {
 }
 
 impl core::fmt::Debug for SymmetricComponents {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+	fn fmt(
+		&self,
+		f: &mut core::fmt::Formatter,
+	) -> core::fmt::Result {
 		f.debug_struct("SymmetricComponents")
 			.field("e", &"<ELIDED>")
 			.field("r", &"<ELIDED>")
@@ -156,7 +162,10 @@ impl Encryptor {
 
 	/// Creates an Encryptor instance initialized with the specified SEALContext,
 	/// public key.
-	pub fn with_public_key(ctx: &Context, public_key: &PublicKey) -> Result<AsymmetricEncryptor> {
+	pub fn with_public_key(
+		ctx: &Context,
+		public_key: &PublicKey,
+	) -> Result<AsymmetricEncryptor> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -176,7 +185,10 @@ impl Encryptor {
 
 	/// Creates an Encryptor instance initialized with the specified SEALContext and
 	/// secret key.
-	pub fn with_secret_key(ctx: &Context, secret_key: &SecretKey) -> Result<SymmetricEncryptor> {
+	pub fn with_secret_key(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<SymmetricEncryptor> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -197,21 +209,31 @@ impl Encryptor {
 
 impl AsymmetricEncryptor {
 	/// Create a new asymmetric encryptor.
-	pub fn new(ctx: &Context, public_key: &PublicKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		public_key: &PublicKey,
+	) -> Result<Self> {
 		Encryptor::with_public_key(ctx, public_key)
 	}
 }
 
 impl SymmetricEncryptor {
 	/// Create a new symmetric encryptor.
-	pub fn new(ctx: &Context, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		Encryptor::with_secret_key(ctx, secret_key)
 	}
 }
 
 impl SymAsymEncryptor {
 	/// Create a new encryptor capable of both symmetric and asymmetric encryption.
-	pub fn new(ctx: &Context, public_key: &PublicKey, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		public_key: &PublicKey,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		Encryptor::with_public_and_secret_key(ctx, public_key, secret_key)
 	}
 }
@@ -227,7 +249,10 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
-	pub fn encrypt(&self, plaintext: &Plaintext) -> Result<Ciphertext> {
+	pub fn encrypt(
+		&self,
+		plaintext: &Plaintext,
+	) -> Result<Ciphertext> {
 		// We don't call the encrypt_return_components because the return
 		// components are allocated on the SEAL global memory pool. By calling
 		// the regular encrypt function, we skip that allocation.
@@ -396,7 +421,10 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
-	pub fn encrypt_symmetric(&self, plaintext: &Plaintext) -> Result<Ciphertext> {
+	pub fn encrypt_symmetric(
+		&self,
+		plaintext: &Plaintext,
+	) -> Result<Ciphertext> {
 		// We don't call the encrypt_return_components because the return
 		// components are allocated on the SEAL global memory pool. By calling
 		// the regular encrypt function, we skip that allocation.

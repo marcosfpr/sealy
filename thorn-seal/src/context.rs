@@ -86,7 +86,10 @@ impl Context {
 	/// * `expand_mod_chain` - Determines whether the modulus switching chain
 	/// should be created.
 	#[cfg(feature = "insecure-params")]
-	pub fn new_insecure(params: &EncryptionParameters, expand_mod_chain: bool) -> Result<Self> {
+	pub fn new_insecure(
+		params: &EncryptionParameters,
+		expand_mod_chain: bool,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -140,7 +143,10 @@ impl Context {
 	}
 
 	/// Returns the ContextData given a parms_id.
-	pub fn get_context_data(&self, parms_id: &[u64]) -> Result<ContextData> {
+	pub fn get_context_data(
+		&self,
+		parms_id: &[u64],
+	) -> Result<ContextData> {
 		let mut context_data: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {

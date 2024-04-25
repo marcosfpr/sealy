@@ -21,13 +21,19 @@ unsafe impl Sync for Modulus {}
 unsafe impl Send for Modulus {}
 
 impl std::fmt::Debug for Modulus {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+	fn fmt(
+		&self,
+		f: &mut std::fmt::Formatter<'_>,
+	) -> std::result::Result<(), std::fmt::Error> {
 		write!(f, "{}", self.value())
 	}
 }
 
 impl PartialEq for Modulus {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.value() == other.value()
 	}
 }
@@ -160,7 +166,10 @@ impl CoefficientModulus {
 	/// Modulus elements representing distinct prime numbers of bit-lengths
 	/// as given in the bitSizes parameter. The bit sizes of the prime numbers
 	/// can be at most 60 bits.
-	pub fn create(degree: u64, bit_sizes: &[i32]) -> Result<Vec<Modulus>> {
+	pub fn create(
+		degree: u64,
+		bit_sizes: &[i32],
+	) -> Result<Vec<Modulus>> {
 		let mut bit_sizes = bit_sizes.to_owned();
 		let length = bit_sizes.len() as u64;
 
@@ -189,7 +198,10 @@ impl CoefficientModulus {
 	///
 	/// The coefficient modulus returned by this function will not perform well
 	/// if used with the CKKS scheme.
-	pub fn bfv_default(degree: u64, security_level: SecurityLevel) -> Result<Vec<Modulus>> {
+	pub fn bfv_default(
+		degree: u64,
+		security_level: SecurityLevel,
+	) -> Result<Vec<Modulus>> {
 		let mut len: u64 = 0;
 
 		convert_seal_error(unsafe {
@@ -222,7 +234,10 @@ impl CoefficientModulus {
 	/// of the product of the primes in the coefficient modulus, that guarantees
 	/// a given security level when using a given PolyModulusDegree, according
 	/// to the HomomorphicEncryption.org security standard.
-	pub fn max_bit_count(degree: u64, security_level: SecurityLevel) -> u32 {
+	pub fn max_bit_count(
+		degree: u64,
+		security_level: SecurityLevel,
+	) -> u32 {
 		let mut bits: i32 = 0;
 
 		unsafe { bindgen::CoeffModulus_MaxBitCount(degree, security_level as i32, &mut bits) };
@@ -239,7 +254,10 @@ pub struct PlainModulus;
 impl PlainModulus {
 	/// Creates a prime number Modulus for use as PlainModulus encryption
 	/// parameter that supports batching with a given PolyModulusDegree.
-	pub fn batching(degree: u64, bit_size: u32) -> Result<Modulus> {
+	pub fn batching(
+		degree: u64,
+		bit_size: u32,
+	) -> Result<Modulus> {
 		let bit_sizes = vec![bit_size as i32];
 
 		let modulus_chain = CoefficientModulus::create(degree, bit_sizes.as_slice())?;
