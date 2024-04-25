@@ -76,10 +76,7 @@ impl BFVEncoder {
 	/// The matrix's elements are of type `u64`.
 	///
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
-	pub fn encode_unsigned(
-		&self,
-		data: &[u64],
-	) -> Result<Plaintext> {
+	pub fn encode_unsigned(&self, data: &[u64]) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
 
 		// I pinky promise SEAL won't mutate data, the C bindings just aren't
@@ -107,10 +104,7 @@ impl BFVEncoder {
 	/// The matrix's elements are of type `i64`.
 	///
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
-	pub fn encode_signed(
-		&self,
-		data: &[i64],
-	) -> Result<Plaintext> {
+	pub fn encode_signed(&self, data: &[i64]) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
 
 		// We pinky promise SEAL won't mutate data, the C bindings just aren't
@@ -137,10 +131,7 @@ impl BFVEncoder {
 	/// The input plaintext matrix should be known to contain `u64` elements.
 	///
 	///   * `plain` - The plaintext polynomial to unbatch
-	pub fn decode_unsigned(
-		&self,
-		plaintext: &Plaintext,
-	) -> Result<Vec<u64>> {
+	pub fn decode_unsigned(&self, plaintext: &Plaintext) -> Result<Vec<u64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
@@ -176,10 +167,7 @@ impl BFVEncoder {
 	/// The input plaintext matrix should be known to contain `i64` elements.
 	///
 	///  * `plain` - The plaintext polynomial to unbatch
-	pub fn decode_signed(
-		&self,
-		plaintext: &Plaintext,
-	) -> Result<Vec<i64>> {
+	pub fn decode_signed(&self, plaintext: &Plaintext) -> Result<Vec<i64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
@@ -234,28 +222,19 @@ impl BFVScalarEncoder {
 	}
 
 	/// Encodes a u64 into a Plaintext.
-	pub fn encode_unsigned(
-		&self,
-		val: u64,
-	) -> Result<Plaintext> {
+	pub fn encode_unsigned(&self, val: u64) -> Result<Plaintext> {
 		Plaintext::from_hex_string(&format!("{:x}", val))
 	}
 
 	/// Encodes an i64 into a Plaintext.
-	pub fn encode_signed(
-		&self,
-		val: i64,
-	) -> Result<Plaintext> {
+	pub fn encode_signed(&self, val: i64) -> Result<Plaintext> {
 		let as_u64: u64 = unsafe { std::mem::transmute(val) };
 
 		Plaintext::from_hex_string(&format!("{:x}", as_u64))
 	}
 
 	/// Decodes the plaintext into a u64.
-	pub fn decode_unsigned(
-		&self,
-		p: &Plaintext,
-	) -> Result<u64> {
+	pub fn decode_unsigned(&self, p: &Plaintext) -> Result<u64> {
 		let mut len: u64 = 0;
 		let mut coeff: u64 = 0;
 
@@ -267,10 +246,7 @@ impl BFVScalarEncoder {
 	}
 
 	/// Decodes the plaintext into an i64.
-	pub fn decode_signed(
-		&self,
-		p: &Plaintext,
-	) -> Result<i64> {
+	pub fn decode_signed(&self, p: &Plaintext) -> Result<i64> {
 		let mut len: u64 = 0;
 		let mut coeff: i64 = 0;
 
@@ -306,10 +282,7 @@ impl BFVDecimalEncoder {
 	/// Creates a new instance of BFVFloatEncoder.
 	///
 	/// * `base` - The base to encode the float point number.
-	pub fn new(
-		ctx: &Context,
-		base: u64,
-	) -> Result<Self> {
+	pub fn new(ctx: &Context, base: u64) -> Result<Self> {
 		let encoder = BFVEncoder::new(ctx)?;
 
 		Ok(Self {
@@ -329,10 +302,7 @@ impl BFVDecimalEncoder {
 	/// The matrix's elements are of type `i64`.
 	///
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
-	pub fn encode_float(
-		&self,
-		data: &[f64],
-	) -> Result<Plaintext> {
+	pub fn encode_float(&self, data: &[f64]) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
 
 		let data = self.encode_slice(data);
@@ -361,10 +331,7 @@ impl BFVDecimalEncoder {
 	/// The input plaintext matrix should be known to contain `f64` elements.
 	///
 	///  * `plain` - The plaintext polynomial to unbatch
-	pub fn decode_float(
-		&self,
-		plaintext: &Plaintext,
-	) -> Result<Vec<f64>> {
+	pub fn decode_float(&self, plaintext: &Plaintext) -> Result<Vec<f64>> {
 		let mut data = Vec::with_capacity(self.encoder.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
@@ -393,40 +360,28 @@ impl BFVDecimalEncoder {
 	/// Encodes a float point number as an integer.
 	///
 	/// * `value` - The float point number to encode.
-	fn encode(
-		&self,
-		value: f64,
-	) -> u64 {
+	fn encode(&self, value: f64) -> u64 {
 		(value * self.base as f64).round() as u64
 	}
 
 	/// Decodes an integer to a float point number.
 	///
 	/// * `value` - The integer to decode.
-	fn decode(
-		&self,
-		value: u64,
-	) -> f64 {
+	fn decode(&self, value: u64) -> f64 {
 		value as f64 / self.base as f64
 	}
 
 	/// Encodes a slice of float point numbers as integers.
 	///
 	/// * `values` - The slice of float point numbers to encode.
-	fn encode_slice(
-		&self,
-		values: &[f64],
-	) -> Vec<u64> {
+	fn encode_slice(&self, values: &[f64]) -> Vec<u64> {
 		values.iter().map(|v| self.encode(*v)).collect()
 	}
 
 	/// Decodes a slice of integers to float point numbers.
 	///
 	/// * `values` - The slice of integers to decode.
-	fn decode_slice(
-		&self,
-		values: &[u64],
-	) -> Vec<f64> {
+	fn decode_slice(&self, values: &[u64]) -> Vec<f64> {
 		values.iter().map(|v| self.decode(*v)).collect()
 	}
 }

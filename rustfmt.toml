@@ -3,7 +3,7 @@
 
 # When defining a function, put each argument on its own line
 # Default value: "Tall"
-fn_params_layout = "Vertical"
+fn_params_layout = "Compressed"
 
 # Use tab characters for indentation, spaces for alignment
 # Default value: false
