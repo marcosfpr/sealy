@@ -21,3 +21,4 @@ message Node {
   uint64 node_id = 1;
   bool anonymous = 2; 
 }
+

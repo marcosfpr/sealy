@@ -1,9 +1,21 @@
-fn main() {
-	tonic_build::compile_protos("proto/thorn/recordset.proto").unwrap();
-	tonic_build::compile_protos("proto/thorn/node.proto").unwrap();
-	tonic_build::compile_protos("proto/thorn/error.proto").unwrap();
-	tonic_build::compile_protos("proto/thorn/task.proto").unwrap();
-	tonic_build::compile_protos("proto/thorn/driver.proto").unwrap();
-	tonic_build::compile_protos("proto/thorn/fleet.proto").unwrap();
-	tonic_build::compile_protos("proto/thorn/coordinator.proto").unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+	println!("Compiling proto files...");
+
+	tonic_build::configure()
+		.build_client(true)
+		.build_server(true)
+		.compile(
+			&[
+				"proto/thorn/driver.proto",
+				"proto/thorn/error.proto",
+				"proto/thorn/fleet.proto",
+				"proto/thorn/node.proto",
+				"proto/thorn/task.proto",
+				"proto/thorn/coordinator.proto",
+				"proto/thorn/recordset.proto",
+			],
+			&["proto/thorn"],
+		)?;
+
+	Ok(())
 }

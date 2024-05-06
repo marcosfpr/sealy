@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 syntax = "proto3";
 
 package thorn;
 
 import "node.proto";
-import "task.proto";
 
+/// Node fleet service.
 service Fleet {
   rpc CreateNode(CreateNodeRequest) returns (CreateNodeResponse) {}
   rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse) {}
@@ -37,4 +36,3 @@ message DeleteNodeResponse {}
 // Ping messages
 message PingRequest { Node node = 1; }
 message PingResponse { bool success = 1; }
-

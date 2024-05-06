@@ -1,3 +1,6 @@
+/// Auto-generated protocol buffers.
+pub mod autogen;
+
 /// Coordinator primitives.
 pub mod coordinator;
 

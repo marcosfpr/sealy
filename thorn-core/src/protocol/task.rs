@@ -1,6 +1,7 @@
-pub mod thorn_proto {
-	tonic::include_proto!("thorn");
-}
+//! This module contains re-exports from the generated protocol buffers code.
+//!
+//! The generated code is not meant to be used directly, but rather through the re-exports in this module.
+use super::autogen::thorn_proto;
 
 /// A [`Task`] corresponds to a single unit of work that is to be performed by a
 /// [`Node`].
