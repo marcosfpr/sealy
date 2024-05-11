@@ -30,3 +30,9 @@ pub use thorn_proto::fleet_client::FleetClient;
 ///
 /// It provides a way to create, delete and ping nodes in the network.
 pub use thorn_proto::fleet_server::FleetServer;
+
+/// The [`Fleet`] trait is used to implement the fleet service in the federated network that will
+/// be served by the [`FleetServer`] and accessed by the [`FleetClient`].
+///
+/// It provides a way to create, delete and ping nodes in the network.
+pub use thorn_proto::fleet_server::Fleet;
