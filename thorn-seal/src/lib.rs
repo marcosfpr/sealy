@@ -57,6 +57,7 @@ mod modulus;
 mod parameters;
 mod plaintext;
 mod poly_array;
+// mod tensor;
 
 pub use ciphertext::Ciphertext;
 pub use context::Context;

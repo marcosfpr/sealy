@@ -3,7 +3,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rand::Rng;
 use thorn_seal::{
 	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
-	Context, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator, SecurityLevel,
+	Context, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
+	SecurityLevel,
 };
 
 fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
@@ -18,7 +19,7 @@ fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<
 	clients
 }
 
-fn create_ckks_context(degree: u64, bit_sizes: &[i32]) -> Result<Context, Error> {
+fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
@@ -61,7 +62,8 @@ fn criterion_benchmark(c: &mut Criterion) {
 	println!("done");
 
 	print!("Creating CKKS context...");
-	let ctx = create_ckks_context(32768, &[60, 40, 40, 60]).expect("Failed to create CKKS context");
+	let ctx = create_ckks_context(DegreeType::D32768, &[60, 40, 40, 60])
+		.expect("Failed to create CKKS context");
 	println!("done");
 
 	let key_gen = KeyGenerator::new(&ctx).expect("Failed to create key generator");

@@ -1,11 +1,12 @@
 use thorn_seal::{
 	CKKSEncoder, CKKSEvaluator, CkksEncryptionParametersBuilder, CoefficientModulus, Context,
-	Decryptor, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator, SecurityLevel,
+	Decryptor, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
+	SecurityLevel,
 };
 
 fn main() -> Result<(), Error> {
 	// generate keypair to encrypt and decrypt data.
-	let degree = 8192;
+	let degree = DegreeType::D8192;
 	let security_level = SecurityLevel::TC128;
 	let bit_sizes = [60, 40, 40, 60];
 

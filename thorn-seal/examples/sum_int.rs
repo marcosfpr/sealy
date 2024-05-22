@@ -1,18 +1,18 @@
 use thorn_seal::{
 	BFVEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
-	Decryptor, EncryptionParameters, Encryptor, Evaluator, KeyGenerator, PlainModulus,
+	Decryptor, DegreeType, EncryptionParameters, Encryptor, Evaluator, KeyGenerator, PlainModulus,
 	SecurityLevel,
 };
 
 fn main() -> anyhow::Result<()> {
 	// generate keypair to encrypt and decrypt data.
-	let degree = 8192;
+	let degree = DegreeType::D8192;
 	let bit_size = 60;
 	let security_level = SecurityLevel::TC128;
 
 	let expand_mod_chain = false;
 	let encryption_parameters: EncryptionParameters = BfvEncryptionParametersBuilder::new()
-		.set_poly_modulus_degree(degree)
+		.set_poly_modulus_degree(DegreeType::D8192)
 		.set_coefficient_modulus(CoefficientModulus::bfv_default(degree, security_level)?)
 		.set_plain_modulus(PlainModulus::batching(degree, bit_size)?)
 		.build()?;

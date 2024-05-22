@@ -133,7 +133,9 @@ impl Encryptor {
 	/// * `publicKey` - The public key
 	/// * `secretKey` - The secret key
 	pub fn with_public_and_secret_key(
-		ctx: &Context, public_key: &PublicKey, secret_key: &SecretKey,
+		ctx: &Context,
+		public_key: &PublicKey,
+		secret_key: &SecretKey,
 	) -> Result<Encryptor<SymAsym>> {
 		let mut handle: *mut c_void = null_mut();
 
@@ -255,7 +257,8 @@ impl<T: marker::Asym> Encryptor<T> {
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt_return_components(
-		&self, plaintext: &Plaintext,
+		&self,
+		plaintext: &Plaintext,
 	) -> Result<(Ciphertext, AsymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -302,7 +305,9 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<Ciphertext> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -345,7 +350,9 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_return_components_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<(Ciphertext, AsymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -425,7 +432,9 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_symmetric_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<Ciphertext> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -459,7 +468,8 @@ impl<T: marker::Sym> Encryptor<T> {
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt_symmetric_return_components(
-		&self, plaintext: &Plaintext,
+		&self,
+		plaintext: &Plaintext,
 	) -> Result<(Ciphertext, SymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -503,7 +513,9 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_symmetric_return_components_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<(Ciphertext, SymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -548,9 +560,9 @@ mod tests {
 		F: FnOnce(BfvEncryptionParametersBuilder) -> BfvEncryptionParametersBuilder,
 	{
 		let builder = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234);
 		let params = enc_modifier(builder).build().unwrap();

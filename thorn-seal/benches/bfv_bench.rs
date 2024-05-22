@@ -3,8 +3,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rand::Rng;
 use thorn_seal::{
 	BFVDecimalEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, Ciphertext,
-	CoefficientModulus, Context, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
-	PlainModulus, SecurityLevel,
+	CoefficientModulus, Context, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator,
+	KeyGenerator, PlainModulus, SecurityLevel,
 };
 
 fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
@@ -19,7 +19,7 @@ fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<
 	clients
 }
 
-fn create_bfv_context(degree: u64, bit_size: u32) -> Result<Context, Error> {
+fn create_bfv_context(degree: DegreeType, bit_size: u32) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::bfv_default(degree, security_level)?;
@@ -63,7 +63,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 	println!("done");
 
 	print!("Creating BFV context...");
-	let ctx = create_bfv_context(32768, 60).expect("Failed to create BFV context");
+	let ctx = create_bfv_context(DegreeType::D32768, 60).expect("Failed to create BFV context");
 	println!("done");
 
 	let key_gen = KeyGenerator::new(&ctx).expect("Failed to create key generator");

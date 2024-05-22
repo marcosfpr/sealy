@@ -126,9 +126,9 @@ mod tests {
 		F: FnOnce(BfvEncryptionParametersBuilder) -> BfvEncryptionParametersBuilder,
 	{
 		let builder = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234);
 		let params = enc_modifier(builder).build().unwrap();
@@ -139,9 +139,9 @@ mod tests {
 	#[test]
 	fn can_create_and_destroy_decryptor() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -158,7 +158,8 @@ mod tests {
 
 	#[test]
 	fn can_encrypt_and_decrypt_unsigned() {
-		let ctx = mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap()));
+		let ctx =
+			mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap()));
 		let gen = KeyGenerator::new(&ctx).unwrap();
 
 		let encoder = BFVEncoder::new(&ctx).unwrap();
@@ -193,7 +194,8 @@ mod tests {
 
 	#[test]
 	fn can_encrypt_and_decrypt_signed() {
-		let ctx = mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap()));
+		let ctx =
+			mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap()));
 		let gen = KeyGenerator::new(&ctx).unwrap();
 
 		let encoder = BFVEncoder::new(&ctx).unwrap();
@@ -228,7 +230,8 @@ mod tests {
 
 	#[test]
 	fn can_encrypt_and_decrypt_from_return_components() {
-		let ctx = mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap()));
+		let ctx =
+			mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap()));
 		let gen = KeyGenerator::new(&ctx).unwrap();
 
 		let encoder = BFVEncoder::new(&ctx).unwrap();

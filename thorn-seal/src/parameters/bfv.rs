@@ -1,6 +1,9 @@
 use std::ffi::c_void;
 
-use crate::{bindgen, error::convert_seal_error, EncryptionParameters, Error, Modulus, SchemeType};
+use crate::{
+	bindgen, error::convert_seal_error, DegreeType, EncryptionParameters, Error, Modulus,
+	ModulusDegreeType, SchemeType,
+};
 
 use super::{CoefficientModulusType, PlainModulusType};
 
@@ -9,7 +12,7 @@ use super::{CoefficientModulusType, PlainModulusType};
 /// significantly affect the performance, capabilities, and security of the
 /// encryption scheme.
 pub struct BfvEncryptionParametersBuilder {
-	poly_modulus_degree: Option<u64>,
+	poly_modulus_degree: ModulusDegreeType,
 	coefficient_modulus: CoefficientModulusType,
 	plain_modulus: PlainModulusType,
 }
@@ -18,7 +21,7 @@ impl BfvEncryptionParametersBuilder {
 	/// Creates a new builder.
 	pub fn new() -> Self {
 		Self {
-			poly_modulus_degree: None,
+			poly_modulus_degree: ModulusDegreeType::NotSet,
 			coefficient_modulus: CoefficientModulusType::NotSet,
 			plain_modulus: PlainModulusType::NotSet,
 		}
@@ -27,8 +30,8 @@ impl BfvEncryptionParametersBuilder {
 	/// Set the degree of the polynomial used in the BFV scheme. Genrally,
 	/// larger values provide more security and noise margin at the expense
 	/// of performance.
-	pub fn set_poly_modulus_degree(mut self, degree: u64) -> Self {
-		self.poly_modulus_degree = Some(degree);
+	pub fn set_poly_modulus_degree(mut self, degree: DegreeType) -> Self {
+		self.poly_modulus_degree = ModulusDegreeType::Constant(degree);
 		self
 	}
 
@@ -66,7 +69,7 @@ impl BfvEncryptionParametersBuilder {
 		convert_seal_error(unsafe {
 			bindgen::EncParams_SetPolyModulusDegree(
 				params.handle,
-				self.poly_modulus_degree.ok_or(Error::DegreeNotSet)?,
+				self.poly_modulus_degree.try_into()?,
 			)
 		})?;
 
@@ -116,9 +119,10 @@ mod tests {
 	#[test]
 	fn can_build_params() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(1024)
+			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(
-				CoefficientModulus::bfv_default(1024, SecurityLevel::default()).unwrap(),
+				CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::default())
+					.unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -131,9 +135,9 @@ mod tests {
 		assert_eq!(params.get_coefficient_modulus()[0].value(), 132120577);
 
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(1024)
+			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()

@@ -393,11 +393,11 @@ mod tests {
 	#[test]
 	fn can_create_and_drop_bfv_encoder() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -411,11 +411,11 @@ mod tests {
 	#[test]
 	fn can_get_slots_bfv_encoder() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -429,11 +429,11 @@ mod tests {
 	#[test]
 	fn can_get_encode_and_decode_unsigned() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -456,11 +456,11 @@ mod tests {
 	#[test]
 	fn can_get_encode_and_decode_signed() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -502,11 +502,11 @@ mod tests {
 	#[ignore = "Not working yet because of integer size limitation of BFV"]
 	fn can_get_encode_and_decode_float() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 

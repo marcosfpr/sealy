@@ -47,7 +47,9 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn multiply_many(
-		&self, a: &[Ciphertext], relin_keys: &RelinearizationKeys,
+		&self,
+		a: &[Ciphertext],
+		relin_keys: &RelinearizationKeys,
 	) -> Result<Ciphertext> {
 		self.0.multiply_many(a, relin_keys)
 	}
@@ -93,13 +95,19 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn exponentiate(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self,
+		a: &Ciphertext,
+		exponent: u64,
+		relin_keys: &RelinearizationKeys,
 	) -> Result<Ciphertext> {
 		self.0.exponentiate(a, exponent, relin_keys)
 	}
 
 	fn exponentiate_inplace(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self,
+		a: &Ciphertext,
+		exponent: u64,
+		relin_keys: &RelinearizationKeys,
 	) -> Result<()> {
 		self.0.exponentiate_inplace(a, exponent, relin_keys)
 	}
@@ -129,7 +137,9 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn relinearize_inplace(
-		&self, a: &mut Ciphertext, relin_keys: &RelinearizationKeys,
+		&self,
+		a: &mut Ciphertext,
+		relin_keys: &RelinearizationKeys,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_Relinearize(
@@ -161,7 +171,10 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn rotate_rows(
-		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self,
+		a: &Ciphertext,
+		steps: i32,
+		galois_keys: &GaloisKeys,
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
@@ -180,7 +193,10 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn rotate_rows_inplace(
-		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self,
+		a: &Ciphertext,
+		steps: i32,
+		galois_keys: &GaloisKeys,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_RotateRows(
@@ -237,11 +253,11 @@ mod tests {
 		F: FnOnce(Decryptor, BFVEncoder, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 	{
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 32).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 32).unwrap())
 			.build()
 			.unwrap();
 
@@ -284,11 +300,11 @@ mod tests {
 	#[test]
 	fn can_create_and_destroy_evaluator() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 

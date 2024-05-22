@@ -1,8 +1,8 @@
 use rand::Rng;
 use thorn_seal::{
 	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
-	Context, Decryptor, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
-	SecurityLevel,
+	Context, Decryptor, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator,
+	KeyGenerator, SecurityLevel,
 };
 
 fn generate_random_tensor(size: usize) -> Vec<f64> {
@@ -14,7 +14,7 @@ fn generate_random_tensor(size: usize) -> Vec<f64> {
 	tensor
 }
 
-fn create_ckks_context(degree: u64, bit_sizes: &[i32]) -> Result<Context, Error> {
+fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
@@ -60,7 +60,7 @@ fn average_plaintexts(plaintexts: &[Vec<f64>]) -> Vec<f64> {
 
 /// Average simulating the averaging of gradients of 3 clients in a federated learning setting
 fn main() -> Result<(), Error> {
-	let ctx = create_ckks_context(8192, &[60, 40, 40, 60])?;
+	let ctx = create_ckks_context(DegreeType::D8192, &[60, 40, 40, 60])?;
 
 	let key_gen = KeyGenerator::new(&ctx)?;
 	let encoder = CKKSEncoder::new(&ctx)?;
