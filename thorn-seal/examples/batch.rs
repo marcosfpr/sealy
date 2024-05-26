@@ -1,7 +1,7 @@
 use thorn_seal::{
-	CKKSEncoder, CKKSEvaluator, CkksEncryptionParametersBuilder, CoefficientModulus, Context,
-	Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator,
-	KeyGenerator, SecurityLevel,
+	BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, CKKSEvaluator,
+	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
+	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn main() -> Result<(), Error> {
@@ -20,15 +20,16 @@ fn main() -> Result<(), Error> {
 	let ctx = Context::new(&encryption_parameters, expand_mod_chain, security_level)?;
 
 	let key_gen = KeyGenerator::new(&ctx)?;
-	let encoder = CKKSEncoder::new(&ctx, 2.0f64.powi(40))?;
+
+	let encoder = BatchEncoder::new(CKKSEncoder::new(&ctx, 2.0f64.powi(40))?);
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
 
-	let encryptor = Encryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
-	let decryptor = Decryptor::new(&ctx, &private_key)?;
+	let encryptor = BatchEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
+	let decryptor = BatchDecryptor::new(&ctx, &private_key)?;
 
-	let evaluator = CKKSEvaluator::new(&ctx)?;
+	let evaluator = BatchEvaluator::new(CKKSEvaluator::new(&ctx)?);
 
 	let x = 5.2;
 	let y = 3.3;
@@ -49,8 +50,6 @@ fn main() -> Result<(), Error> {
 
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
-
-	let sum_dec = encoder.decode(&sum_dec)?;
 
 	println!("Sum: {:?}", sum_dec.first());
 

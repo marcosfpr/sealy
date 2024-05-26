@@ -290,6 +290,7 @@ impl Drop for PolynomialArray {
 #[cfg(test)]
 mod tests {
 	use crate::{
+		encoder::{Encoder, SlotCount},
 		AsymmetricComponents, BFVEncoder, BfvEncryptionParametersBuilder, CoefficientModulus,
 		DegreeType, Encryptor, KeyGenerator, Modulus, PlainModulus, Plaintext, SecurityLevel,
 	};
@@ -357,7 +358,7 @@ mod tests {
 			data.push(i as u64)
 		}
 
-		let plaintext = encoder.encode_unsigned(&data).unwrap();
+		let plaintext = encoder.encode(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();

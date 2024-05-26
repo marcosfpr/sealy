@@ -1,7 +1,7 @@
 use rand::Rng;
 use thorn_seal::{
 	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
-	Context, Decryptor, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator,
+	Context, Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator,
 	KeyGenerator, SecurityLevel,
 };
 
@@ -29,18 +29,14 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn average_ciphertexts(
-	ctx: &Context,
-	encoder: &CKKSEncoder,
-	ciphertexts: &[Ciphertext],
-	size: usize,
-	scale: f64,
+	ctx: &Context, encoder: &CKKSEncoder, ciphertexts: &[Ciphertext], size: usize,
 ) -> Result<Ciphertext, Error> {
 	let evaluator = CKKSEvaluator::new(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; size];
-	let fraction = encoder.encode(&fraction, ctx, scale)?;
+	let fraction = encoder.encode(&fraction)?;
 
 	evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -63,8 +59,9 @@ fn main() -> Result<(), Error> {
 	let ctx = create_ckks_context(DegreeType::D8192, &[60, 40, 40, 60])?;
 
 	let key_gen = KeyGenerator::new(&ctx)?;
-	let encoder = CKKSEncoder::new(&ctx)?;
+
 	let scale = 2.0f64.powi(40);
+	let encoder = CKKSEncoder::new(&ctx, scale)?;
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
@@ -77,9 +74,9 @@ fn main() -> Result<(), Error> {
 	println!("client_2_gradients: {:?}", client_2_gradients);
 	println!("client_3_gradients: {:?}", client_3_gradients);
 
-	let client_1_encoded_gradients = encoder.encode(&client_1_gradients, &ctx, scale)?;
-	let client_2_encoded_gradients = encoder.encode(&client_2_gradients, &ctx, scale)?;
-	let client_3_encoded_gradients = encoder.encode(&client_3_gradients, &ctx, scale)?;
+	let client_1_encoded_gradients = encoder.encode(&client_1_gradients)?;
+	let client_2_encoded_gradients = encoder.encode(&client_2_gradients)?;
+	let client_3_encoded_gradients = encoder.encode(&client_3_gradients)?;
 
 	println!(
 		"client_1_encoded_gradients: {:?}",
@@ -131,7 +128,6 @@ fn main() -> Result<(), Error> {
 			client_3_encrypted_gradients,
 		],
 		10,
-		scale,
 	)?;
 
 	println!("ciphertext average: {:?}", avg);

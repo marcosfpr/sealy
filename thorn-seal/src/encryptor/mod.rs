@@ -7,6 +7,9 @@ use crate::error::*;
 use crate::poly_array::PolynomialArray;
 use crate::{Ciphertext, Context, Plaintext, PublicKey, SecretKey};
 
+/// The components to encrypt a batch of plaintexts.
+pub mod batch;
+
 /// The components to an asymmetric encryption.
 pub struct AsymmetricComponents {
 	/// Uniform ternary polynomial.
@@ -133,9 +136,7 @@ impl Encryptor {
 	/// * `publicKey` - The public key
 	/// * `secretKey` - The secret key
 	pub fn with_public_and_secret_key(
-		ctx: &Context,
-		public_key: &PublicKey,
-		secret_key: &SecretKey,
+		ctx: &Context, public_key: &PublicKey, secret_key: &SecretKey,
 	) -> Result<Encryptor<SymAsym>> {
 		let mut handle: *mut c_void = null_mut();
 
@@ -257,8 +258,7 @@ impl<T: marker::Asym> Encryptor<T> {
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt_return_components(
-		&self,
-		plaintext: &Plaintext,
+		&self, plaintext: &Plaintext,
 	) -> Result<(Ciphertext, AsymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -305,9 +305,7 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_deterministic(
-		&self,
-		plaintext: &Plaintext,
-		seed: &[u64; 8],
+		&self, plaintext: &Plaintext, seed: &[u64; 8],
 	) -> Result<Ciphertext> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -350,9 +348,7 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_return_components_deterministic(
-		&self,
-		plaintext: &Plaintext,
-		seed: &[u64; 8],
+		&self, plaintext: &Plaintext, seed: &[u64; 8],
 	) -> Result<(Ciphertext, AsymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -432,9 +428,7 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_symmetric_deterministic(
-		&self,
-		plaintext: &Plaintext,
-		seed: &[u64; 8],
+		&self, plaintext: &Plaintext, seed: &[u64; 8],
 	) -> Result<Ciphertext> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -468,8 +462,7 @@ impl<T: marker::Sym> Encryptor<T> {
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt_symmetric_return_components(
-		&self,
-		plaintext: &Plaintext,
+		&self, plaintext: &Plaintext,
 	) -> Result<(Ciphertext, SymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -513,9 +506,7 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_symmetric_return_components_deterministic(
-		&self,
-		plaintext: &Plaintext,
-		seed: &[u64; 8],
+		&self, plaintext: &Plaintext, seed: &[u64; 8],
 	) -> Result<(Ciphertext, SymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;

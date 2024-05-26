@@ -6,6 +6,9 @@ use crate::{
 	Ciphertext, Context, Plaintext, SecretKey,
 };
 
+/// Decrypts batches of Ciphertext objects into Plaintext objects.
+pub mod batch;
+
 /// Decrypts Ciphertext objects into Plaintext objects. Constructing a Decryptor requires
 /// a SEALContext with valid encryption parameters, and the secret key. The Decryptor is
 /// also used to compute the invariant noise budget in a given ciphertext.
@@ -117,7 +120,10 @@ impl Drop for Decryptor {
 
 #[cfg(test)]
 mod tests {
-	use crate::*;
+	use crate::{
+		encoder::{Encoder, SlotCount},
+		*,
+	};
 
 	use super::Decryptor;
 
@@ -170,7 +176,7 @@ mod tests {
 			data.push(i as u64)
 		}
 
-		let plaintext = encoder.encode_unsigned(&data).unwrap();
+		let plaintext = encoder.encode(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -182,13 +188,13 @@ mod tests {
 		// asymmetric test
 		let ciphertext = encryptor.encrypt(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2 = encoder.decode_unsigned(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 
 		// symmetric test
 		let ciphertext = encryptor.encrypt_symmetric(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2 = encoder.decode_unsigned(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 	}
 
@@ -206,7 +212,7 @@ mod tests {
 			data.push(encoder.get_slot_count() as i64 / 2i64 - i as i64)
 		}
 
-		let plaintext = encoder.encode_signed(&data).unwrap();
+		let plaintext = encoder.encode(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -218,13 +224,13 @@ mod tests {
 		// asymmetric test
 		let ciphertext = encryptor.encrypt(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2 = encoder.decode_signed(&decrypted).unwrap();
+		let data_2: Vec<i64> = encoder.decode(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 
 		// asymmetric test
 		let ciphertext = encryptor.encrypt_symmetric(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2 = encoder.decode_signed(&decrypted).unwrap();
+		let data_2: Vec<i64> = encoder.decode(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 	}
 
@@ -242,7 +248,7 @@ mod tests {
 			data.push(i as u64);
 		}
 
-		let plaintext = encoder.encode_unsigned(&data).unwrap();
+		let plaintext = encoder.encode(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -254,7 +260,7 @@ mod tests {
 		// asymmetric test
 		let ciphertext = encryptor.encrypt_return_components(&plaintext).unwrap().0;
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2 = encoder.decode_unsigned(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 
 		// asymmetric test
@@ -263,7 +269,7 @@ mod tests {
 			.unwrap()
 			.0;
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2 = encoder.decode_unsigned(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 	}
 
@@ -276,7 +282,9 @@ mod tests {
 
 		#[test]
 		fn encrypt_deterministic() {
-			let ctx = mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap()));
+			let ctx = mk_ctx(|b| {
+				b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
+			});
 
 			let encoder = BFVEncoder::new(&ctx).unwrap();
 
@@ -286,10 +294,10 @@ mod tests {
 				data.push(i as u64);
 			}
 
-			let plaintext = encoder.encode_unsigned(&data).unwrap();
+			let plaintext = encoder.encode(&data).unwrap();
 
-			let public_key_bytes = include_bytes!("../tests/data/public_key.bin");
-			let secret_key_bytes = include_bytes!("../tests/data/secret_key.bin");
+			let public_key_bytes = include_bytes!("../../tests/data/public_key.bin");
+			let secret_key_bytes = include_bytes!("../../tests/data/secret_key.bin");
 
 			let public_key = PublicKey::from_bytes(&ctx, public_key_bytes).unwrap();
 			let secret_key = SecretKey::from_bytes(&ctx, secret_key_bytes).unwrap();
@@ -303,7 +311,7 @@ mod tests {
 				.unwrap();
 			let decrypted = decryptor.decrypt(&ciphertext).unwrap();
 
-			let data_2 = encoder.decode_unsigned(&decrypted).unwrap();
+			let data_2 = encoder.decode(&decrypted).unwrap();
 
 			assert_eq!(data, data_2);
 

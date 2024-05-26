@@ -29,6 +29,7 @@ rand = "0.8.5"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [features]
+default = []
 hexl = []
 transparent-ciphertexts = []
 deterministic = []
@@ -49,4 +50,8 @@ harness = false
 
 [[bench]]
 name = "bfv_bench"
+harness = false
+
+[[bench]]
+name = "batch_bench"
 harness = false

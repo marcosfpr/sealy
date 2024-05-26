@@ -1,9 +1,9 @@
 mod test_common;
-use thorn_seal::{DegreeType, Evaluator};
+use thorn_seal::{DegreeType, Encoder, Evaluator};
 
 #[test]
 fn overflow_does_not_bleed_into_other_lanes() {
-	test_common::run_bfv_test(
+	test_common::run_bfv_test::<u64, _>(
 		17,
 		DegreeType::D8192,
 		|decryptor, encoder, encryptor, eval, _| {
@@ -17,13 +17,14 @@ fn overflow_does_not_bleed_into_other_lanes() {
 				}
 			}
 
-			let p = encoder.encode_unsigned(&data).unwrap();
+			let p = encoder.encode(&data).unwrap();
+
 			let c = encryptor.encrypt(&p).unwrap();
 
 			let c_2 = eval.multiply(&c, &c).unwrap();
 
 			let p_2 = decryptor.decrypt(&c_2).unwrap();
-			let out = encoder.decode_unsigned(&p_2).unwrap();
+			let out = encoder.decode(&p_2).unwrap();
 
 			for (i, lane) in out.into_iter().enumerate() {
 				if i == 1 {
@@ -39,7 +40,7 @@ fn overflow_does_not_bleed_into_other_lanes() {
 
 #[test]
 fn multiply_ciphertext_increases_terms() {
-	test_common::run_bfv_test(17, DegreeType::D8192, |_, encoder, encryptor, eval, _| {
+	test_common::run_bfv_test::<u64, _>(17, DegreeType::D8192, |_, encoder, encryptor, eval, _| {
 		let mut data = Vec::with_capacity(8192);
 
 		for i in 0..8192 {
@@ -50,7 +51,7 @@ fn multiply_ciphertext_increases_terms() {
 			}
 		}
 
-		let p = encoder.encode_unsigned(&data).unwrap();
+		let p = encoder.encode(&data).unwrap();
 		let c = encryptor.encrypt(&p).unwrap();
 
 		assert_eq!(c.num_polynomials(), 2);
@@ -63,7 +64,7 @@ fn multiply_ciphertext_increases_terms() {
 
 #[test]
 fn multiply_plaintext_does_not_increase_polynomials() {
-	test_common::run_bfv_test(17, DegreeType::D8192, |_, encoder, encryptor, eval, _| {
+	test_common::run_bfv_test::<u64, _>(17, DegreeType::D8192, |_, encoder, encryptor, eval, _| {
 		let mut data = Vec::with_capacity(8192);
 
 		for i in 0..8192 {
@@ -74,7 +75,7 @@ fn multiply_plaintext_does_not_increase_polynomials() {
 			}
 		}
 
-		let p = encoder.encode_unsigned(&data).unwrap();
+		let p = encoder.encode(&data).unwrap();
 		let c = encryptor.encrypt(&p).unwrap();
 
 		assert_eq!(c.num_polynomials(), 2);
@@ -87,7 +88,7 @@ fn multiply_plaintext_does_not_increase_polynomials() {
 
 #[test]
 fn lanes_have_same_modulus() {
-	test_common::run_bfv_test(
+	test_common::run_bfv_test::<u64, _>(
 		17,
 		DegreeType::D8192,
 		|decryptor, encoder, encryptor, eval, _| {
@@ -97,7 +98,7 @@ fn lanes_have_same_modulus() {
 				data.push(10_000);
 			}
 
-			let p = encoder.encode_unsigned(&data).unwrap();
+			let p = encoder.encode(&data).unwrap();
 			let c = encryptor.encrypt(&p).unwrap();
 
 			// 10_000 ^ 2 should produce the same value in every lane if the modulus
@@ -105,7 +106,7 @@ fn lanes_have_same_modulus() {
 			let c_2 = eval.multiply(&c, &c).unwrap();
 
 			let p_2 = decryptor.decrypt(&c_2).unwrap();
-			let out = encoder.decode_unsigned(&p_2).unwrap();
+			let out = encoder.decode(&p_2).unwrap();
 
 			for lane in out {
 				assert_eq!(lane, 105_881);
@@ -116,7 +117,7 @@ fn lanes_have_same_modulus() {
 
 #[test]
 fn lane_modulus_is_not_power_of_2() {
-	test_common::run_bfv_test(
+	test_common::run_bfv_test::<u64, _>(
 		17,
 		DegreeType::D8192,
 		|decryptor, encoder, encryptor, eval, _| {
@@ -129,8 +130,8 @@ fn lane_modulus_is_not_power_of_2() {
 				data_2.push(1);
 			}
 
-			let p = encoder.encode_unsigned(&data).unwrap();
-			let p_2 = encoder.encode_unsigned(&data_2).unwrap();
+			let p = encoder.encode(&data).unwrap();
+			let p_2 = encoder.encode(&data_2).unwrap();
 			let c = encryptor.encrypt(&p).unwrap();
 
 			// 10_000 ^ 2 should produce the same value in every lane if the modulus
@@ -138,7 +139,7 @@ fn lane_modulus_is_not_power_of_2() {
 			let c_2 = eval.add_plain(&c, &p_2).unwrap();
 
 			let p_2 = decryptor.decrypt(&c_2).unwrap();
-			let out = encoder.decode_unsigned(&p_2).unwrap();
+			let out = encoder.decode(&p_2).unwrap();
 
 			for lane in out {
 				assert_eq!(lane, 0);
@@ -166,7 +167,7 @@ fn relinearization_consumes_no_noise_budget() {
 	let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
 	let gen = KeyGenerator::new(&ctx).unwrap();
 
-	let encoder = BFVEncoder::new(&ctx).unwrap();
+	let encoder = BFVEncoder::<u64>::new(&ctx).unwrap();
 
 	let public_key = gen.create_public_key();
 	let private_key = gen.secret_key();
@@ -185,7 +186,7 @@ fn relinearization_consumes_no_noise_budget() {
 		data_2.push(1);
 	}
 
-	let p = encoder.encode_unsigned(&data).unwrap();
+	let p = encoder.encode(&data).unwrap();
 	let c_1 = encryptor.encrypt(&p).unwrap();
 	let c_2 = encryptor.encrypt(&p).unwrap();
 
@@ -224,7 +225,7 @@ fn addition_noise_less_equal_operands() {
 	let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
 	let gen = KeyGenerator::new(&ctx).unwrap();
 
-	let encoder = BFVEncoder::new(&ctx).unwrap();
+	let encoder = BFVEncoder::<u64>::new(&ctx).unwrap();
 
 	let public_key = gen.create_public_key();
 	let private_key = gen.secret_key();
@@ -242,7 +243,7 @@ fn addition_noise_less_equal_operands() {
 		data_2.push(1);
 	}
 
-	let p = encoder.encode_unsigned(&data).unwrap();
+	let p = encoder.encode(&data).unwrap();
 	let c_1 = encryptor.encrypt(&p).unwrap();
 	let c_2 = encryptor.encrypt(&p).unwrap();
 

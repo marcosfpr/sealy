@@ -26,6 +26,9 @@ impl CKKSEvaluator {
 }
 
 impl Evaluator for CKKSEvaluator {
+	type Plaintext = Plaintext;
+	type Ciphertext = Ciphertext;
+
 	fn negate_inplace(&self, a: &mut Ciphertext) -> Result<()> {
 		self.0.negate_inplace(a)
 	}

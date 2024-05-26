@@ -3,7 +3,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rand::Rng;
 use thorn_seal::{
 	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
-	Context, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
+	Context, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
 	SecurityLevel,
 };
 
@@ -34,18 +34,14 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn aggregate(
-	ctx: &Context,
-	encoder: &CKKSEncoder,
-	ciphertexts: &[Ciphertext],
-	float_scale: f64,
-	dimension: usize,
+	ctx: &Context, encoder: &CKKSEncoder, ciphertexts: &[Ciphertext], dimension: usize,
 ) -> Result<Ciphertext, Error> {
 	let evaluator = CKKSEvaluator::new(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; dimension];
-	let fraction = encoder.encode(&fraction, ctx, float_scale)?;
+	let fraction = encoder.encode(&fraction)?;
 
 	evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -67,8 +63,8 @@ fn criterion_benchmark(c: &mut Criterion) {
 	println!("done");
 
 	let key_gen = KeyGenerator::new(&ctx).expect("Failed to create key generator");
-	let encoder = CKKSEncoder::new(&ctx).expect("Failed to create encoder");
 	let scale = 2.0f64.powi(40);
+	let encoder = CKKSEncoder::new(&ctx, scale).expect("Failed to create encoder");
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
@@ -77,7 +73,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 	let mut plaintexts = Vec::with_capacity(num_clients);
 	for client in clients.iter() {
 		let encoded = encoder
-			.encode(client, &ctx, scale)
+			.encode(client)
 			.expect("Failed to encode client gradients");
 		plaintexts.push(encoded);
 	}
@@ -100,7 +96,6 @@ fn criterion_benchmark(c: &mut Criterion) {
 				black_box(&ctx),
 				black_box(&encoder),
 				black_box(&ciphertexts),
-				black_box(scale),
 				black_box(dimension),
 			)
 		})

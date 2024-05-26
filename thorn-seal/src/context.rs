@@ -58,9 +58,7 @@ impl Context {
 	/// * `security_level` - Determines whether a specific security level should be
 	/// enforced according to HomomorphicEncryption.org security standard.
 	pub fn new(
-		params: &EncryptionParameters,
-		expand_mod_chain: bool,
-		security_level: SecurityLevel,
+		params: &EncryptionParameters, expand_mod_chain: bool, security_level: SecurityLevel,
 	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 

@@ -4,6 +4,8 @@ use std::ptr::null_mut;
 use crate::error::{convert_seal_error, Result};
 use crate::{bindgen, Context, MemoryPool, Plaintext};
 
+use super::{Encoder, SlotCount};
+
 /// To create CKKS plaintexts we need a special encoder: there is no other way
 /// to create them. The BatchEncoder cannot be used with the
 /// CKKS scheme. The CKKSEncoder encodes vectors of real or complex numbers into
@@ -13,6 +15,8 @@ use crate::{bindgen, Context, MemoryPool, Plaintext};
 #[derive(Debug)]
 pub struct CKKSEncoder {
 	handle: *mut c_void,
+	parms_id: Vec<u64>,
+	scale: f64,
 }
 
 unsafe impl Sync for CKKSEncoder {}
@@ -23,16 +27,35 @@ impl CKKSEncoder {
 	/// given through the SEALContext object support it.
 	///
 	/// * `ctx` - The Context
-	pub fn new(ctx: &Context) -> Result<Self> {
+	pub fn new(ctx: &Context, scale: f64) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
+
+		let parms_id = ctx.get_first_parms_id()?;
 
 		convert_seal_error(unsafe { bindgen::CKKSEncoder_Create(ctx.get_handle(), &mut handle) })?;
 
 		Ok(Self {
 			handle,
+			parms_id,
+			scale,
 		})
 	}
+}
 
+impl SlotCount for CKKSEncoder {
+	/// Returns the number of  slots in this encoder produces.
+	fn get_slot_count(&self) -> usize {
+		let mut count: u64 = 0;
+
+		convert_seal_error(unsafe { bindgen::CKKSEncoder_SlotCount(self.handle, &mut count) })
+			.expect("Internal error in BVTEncoder::get_slot_count().");
+
+		count as usize
+	}
+}
+
+impl Encoder<f64> for CKKSEncoder {
+	type Encoded = Plaintext;
 	/// Creates a plaintext from a given matrix of f64 data.
 	///
 	/// The floating-point coefficients of `data`
@@ -50,7 +73,7 @@ impl CKKSEncoder {
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
 	///  * `scale` - The scaling factor
 	///  * `context` - The context
-	pub fn encode(&self, data: &[f64], ctx: &Context, scale: f64) -> Result<Plaintext> {
+	fn encode(&self, data: &[f64]) -> Result<Self::Encoded> {
 		let mem = MemoryPool::new()?;
 
 		let plaintext = Plaintext::new()?;
@@ -58,14 +81,14 @@ impl CKKSEncoder {
 		// I pinky promise SEAL won't mutate data, the C bindings just aren't
 		// const correct.
 		convert_seal_error(unsafe {
-			let mut parms_id = ctx.get_first_parms_id()?;
+			let mut parms_id = self.parms_id.clone();
 			let parms_id_ptr = parms_id.as_mut_ptr();
 			bindgen::CKKSEncoder_Encode1(
 				self.handle,
 				data.len() as u64,
 				data.as_ptr() as *mut f64,
 				parms_id_ptr,
-				scale,
+				self.scale,
 				plaintext.get_handle(),
 				mem.get_handle(),
 			)
@@ -74,18 +97,7 @@ impl CKKSEncoder {
 		Ok(plaintext)
 	}
 
-	/// Returns the number of  slots in this encoder produces.
-	pub fn get_slot_count(&self) -> usize {
-		let mut count: u64 = 0;
-
-		convert_seal_error(unsafe { bindgen::CKKSEncoder_SlotCount(self.handle, &mut count) })
-			.expect("Internal error in BVTEncoder::get_slot_count().");
-
-		count as usize
-	}
-
-	/// Decodes a float plaintext.
-	pub fn decode(&self, plaintext: &Plaintext) -> Result<Vec<f64>> {
+	fn decode(&self, plaintext: &Self::Encoded) -> Result<Vec<f64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;
@@ -111,5 +123,13 @@ impl CKKSEncoder {
 		}
 
 		Ok(data)
+	}
+}
+
+impl Drop for CKKSEncoder {
+	fn drop(&mut self) {
+		unsafe {
+			bindgen::CKKSEncoder_Destroy(self.handle);
+		}
 	}
 }
