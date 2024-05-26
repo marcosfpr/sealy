@@ -201,15 +201,73 @@ impl EncryptionParameters {
 	}
 }
 
-enum CoefficientModulusType {
+/// The coefficient modulus is a list of distinct [`Modulus`] instances.
+#[derive(Debug, PartialEq)]
+pub enum CoefficientModulusType {
+	/// The coefficient modulus is not set.
 	NotSet,
+	/// The coefficient modulus is defined as a list of distinct [`Modulus`] instances.
 	Modulus(Vec<Modulus>),
 }
 
-enum PlainModulusType {
+/// The plain modulus is either a constant or a [`Modulus`] instance.
+#[derive(Debug, PartialEq)]
+pub enum PlainModulusType {
+	/// The plain modulus is not set.
 	NotSet,
+	/// The plain modulus is defined as a constant.
 	Constant(u64),
+	/// The plain modulus is defined as a [`Modulus`] instance.
 	Modulus(Modulus),
+}
+
+/// The modulus degree is either a constant or a [`DegreeType`] instance.    
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ModulusDegreeType {
+	/// The modulus degree is not set.
+	NotSet,
+	/// The modulus degree is defined as a constant.
+	Constant(DegreeType),
+}
+
+/// The available degree sizes for the polynomial modulus.
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DegreeType {
+	D256,
+	D512,
+	D1024,
+	D2048,
+	D4096,
+	D8192,
+	D16384,
+	D32768,
+}
+
+impl From<DegreeType> for u64 {
+	fn from(value: DegreeType) -> Self {
+		match value {
+			DegreeType::D256 => 256,
+			DegreeType::D512 => 512,
+			DegreeType::D1024 => 1024,
+			DegreeType::D2048 => 2048,
+			DegreeType::D4096 => 4096,
+			DegreeType::D8192 => 8192,
+			DegreeType::D16384 => 16384,
+			DegreeType::D32768 => 32768,
+		}
+	}
+}
+
+impl TryFrom<ModulusDegreeType> for u64 {
+	type Error = Error;
+
+	fn try_from(value: ModulusDegreeType) -> Result<Self, Self::Error> {
+		match value {
+			ModulusDegreeType::NotSet => Err(Error::DegreeNotSet),
+			ModulusDegreeType::Constant(degree) => Ok(degree.into()),
+		}
+	}
 }
 
 impl Drop for EncryptionParameters {

@@ -290,8 +290,9 @@ impl Drop for PolynomialArray {
 #[cfg(test)]
 mod tests {
 	use crate::{
+		encoder::{Encoder, SlotCount},
 		AsymmetricComponents, BFVEncoder, BfvEncryptionParametersBuilder, CoefficientModulus,
-		Encryptor, KeyGenerator, Modulus, PlainModulus, Plaintext, SecurityLevel,
+		DegreeType, Encryptor, KeyGenerator, Modulus, PlainModulus, Plaintext, SecurityLevel,
 	};
 
 	use super::*;
@@ -306,9 +307,9 @@ mod tests {
 	#[test]
 	fn can_create_polynomial_from_ciphertext() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(1024)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -337,11 +338,12 @@ mod tests {
 		PolynomialArray,
 		Plaintext,
 	) {
-		let coeff_modulus = CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap();
+		let coeff_modulus =
+			CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap();
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(coeff_modulus.clone())
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -356,7 +358,7 @@ mod tests {
 			data.push(i as u64)
 		}
 
-		let plaintext = encoder.encode_unsigned(&data).unwrap();
+		let plaintext = encoder.encode(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();

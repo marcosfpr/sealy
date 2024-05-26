@@ -7,6 +7,9 @@ use crate::error::*;
 use crate::poly_array::PolynomialArray;
 use crate::{Ciphertext, Context, Plaintext, PublicKey, SecretKey};
 
+/// The components to encrypt a batch of plaintexts.
+pub mod batch;
+
 /// The components to an asymmetric encryption.
 pub struct AsymmetricComponents {
 	/// Uniform ternary polynomial.
@@ -548,9 +551,9 @@ mod tests {
 		F: FnOnce(BfvEncryptionParametersBuilder) -> BfvEncryptionParametersBuilder,
 	{
 		let builder = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234);
 		let params = enc_modifier(builder).build().unwrap();

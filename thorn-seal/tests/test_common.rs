@@ -1,8 +1,8 @@
 use thorn_seal::*;
 
-pub fn run_bfv_test<F>(lane_bits: u32, degree: u64, test: F)
+pub fn run_bfv_test<T, F>(lane_bits: u32, degree: DegreeType, test: F)
 where
-	F: FnOnce(Decryptor, BFVEncoder, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
+	F: FnOnce(Decryptor, BFVEncoder<T>, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 {
 	let params = BfvEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)

@@ -3,6 +3,7 @@ use std::ptr::null_mut;
 
 use crate::bindgen;
 use crate::error::*;
+use crate::DegreeType;
 
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// represented by instances of Modulus. The purpose of this class is to
 /// perform and store the pre-computation required by Barrett reduction.
 ///
-/// A Modulus is immuatable from Rust once created.
+/// A Modulus is immutable from Rust once created.
 pub struct Modulus {
 	handle: *mut c_void,
 }
@@ -160,7 +161,7 @@ impl CoefficientModulus {
 	/// Modulus elements representing distinct prime numbers of bit-lengths
 	/// as given in the bitSizes parameter. The bit sizes of the prime numbers
 	/// can be at most 60 bits.
-	pub fn create(degree: u64, bit_sizes: &[i32]) -> Result<Vec<Modulus>> {
+	pub fn create(degree: DegreeType, bit_sizes: &[i32]) -> Result<Vec<Modulus>> {
 		let mut bit_sizes = bit_sizes.to_owned();
 		let length = bit_sizes.len() as u64;
 
@@ -168,7 +169,12 @@ impl CoefficientModulus {
 		let coefficients_ptr = coefficients.as_mut_ptr();
 
 		convert_seal_error(unsafe {
-			bindgen::CoeffModulus_Create1(degree, length, bit_sizes.as_mut_ptr(), coefficients_ptr)
+			bindgen::CoeffModulus_Create1(
+				degree.into(),
+				length,
+				bit_sizes.as_mut_ptr(),
+				coefficients_ptr,
+			)
 		})?;
 
 		unsafe { coefficients.set_len(length as usize) };
@@ -189,11 +195,16 @@ impl CoefficientModulus {
 	///
 	/// The coefficient modulus returned by this function will not perform well
 	/// if used with the CKKS scheme.
-	pub fn bfv_default(degree: u64, security_level: SecurityLevel) -> Result<Vec<Modulus>> {
+	pub fn bfv_default(degree: DegreeType, security_level: SecurityLevel) -> Result<Vec<Modulus>> {
 		let mut len: u64 = 0;
 
 		convert_seal_error(unsafe {
-			bindgen::CoeffModulus_BFVDefault(degree, security_level as i32, &mut len, null_mut())
+			bindgen::CoeffModulus_BFVDefault(
+				degree.into(),
+				security_level as i32,
+				&mut len,
+				null_mut(),
+			)
 		})?;
 
 		let mut coefficients: Vec<*mut c_void> = Vec::with_capacity(len as usize);
@@ -201,7 +212,7 @@ impl CoefficientModulus {
 
 		convert_seal_error(unsafe {
 			bindgen::CoeffModulus_BFVDefault(
-				degree,
+				degree.into(),
 				security_level as i32,
 				&mut len,
 				coefficients_ptr,
@@ -239,7 +250,7 @@ pub struct PlainModulus;
 impl PlainModulus {
 	/// Creates a prime number Modulus for use as PlainModulus encryption
 	/// parameter that supports batching with a given PolyModulusDegree.
-	pub fn batching(degree: u64, bit_size: u32) -> Result<Modulus> {
+	pub fn batching(degree: DegreeType, bit_size: u32) -> Result<Modulus> {
 		let bit_sizes = vec![bit_size as i32];
 
 		let modulus_chain = CoefficientModulus::create(degree, bit_sizes.as_slice())?;
@@ -260,24 +271,27 @@ mod tests {
 
 	#[test]
 	fn can_create_plain_modulus() {
-		let modulus = PlainModulus::batching(1024, 20).unwrap();
+		let modulus = PlainModulus::batching(DegreeType::D1024, 20).unwrap();
 
 		assert_eq!(modulus.value(), 1038337);
 	}
 
 	#[test]
 	fn can_create_default_coefficient_modulus() {
-		let modulus = CoefficientModulus::bfv_default(1024, SecurityLevel::TC128).unwrap();
+		let modulus =
+			CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::TC128).unwrap();
 
 		assert_eq!(modulus.len(), 1);
 		assert_eq!(modulus[0].value(), 132120577);
 
-		let modulus = CoefficientModulus::bfv_default(1024, SecurityLevel::TC192).unwrap();
+		let modulus =
+			CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::TC192).unwrap();
 
 		assert_eq!(modulus.len(), 1);
 		assert_eq!(modulus[0].value(), 520193);
 
-		let modulus = CoefficientModulus::bfv_default(1024, SecurityLevel::TC256).unwrap();
+		let modulus =
+			CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::TC256).unwrap();
 
 		assert_eq!(modulus.len(), 1);
 		assert_eq!(modulus[0].value(), 12289);
@@ -285,7 +299,7 @@ mod tests {
 
 	#[test]
 	fn can_create_custom_coefficient_modulus() {
-		let modulus = CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap();
+		let modulus = CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap();
 
 		assert_eq!(modulus.len(), 5);
 		assert_eq!(modulus[0].value(), 1125899905744897);

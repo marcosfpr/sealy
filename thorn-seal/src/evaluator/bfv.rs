@@ -26,6 +26,9 @@ impl BFVEvaluator {
 }
 
 impl Evaluator for BFVEvaluator {
+	type Plaintext = Plaintext;
+	type Ciphertext = Ciphertext;
+
 	fn negate_inplace(&self, a: &mut Ciphertext) -> Result<()> {
 		self.0.negate_inplace(a)
 	}
@@ -229,19 +232,21 @@ impl Evaluator for BFVEvaluator {
 
 #[cfg(test)]
 mod tests {
+	use self::encoder::SlotCount;
+
 	use super::*;
-	use crate::*;
+	use crate::{encoder::Encoder, *};
 
 	fn run_bfv_test<F>(test: F)
 	where
-		F: FnOnce(Decryptor, BFVEncoder, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
+		F: FnOnce(Decryptor, BFVEncoder<i64>, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 	{
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 32).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 32).unwrap())
 			.build()
 			.unwrap();
 
@@ -261,7 +266,7 @@ mod tests {
 		test(decryptor, encoder, encryptor, evaluator, gen);
 	}
 
-	fn make_vec(encoder: &BFVEncoder) -> Vec<i64> {
+	fn make_vec(encoder: &BFVEncoder<i64>) -> Vec<i64> {
 		let mut data = vec![];
 
 		for i in 0..encoder.get_slot_count() {
@@ -271,7 +276,7 @@ mod tests {
 		data
 	}
 
-	fn make_small_vec(encoder: &BFVEncoder) -> Vec<i64> {
+	fn make_small_vec(encoder: &BFVEncoder<i64>) -> Vec<i64> {
 		let mut data = vec![];
 
 		for i in 0..encoder.get_slot_count() {
@@ -284,11 +289,11 @@ mod tests {
 	#[test]
 	fn can_create_and_destroy_evaluator() {
 		let params = BfvEncryptionParametersBuilder::new()
-			.set_poly_modulus_degree(8192)
+			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(8192, 20).unwrap())
+			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -303,13 +308,13 @@ mod tests {
 	fn can_negate() {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let b_c = evaluator.negate(&a_c).unwrap();
 
 			let b_p = decryptor.decrypt(&b_c).unwrap();
-			let b = encoder.decode_signed(&b_p).unwrap();
+			let b: Vec<i64> = encoder.decode(&b_p).unwrap();
 
 			assert_eq!(a.len(), b.len());
 
@@ -323,13 +328,13 @@ mod tests {
 	fn can_negate_inplace() {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator.negate_inplace(&mut a_c).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let b = encoder.decode_signed(&a_p).unwrap();
+			let b: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), b.len());
 
@@ -344,15 +349,15 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 			let b_c = encryptor.encrypt(&b_p).unwrap();
 
 			let c_c = evaluator.add(&a_c, &b_c).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -368,15 +373,15 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 			let b_c = encryptor.encrypt(&b_p).unwrap();
 
 			evaluator.add_inplace(&mut a_c, &b_c).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -394,10 +399,10 @@ mod tests {
 			let b = make_vec(&encoder);
 			let c = make_vec(&encoder);
 			let d = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
-			let c_p = encoder.encode_signed(&c).unwrap();
-			let d_p = encoder.encode_signed(&d).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
+			let c_p = encoder.encode(&c).unwrap();
+			let d_p = encoder.encode(&d).unwrap();
 
 			let data_c = vec![
 				encryptor.encrypt(&a_p).unwrap(),
@@ -409,7 +414,7 @@ mod tests {
 			let out_c = evaluator.add_many(&data_c).unwrap();
 
 			let out_p = decryptor.decrypt(&out_c).unwrap();
-			let out = encoder.decode_signed(&out_p).unwrap();
+			let out: Vec<i64> = encoder.decode(&out_p).unwrap();
 
 			assert_eq!(a.len(), out.len());
 			assert_eq!(b.len(), out.len());
@@ -431,10 +436,10 @@ mod tests {
 			let b = make_small_vec(&encoder);
 			let c = make_small_vec(&encoder);
 			let d = make_small_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
-			let c_p = encoder.encode_signed(&c).unwrap();
-			let d_p = encoder.encode_signed(&d).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
+			let c_p = encoder.encode(&c).unwrap();
+			let d_p = encoder.encode(&d).unwrap();
 
 			let data_c = vec![
 				encryptor.encrypt(&a_p).unwrap(),
@@ -446,7 +451,7 @@ mod tests {
 			let out_c = evaluator.multiply_many(&data_c, &relin_keys).unwrap();
 
 			let out_p = decryptor.decrypt(&out_c).unwrap();
-			let out = encoder.decode_signed(&out_p).unwrap();
+			let out: Vec<i64> = encoder.decode(&out_p).unwrap();
 
 			assert_eq!(a.len(), out.len());
 			assert_eq!(b.len(), out.len());
@@ -464,15 +469,15 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 			let b_c = encryptor.encrypt(&b_p).unwrap();
 
 			let c_c = evaluator.sub(&a_c, &b_c).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -488,15 +493,15 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 			let b_c = encryptor.encrypt(&b_p).unwrap();
 
 			evaluator.sub_inplace(&mut a_c, &b_c).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -512,15 +517,15 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 			let b_c = encryptor.encrypt(&b_p).unwrap();
 
 			let c_c = evaluator.multiply(&a_c, &b_c).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -536,15 +541,15 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 			let b_c = encryptor.encrypt(&b_p).unwrap();
 
 			evaluator.multiply_inplace(&mut a_c, &b_c).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -559,13 +564,13 @@ mod tests {
 	fn can_square() {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let b_c = evaluator.square(&a_c).unwrap();
 
 			let b_p = decryptor.decrypt(&b_c).unwrap();
-			let b = encoder.decode_signed(&b_p).unwrap();
+			let b: Vec<i64> = encoder.decode(&b_p).unwrap();
 
 			assert_eq!(a.len(), b.len());
 
@@ -579,13 +584,13 @@ mod tests {
 	fn can_square_inplace() {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator.square_inplace(&mut a_c).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let b = encoder.decode_signed(&a_p).unwrap();
+			let b: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), b.len());
 
@@ -601,7 +606,7 @@ mod tests {
 			let relin_keys = keygen.create_relinearization_keys().unwrap();
 
 			let a = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 			let mut a_c_2 = encryptor.encrypt(&a_p).unwrap();
 
@@ -635,7 +640,7 @@ mod tests {
 			let relin_keys = keygen.create_relinearization_keys().unwrap();
 
 			let a = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 			let mut a_c_2 = encryptor.encrypt(&a_p).unwrap();
 
@@ -665,13 +670,13 @@ mod tests {
 			let relin_keys = keygen.create_relinearization_keys().unwrap();
 
 			let a = make_small_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let c_c = evaluator.exponentiate(&a_c, 4, &relin_keys).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 
@@ -687,7 +692,7 @@ mod tests {
 			let relin_keys = keygen.create_relinearization_keys().unwrap();
 
 			let a = make_small_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator
@@ -695,7 +700,7 @@ mod tests {
 				.unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 
@@ -710,14 +715,14 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let c_c = evaluator.add_plain(&a_c, &b_p).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -733,14 +738,14 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator.add_plain_inplace(&mut a_c, &b_p).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -756,14 +761,14 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let c_c = evaluator.sub_plain(&a_c, &b_p).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -779,14 +784,14 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator.sub_plain_inplace(&mut a_c, &b_p).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -802,14 +807,14 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let c_c = evaluator.multiply_plain(&a_c, &b_p).unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -825,14 +830,14 @@ mod tests {
 		run_bfv_test(|decryptor, encoder, encryptor, evaluator, _| {
 			let a = make_vec(&encoder);
 			let b = make_vec(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
-			let b_p = encoder.encode_signed(&b).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
+			let b_p = encoder.encode(&b).unwrap();
 			let mut a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator.multiply_plain_inplace(&mut a_c, &b_p).unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a.len(), c.len());
 			assert_eq!(b.len(), c.len());
@@ -843,7 +848,7 @@ mod tests {
 		});
 	}
 
-	fn make_matrix(encoder: &BFVEncoder) -> Vec<i64> {
+	fn make_matrix(encoder: &BFVEncoder<i64>) -> Vec<i64> {
 		let dim = encoder.get_slot_count();
 		let dim_2 = dim / 2;
 
@@ -863,7 +868,7 @@ mod tests {
 			let galois_keys = keygen.create_galois_keys();
 
 			let a = make_matrix(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let c_c = evaluator
@@ -871,7 +876,7 @@ mod tests {
 				.unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a[0], c[1]);
 			assert_eq!(a[1], c[2]);
@@ -886,7 +891,7 @@ mod tests {
 			let galois_keys = keygen.create_galois_keys();
 
 			let a = make_matrix(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator
@@ -894,7 +899,7 @@ mod tests {
 				.unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a[0], c[1]);
 			assert_eq!(a[1], c[2]);
@@ -909,7 +914,7 @@ mod tests {
 			let galois_keys = keygen.create_galois_keys();
 
 			let a = make_matrix(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			let c_c = evaluator
@@ -917,7 +922,7 @@ mod tests {
 				.unwrap();
 
 			let c_p = decryptor.decrypt(&c_c).unwrap();
-			let c = encoder.decode_signed(&c_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&c_p).unwrap();
 
 			assert_eq!(a[0], c[4096]);
 			assert_eq!(a[1], c[4097]);
@@ -932,7 +937,7 @@ mod tests {
 			let galois_keys = keygen.create_galois_keys();
 
 			let a = make_matrix(&encoder);
-			let a_p = encoder.encode_signed(&a).unwrap();
+			let a_p = encoder.encode(&a).unwrap();
 			let a_c = encryptor.encrypt(&a_p).unwrap();
 
 			evaluator
@@ -940,7 +945,7 @@ mod tests {
 				.unwrap();
 
 			let a_p = decryptor.decrypt(&a_c).unwrap();
-			let c = encoder.decode_signed(&a_p).unwrap();
+			let c: Vec<i64> = encoder.decode(&a_p).unwrap();
 
 			assert_eq!(a[0], c[4096]);
 			assert_eq!(a[1], c[4097]);
