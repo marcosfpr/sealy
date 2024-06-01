@@ -6,9 +6,6 @@ use crate::{
 	Ciphertext, Context, Plaintext, SecretKey,
 };
 
-/// Decrypts batches of Ciphertext objects into Plaintext objects.
-pub mod batch;
-
 /// Decrypts Ciphertext objects into Plaintext objects. Constructing a Decryptor requires
 /// a SEALContext with valid encryption parameters, and the secret key. The Decryptor is
 /// also used to compute the invariant noise budget in a given ciphertext.
@@ -296,8 +293,8 @@ mod tests {
 
 			let plaintext = encoder.encode(&data).unwrap();
 
-			let public_key_bytes = include_bytes!("../../tests/data/public_key.bin");
-			let secret_key_bytes = include_bytes!("../../tests/data/secret_key.bin");
+			let public_key_bytes = include_bytes!("../tests/data/public_key.bin");
+			let secret_key_bytes = include_bytes!("../tests/data/secret_key.bin");
 
 			let public_key = PublicKey::from_bytes(&ctx, public_key_bytes).unwrap();
 			let secret_key = SecretKey::from_bytes(&ctx, secret_key_bytes).unwrap();

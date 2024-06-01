@@ -54,8 +54,8 @@ fn average_plaintexts(plaintexts: &[Vec<f64>]) -> Vec<f64> {
 	avg
 }
 
-/// Average simulating the averaging of gradients of 3 clients in a federated learning setting
-fn main() -> Result<(), Error> {
+#[test]
+fn test_ckks_avg() -> Result<(), Error> {
 	let ctx = create_ckks_context(DegreeType::D8192, &[60, 40, 40, 60])?;
 
 	let key_gen = KeyGenerator::new(&ctx)?;
@@ -70,26 +70,9 @@ fn main() -> Result<(), Error> {
 	let client_2_gradients = generate_random_tensor(10);
 	let client_3_gradients = generate_random_tensor(10);
 
-	println!("client_1_gradients: {:?}", client_1_gradients);
-	println!("client_2_gradients: {:?}", client_2_gradients);
-	println!("client_3_gradients: {:?}", client_3_gradients);
-
 	let client_1_encoded_gradients = encoder.encode(&client_1_gradients)?;
 	let client_2_encoded_gradients = encoder.encode(&client_2_gradients)?;
 	let client_3_encoded_gradients = encoder.encode(&client_3_gradients)?;
-
-	println!(
-		"client_1_encoded_gradients: {:?}",
-		client_1_encoded_gradients
-	);
-	println!(
-		"client_2_encoded_gradients: {:?}",
-		client_2_encoded_gradients
-	);
-	println!(
-		"client_3_encoded_gradients: {:?}",
-		client_3_encoded_gradients
-	);
 
 	let encryptor = Encryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
 	let decryptor = Decryptor::new(&ctx, &private_key)?;
@@ -98,27 +81,8 @@ fn main() -> Result<(), Error> {
 	let client_2_encrypted_gradients = encryptor.encrypt(&client_2_encoded_gradients)?;
 	let client_3_encrypted_gradients = encryptor.encrypt(&client_3_encoded_gradients)?;
 
-	println!(
-		"client_1_encrypted_gradients: {:#?}",
-		client_1_encrypted_gradients
-	);
-
-	println!(
-		"client_2_encrypted_gradients: {:#?}",
-		client_2_encrypted_gradients
-	);
-
-	println!(
-		"client_3_encrypted_gradients: {:#?}",
-		client_3_encrypted_gradients
-	);
-
-	println!("Averaging gradients...");
-	println!(
-		"plaintext average: {:?}",
-		average_plaintexts(&[client_1_gradients, client_2_gradients, client_3_gradients])
-	);
-
+	let avg_truth =
+		average_plaintexts(&[client_1_gradients, client_2_gradients, client_3_gradients]);
 	let avg = average_ciphertexts(
 		&ctx,
 		&encoder,
@@ -130,14 +94,16 @@ fn main() -> Result<(), Error> {
 		10,
 	)?;
 
-	println!("ciphertext average: {:?}", avg);
-
 	let avg_dec = decryptor.decrypt(&avg)?;
 	let avg_plain = encoder.decode(&avg_dec)?;
 
 	// get the first 10
 	let avg_plain = avg_plain.iter().take(10).cloned().collect::<Vec<f64>>();
-	println!("decrypted average: {:?}", avg_plain);
+
+	// compare avg_truth and avg_plain with a tolerance of 1e-6
+	for (t, p) in avg_truth.iter().zip(avg_plain.iter()) {
+		assert!((t - p).abs() < 1e-6);
+	}
 
 	Ok(())
 }

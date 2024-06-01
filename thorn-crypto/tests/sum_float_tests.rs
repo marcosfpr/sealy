@@ -4,7 +4,8 @@ use thorn_seal::{
 	KeyGenerator, SecurityLevel,
 };
 
-fn main() -> Result<(), Error> {
+#[test]
+fn test_sum_float() -> Result<(), Error> {
 	// generate keypair to encrypt and decrypt data.
 	let degree = DegreeType::D8192;
 	let security_level = SecurityLevel::TC128;
@@ -34,25 +35,19 @@ fn main() -> Result<(), Error> {
 	let y = 3.3;
 
 	let x_encoded = encoder.encode(&[x])?;
-	println!("x_encoded: {:?}", x_encoded);
-
 	let y_encoded = encoder.encode(&[y])?;
-	println!("y_encoded: {:?}", y_encoded);
 
 	let x_enc = encryptor.encrypt(&x_encoded)?;
-	println!("x: {:#?}", x_enc);
-
 	let y_enc = encryptor.encrypt(&y_encoded)?;
-	println!("y: {:#?}", y_enc);
-
-	println!("Summing x + y...");
 
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
-
 	let sum_dec = encoder.decode(&sum_dec)?;
 
-	println!("Sum: {:?}", sum_dec.first());
+	let truth = x + y;
+
+	// Compare with a tolerance of 1e-6
+	assert!((sum_dec.first().unwrap() - truth).abs() < 1e-6);
 
 	Ok(())
 }

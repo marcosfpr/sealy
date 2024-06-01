@@ -1,10 +1,14 @@
+use thorn_crypto::fhe::batched::{
+	decryptor::BatchDecryptor, encoder::BatchEncoder, encryptor::BatchEncryptor,
+	evaluator::BatchEvaluator,
+};
 use thorn_seal::{
-	BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, CKKSEvaluator,
-	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
+	CKKSEncoder, CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
 	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
-fn main() -> Result<(), Error> {
+#[test]
+fn test_batched_sum() -> Result<(), Error> {
 	// generate keypair to encrypt and decrypt data.
 	let degree = DegreeType::D8192;
 	let security_level = SecurityLevel::TC128;
@@ -29,29 +33,25 @@ fn main() -> Result<(), Error> {
 	let encryptor = BatchEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
 	let decryptor = BatchDecryptor::new(&ctx, &private_key)?;
 
-	let evaluator = BatchEvaluator::new(CKKSEvaluator::new(&ctx)?);
+	let evaluator = BatchEvaluator::ckks(&ctx)?;
 
 	let x = 5.2;
 	let y = 3.3;
 
 	let x_encoded = encoder.encode(&[x])?;
-	println!("x_encoded: {:?}", x_encoded);
-
 	let y_encoded = encoder.encode(&[y])?;
-	println!("y_encoded: {:?}", y_encoded);
 
 	let x_enc = encryptor.encrypt(&x_encoded)?;
-	println!("x: {:#?}", x_enc);
-
 	let y_enc = encryptor.encrypt(&y_encoded)?;
-	println!("y: {:#?}", y_enc);
-
-	println!("Summing x + y...");
 
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
 
-	println!("Sum: {:?}", sum_dec.first());
+	let sum_plain = encoder.decode(&sum_dec)?;
+
+	let truth = x + y;
+
+	assert!((sum_plain.first().unwrap() - truth).abs() < 1e-6);
 
 	Ok(())
 }

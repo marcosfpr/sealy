@@ -1,6 +1,6 @@
-use crate::encoder::SlotCount;
-use crate::{encoder::Encoder, Plaintext};
-use crate::{Batch, Result};
+use thorn_seal::{Encoder, Plaintext, Result, SlotCount};
+
+use super::Batch;
 
 /// An encoder that encodes data in batches.
 pub struct BatchEncoder<T, E> {
@@ -81,10 +81,12 @@ where
 #[cfg(test)]
 mod tests {
 
-	use crate::{
-		BFVEncoder, BatchEncoder, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
-		DegreeType, Encoder, PlainModulus, SecurityLevel,
+	use thorn_seal::{
+		BFVEncoder, BfvEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType,
+		Encoder, PlainModulus, SecurityLevel,
 	};
+
+	use crate::fhe::batched::encoder::BatchEncoder;
 
 	#[test]
 	fn can_get_encode_and_decode_unsigned() {

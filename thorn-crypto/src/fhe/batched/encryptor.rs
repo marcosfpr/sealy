@@ -1,8 +1,9 @@
-pub use super::{marker, Encryptor};
-use crate::{
-	Asym, AsymmetricComponents, Batch, Ciphertext, Context, Plaintext, PublicKey, Result,
-	SecretKey, Sym, SymAsym, SymmetricComponents,
+use thorn_seal::{
+	enc_marker, Asym, AsymmetricComponents, Ciphertext, Context, Encryptor, Plaintext, PublicKey,
+	Result, SecretKey, Sym, SymAsym, SymmetricComponents,
 };
+
+use super::Batch;
 
 /// Encryptor that can encrypt multiple messages at once.
 pub struct BatchEncryptor<T = ()> {
@@ -52,7 +53,7 @@ impl BatchEncryptor {
 	}
 }
 
-impl<T: marker::Asym> BatchEncryptor<T> {
+impl<T: enc_marker::Asym> BatchEncryptor<T> {
 	/// Encrypts a plaintext with the public key and returns the ciphertext as
 	/// a serializable object.
 	///
@@ -89,7 +90,7 @@ impl<T: marker::Asym> BatchEncryptor<T> {
 	}
 }
 
-impl<T: marker::Sym> BatchEncryptor<T> {
+impl<T: enc_marker::Sym> BatchEncryptor<T> {
 	/// Encrypts a plaintext with the secret key and returns the ciphertext as
 	/// a serializable object.
 	///

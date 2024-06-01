@@ -1,4 +1,6 @@
-use crate::{Batch, Ciphertext, Context, Decryptor, Plaintext, Result, SecretKey};
+use thorn_seal::{Ciphertext, Context, Decryptor, Plaintext, Result, SecretKey};
+
+use super::Batch;
 
 /// Decrypts batches of ciphertexts.
 pub struct BatchDecryptor {

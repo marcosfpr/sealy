@@ -25,8 +25,6 @@ bindgen = "0.69.4"
 [dev-dependencies]
 anyhow = { workspace = true } 
 serde_json = "1.0.74"
-rand = "0.8.5"
-criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [features]
 default = []
@@ -35,23 +33,3 @@ transparent-ciphertexts = []
 deterministic = []
 insecure-params = []
 
-[[example]]
-name = "sum_int"
-
-[[example]]
-name = "sum_float"
-
-[[example]]
-name = "avg_float"
-
-[[bench]]
-name = "ckks_bench"
-harness = false
-
-[[bench]]
-name = "bfv_bench"
-harness = false
-
-[[bench]]
-name = "batch_bench"
-harness = false
