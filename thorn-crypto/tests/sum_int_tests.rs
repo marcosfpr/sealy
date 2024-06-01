@@ -4,7 +4,8 @@ use thorn_seal::{
 	PlainModulus, SecurityLevel,
 };
 
-fn main() -> anyhow::Result<()> {
+#[test]
+fn test_sum_large_int() -> anyhow::Result<()> {
 	// generate keypair to encrypt and decrypt data.
 	let degree = DegreeType::D8192;
 	let bit_size = 60;
@@ -36,22 +37,15 @@ fn main() -> anyhow::Result<()> {
 	let x_encoded = encoder.encode(&[x])?;
 	let y_encoded = encoder.encode(&[y])?;
 
-	println!("x_encoded: {:?}", x_encoded);
-	println!("y_encoded: {:?}", y_encoded);
-
 	let x_enc = encryptor.encrypt(&x_encoded)?;
 	let y_enc = encryptor.encrypt(&y_encoded)?;
 
-	println!("Summing x + y...");
-	println!("x: {:#?}", x_enc);
-	println!("y: {:#?}", y_enc);
-
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
-
 	let sum_dec = encoder.decode(&sum_dec)?;
 
-	println!("Sum: {:?}", sum_dec.first());
+	let truth = x + y;
+	assert_eq!(sum_dec.first().unwrap(), &truth);
 
 	Ok(())
 }

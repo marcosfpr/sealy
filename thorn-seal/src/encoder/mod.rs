@@ -6,9 +6,6 @@ pub mod bfv;
 /// CKKS encoder.
 pub mod ckks;
 
-/// Batch encoder.
-pub mod batch;
-
 /// An interface for encoding and decoding data.
 pub trait Encoder<T>: SlotCount {
 	/// The type of the encoded data.

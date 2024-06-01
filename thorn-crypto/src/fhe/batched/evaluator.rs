@@ -1,5 +1,8 @@
-use crate::{Batch, Error};
-use crate::{Evaluator, GaloisKeys, RelinearizationKeys, Result};
+use thorn_seal::{
+	CKKSEvaluator, Context, Error, Evaluator, GaloisKeys, RelinearizationKeys, Result,
+};
+
+use crate::fhe::batched::Batch;
 
 /// An evaluator that evaluates batches of data.
 pub struct BatchEvaluator<E> {
@@ -15,6 +18,15 @@ where
 		Self {
 			evaluator,
 		}
+	}
+}
+
+impl BatchEvaluator<CKKSEvaluator> {
+	/// Creates a new batch evaluator.
+	pub fn ckks(ctx: &Context) -> Result<Self> {
+		Ok(Self {
+			evaluator: CKKSEvaluator::new(ctx)?,
+		})
 	}
 }
 

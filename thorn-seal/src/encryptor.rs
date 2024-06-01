@@ -7,9 +7,6 @@ use crate::error::*;
 use crate::poly_array::PolynomialArray;
 use crate::{Ciphertext, Context, Plaintext, PublicKey, SecretKey};
 
-/// The components to encrypt a batch of plaintexts.
-pub mod batch;
-
 /// The components to an asymmetric encryption.
 pub struct AsymmetricComponents {
 	/// Uniform ternary polynomial.

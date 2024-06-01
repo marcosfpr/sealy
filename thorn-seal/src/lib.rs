@@ -43,7 +43,6 @@ mod serialization {
 	}
 }
 
-mod batch;
 mod ciphertext;
 mod context;
 mod context_data;
@@ -59,21 +58,18 @@ mod parameters;
 mod plaintext;
 mod poly_array;
 
-pub use batch::Batch;
 pub use ciphertext::Ciphertext;
 pub use context::Context;
 pub use context_data::ContextData;
-pub use decryptor::{batch::BatchDecryptor, Decryptor};
-pub use encoder::batch::BatchEncoder;
+pub use decryptor::Decryptor;
 pub use encoder::bfv::{BFVDecimalEncoder, BFVEncoder};
 pub use encoder::ckks::CKKSEncoder;
-pub use encoder::Encoder;
+pub use encoder::{Encoder, SlotCount};
 pub use encryptor::{
-	batch::BatchEncryptor, marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor,
-	Encryptor, Sym, SymAsym, SymmetricComponents, SymmetricEncryptor,
+	marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Encryptor, Sym, SymAsym,
+	SymmetricComponents, SymmetricEncryptor,
 };
 pub use error::{Error, Result};
-pub use evaluator::batch::BatchEvaluator;
 pub use evaluator::bfv::BFVEvaluator;
 pub use evaluator::ckks::CKKSEvaluator;
 pub use evaluator::Evaluator;

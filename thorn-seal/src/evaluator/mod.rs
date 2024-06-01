@@ -2,7 +2,6 @@ use crate::error::*;
 use crate::{GaloisKeys, RelinearizationKeys};
 
 pub mod base;
-pub mod batch;
 pub mod bfv;
 pub mod ckks;
 

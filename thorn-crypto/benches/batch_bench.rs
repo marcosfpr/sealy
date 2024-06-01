@@ -1,10 +1,12 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
+use thorn_crypto::fhe::batched::{
+	encoder::BatchEncoder, encryptor::BatchEncryptor, evaluator::BatchEvaluator, Batch,
+};
 use thorn_seal::{
-	Batch, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, CKKSEvaluator, Ciphertext,
-	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
-	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
+	CKKSEncoder, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus, Context,
+	DegreeType, Encoder, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
@@ -37,8 +39,7 @@ fn aggregate(
 	ctx: &Context, encoder: &BatchEncoder<f64, CKKSEncoder>, ciphertexts: &[Batch<Ciphertext>],
 	dimension: usize,
 ) -> Result<Batch<Ciphertext>, Error> {
-	let evaluator = CKKSEvaluator::new(ctx)?;
-	let batch_evaluator = BatchEvaluator::new(evaluator);
+	let batch_evaluator = BatchEvaluator::ckks(ctx)?;
 
 	let cipher = batch_evaluator.add_many(ciphertexts)?;
 

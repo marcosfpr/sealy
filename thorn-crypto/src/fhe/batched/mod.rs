@@ -1,3 +1,8 @@
+pub mod decryptor;
+pub mod encoder;
+pub mod encryptor;
+pub mod evaluator;
+
 /// Struct to store a batch of elements of the same type.
 #[derive(Debug, Clone)]
 pub struct Batch<T>(pub Vec<T>);
