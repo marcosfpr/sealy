@@ -1,11 +1,14 @@
-use thorn_seal::{
-	CKKSEncoder, CKKSEvaluator, CkksEncryptionParametersBuilder, CoefficientModulus, Context,
-	Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator,
-	KeyGenerator, SecurityLevel,
+use thorn_crypto::fhe::seal::batched::{
+	decryptor::BatchDecryptor, encoder::BatchEncoder, encryptor::BatchEncryptor,
+	evaluator::BatchEvaluator,
+};
+use thorn_crypto::fhe::seal::{
+	CKKSEncoder, CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
+	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 #[test]
-fn test_sum_float() -> Result<(), Error> {
+fn test_batched_sum() -> Result<(), Error> {
 	// generate keypair to encrypt and decrypt data.
 	let degree = DegreeType::D8192;
 	let security_level = SecurityLevel::TC128;
@@ -21,15 +24,16 @@ fn test_sum_float() -> Result<(), Error> {
 	let ctx = Context::new(&encryption_parameters, expand_mod_chain, security_level)?;
 
 	let key_gen = KeyGenerator::new(&ctx)?;
-	let encoder = CKKSEncoder::new(&ctx, 2.0f64.powi(40))?;
+
+	let encoder = BatchEncoder::new(CKKSEncoder::new(&ctx, 2.0f64.powi(40))?);
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
 
-	let encryptor = Encryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
-	let decryptor = Decryptor::new(&ctx, &private_key)?;
+	let encryptor = BatchEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
+	let decryptor = BatchDecryptor::new(&ctx, &private_key)?;
 
-	let evaluator = CKKSEvaluator::new(&ctx)?;
+	let evaluator = BatchEvaluator::ckks(&ctx)?;
 
 	let x = 5.2;
 	let y = 3.3;
@@ -42,12 +46,12 @@ fn test_sum_float() -> Result<(), Error> {
 
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
-	let sum_dec = encoder.decode(&sum_dec)?;
+
+	let sum_plain = encoder.decode(&sum_dec)?;
 
 	let truth = x + y;
 
-	// Compare with a tolerance of 1e-6
-	assert!((sum_dec.first().unwrap() - truth).abs() < 1e-6);
+	assert!((sum_plain.first().unwrap() - truth).abs() < 1e-6);
 
 	Ok(())
 }

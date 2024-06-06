@@ -2,7 +2,7 @@ use thorn_seal::{
 	CKKSEvaluator, Context, Error, Evaluator, GaloisKeys, RelinearizationKeys, Result,
 };
 
-use crate::fhe::batched::Batch;
+use crate::fhe::seal::batched::Batch;
 
 /// An evaluator that evaluates batches of data.
 pub struct BatchEvaluator<E> {

@@ -86,7 +86,7 @@ mod tests {
 		Encoder, PlainModulus, SecurityLevel,
 	};
 
-	use crate::fhe::batched::encoder::BatchEncoder;
+	use crate::fhe::seal::batched::encoder::BatchEncoder;
 
 	#[test]
 	fn can_get_encode_and_decode_unsigned() {

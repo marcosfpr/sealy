@@ -20,6 +20,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
+thorn-crypto = { path = "../thorn-crypto" }
 anyhow = "1.0.62"
 thiserror = "1.0.60"
 serde = { version = "1.0.144", features = ["derive"] }

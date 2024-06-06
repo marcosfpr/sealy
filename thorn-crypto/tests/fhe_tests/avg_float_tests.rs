@@ -1,5 +1,5 @@
 use rand::Rng;
-use thorn_seal::{
+use thorn_crypto::fhe::seal::{
 	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
 	Context, Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator,
 	KeyGenerator, SecurityLevel,

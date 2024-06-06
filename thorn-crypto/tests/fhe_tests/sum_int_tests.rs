@@ -1,4 +1,4 @@
-use thorn_seal::{
+use thorn_crypto::fhe::seal::{
 	BFVEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
 	Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Evaluator, KeyGenerator,
 	PlainModulus, SecurityLevel,

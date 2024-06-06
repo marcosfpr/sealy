@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
-use thorn_crypto::fhe::batched::{
+use thorn_crypto::fhe::seal::batched::{
 	encoder::BatchEncoder, encryptor::BatchEncryptor, evaluator::BatchEvaluator, Batch,
 };
 use thorn_seal::{

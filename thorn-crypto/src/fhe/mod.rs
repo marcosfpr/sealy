@@ -1,2 +1,3 @@
-/// Batched FHE operations.
-pub mod batched;
+/// This module contains the implementation of the FHE scheme
+/// in the SEAL library.
+pub mod seal;
