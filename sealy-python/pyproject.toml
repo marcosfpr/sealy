@@ -1,0 +1,58 @@
+[build-system]
+requires = ["maturin>=0.15"]
+build-backend = "maturin"
+
+[project]
+name = "sealy"
+description = "Microsoft SEAL bindings for Python"
+requires-python = ">=3.8"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python",
+    "Programming Language :: Rust",
+    "Typing :: Typed",
+]
+authors = [{ name = "marcos pontes", email = "mfprezende@gmail.com" }]
+maintainers = [{ name = "marcos pontes", email = "mfprezende@gmail.com" }]
+dependencies = []
+
+[project.urls]
+Changelog = "https://github.com/marcosfpr/sealy/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/marcosfpr/sealy/blob/main/README.md"
+Homepage = "https://github.com/marcosfpr/sealy"
+Repository = "https://github.com/marcosfpr/sealy"
+
+[project.optional-dependencies]
+tests = ["pytest"]
+
+[tool.maturin]
+python-source = "python"
+
+[tool.black]
+target-version = ["py38"]
+line-length = 88
+
+[tool.ruff.lint.isort]
+known-first-party = ["sealy"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+

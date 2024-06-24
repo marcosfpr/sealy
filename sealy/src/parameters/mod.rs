@@ -30,7 +30,8 @@ pub enum SchemeType {
 }
 
 impl SchemeType {
-	fn from_u8(val: u8) -> Self {
+	/// Converts a u8 to a SchemeType.
+	pub fn from_u8(val: u8) -> Self {
 		match val {
 			0x0 => SchemeType::None,
 			0x1 => SchemeType::Bfv,
@@ -189,7 +190,7 @@ impl EncryptionParameters {
 	}
 
 	/// Returns the parms id.
-	pub fn get_parms_id(&self) -> Result<u64, Error> {
+	pub fn get_parms_id(&self) -> u64 {
 		let mut parms_id: c_ulong = 0;
 
 		unsafe {
@@ -197,7 +198,37 @@ impl EncryptionParameters {
 				.expect("Internal error");
 		}
 
-		Ok(parms_id)
+		parms_id
+	}
+
+	/// Sets the polynomial modulus degree.
+	pub fn set_coefficient_modulus(&mut self, modulus: Vec<Modulus>) -> Result<(), Error> {
+		let modulus_ref = modulus
+			.iter()
+			.map(|m| m.get_handle())
+			.collect::<Vec<*mut c_void>>();
+		let modulus_ptr = modulus_ref.as_ptr() as *mut *mut c_void;
+
+		convert_seal_error(unsafe {
+			bindgen::EncParams_SetCoeffModulus(self.handle, modulus.len() as u64, modulus_ptr)
+		})
+	}
+
+	/// Sets the polynomial modulus degree.
+	pub fn set_poly_modulus_degree(&mut self, degree: u64) -> Result<(), Error> {
+		convert_seal_error(unsafe { bindgen::EncParams_SetPolyModulusDegree(self.handle, degree) })
+	}
+
+	/// Sets the plain modulus as a [`Modulus`] instance.
+	pub fn set_plain_modulus(&mut self, modulus: Modulus) -> Result<(), Error> {
+		convert_seal_error(unsafe {
+			bindgen::EncParams_SetPlainModulus1(self.handle, modulus.get_handle())
+		})
+	}
+
+	/// Sets the plain modulus as a constant.
+	pub fn set_plain_modulus_u64(&mut self, modulus: u64) -> Result<(), Error> {
+		convert_seal_error(unsafe { bindgen::EncParams_SetPlainModulus2(self.handle, modulus) })
 	}
 }
 
@@ -255,6 +286,24 @@ impl From<DegreeType> for u64 {
 			DegreeType::D8192 => 8192,
 			DegreeType::D16384 => 16384,
 			DegreeType::D32768 => 32768,
+		}
+	}
+}
+
+impl TryFrom<u64> for DegreeType {
+	type Error = Error;
+
+	fn try_from(value: u64) -> Result<Self, Self::Error> {
+		match value {
+			256 => Ok(DegreeType::D256),
+			512 => Ok(DegreeType::D512),
+			1024 => Ok(DegreeType::D1024),
+			2048 => Ok(DegreeType::D2048),
+			4096 => Ok(DegreeType::D4096),
+			8192 => Ok(DegreeType::D8192),
+			16384 => Ok(DegreeType::D16384),
+			32768 => Ok(DegreeType::D32768),
+			_ => Err(Error::DegreeNotSet),
 		}
 	}
 }

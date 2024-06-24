@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
 use sealy::{
-	BatchEncoder, BatchEncryptor, BatchEvaluator, Batch,
-	CKKSEncoder, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus, Context,
-	DegreeType, Encoder, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
+	Batch, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, Ciphertext,
+	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
+	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
@@ -34,9 +34,7 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn aggregate(
-	ctx: &Context,
-	encoder: &BatchEncoder<f64, CKKSEncoder>,
-	ciphertexts: &[Batch<Ciphertext>],
+	ctx: &Context, encoder: &BatchEncoder<f64, CKKSEncoder>, ciphertexts: &[Batch<Ciphertext>],
 	dimension: usize,
 ) -> Result<Batch<Ciphertext>, Error> {
 	let batch_evaluator = BatchEvaluator::ckks(ctx)?;

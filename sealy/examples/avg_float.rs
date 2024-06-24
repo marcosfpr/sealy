@@ -29,10 +29,7 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn average_ciphertexts(
-	ctx: &Context,
-	encoder: &CKKSEncoder,
-	ciphertexts: &[Ciphertext],
-	size: usize,
+	ctx: &Context, encoder: &CKKSEncoder, ciphertexts: &[Ciphertext], size: usize,
 ) -> Result<Ciphertext, Error> {
 	let evaluator = CKKSEvaluator::new(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;

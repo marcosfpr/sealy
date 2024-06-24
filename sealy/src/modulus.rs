@@ -153,6 +153,7 @@ impl Clone for Modulus {
 /// and is the default security level enforced by Microsoft SEAL when constructing
 /// a SEALContext object. Normal users should not have to specify the security
 /// level explicitly anywhere.
+#[derive(Debug, Clone)]
 pub struct CoefficientModulus;
 
 impl CoefficientModulus {

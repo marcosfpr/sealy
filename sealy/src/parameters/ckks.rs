@@ -1,9 +1,4 @@
-use std::ffi::c_void;
-
-use crate::{
-	bindgen, error::convert_seal_error, DegreeType, EncryptionParameters, Error, Modulus,
-	ModulusDegreeType, SchemeType,
-};
+use crate::{DegreeType, EncryptionParameters, Error, Modulus, ModulusDegreeType, SchemeType};
 
 use super::CoefficientModulusType;
 
@@ -47,27 +42,14 @@ impl CkksEncryptionParametersBuilder {
 
 	/// Validate the parameter choices and return the encryption parameters.
 	pub fn build(self) -> Result<EncryptionParameters, Error> {
-		let params = EncryptionParameters::new(SchemeType::Ckks)?;
+		let mut params = EncryptionParameters::new(SchemeType::Ckks)?;
 
-		convert_seal_error(unsafe {
-			bindgen::EncParams_SetPolyModulusDegree(
-				params.handle,
-				self.poly_modulus_degree.try_into()?,
-			)
-		})?;
+		params.set_poly_modulus_degree(self.poly_modulus_degree.try_into()?)?;
 
 		match self.coefficient_modulus {
 			CoefficientModulusType::NotSet => return Err(Error::CoefficientModulusNotSet),
 			CoefficientModulusType::Modulus(m) => {
-				convert_seal_error(unsafe {
-					let modulus_ref = m
-						.iter()
-						.map(|m| m.get_handle())
-						.collect::<Vec<*mut c_void>>();
-					let modulus_ptr = modulus_ref.as_ptr() as *mut *mut c_void;
-
-					bindgen::EncParams_SetCoeffModulus(params.handle, m.len() as u64, modulus_ptr)
-				})?;
+				params.set_coefficient_modulus(m)?;
 			}
 		};
 
