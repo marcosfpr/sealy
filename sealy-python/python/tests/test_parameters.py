@@ -1,8 +1,7 @@
-import pytest
+from sealy import CoefficientModulus, PlainModulus, SecurityLevel
 from sealy.parameters import (BfvEncryptionParametersBuilder,
-                              CkksEncryptionParametersBuilder,
-                              CoefficientModulus, DegreeType, PlainModulus,
-                              SchemeType, SecurityLevel)
+                              CkksEncryptionParametersBuilder, DegreeType,
+                              SchemeType)
 
 
 def test_can_create_plain_modulus():

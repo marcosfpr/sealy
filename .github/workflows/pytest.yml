@@ -1,4 +1,4 @@
-name: Tests
+name: Python Tests
 
 on:
   push:
@@ -31,13 +31,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          components: clippy, rustfmt
 
-      - name: clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Install dependencies
+        run: |
+          cd sealy-python
+          pip install .'[build,tests]'
 
-      - name: rustfmt
-        run: cargo fmt --all -- --check
+      - name: Build and install Python bindings
+        run: |
+          cd sealy-python
+          maturin develop
 
-      - name: Tests
-        run: cargo test --release
+      - name: Run tests
+        run: |
+          cd sealy-python
+          pytest

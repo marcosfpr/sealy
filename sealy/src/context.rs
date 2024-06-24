@@ -151,9 +151,7 @@ impl Context {
 			return Err(Error::InvalidPointer);
 		}
 
-		Ok(crate::context_data::ContextData {
-			handle: context_data,
-		})
+		Ok(ContextData::new(context_data))
 	}
 
 	/// Returns the first ContextData in the modulus switching chain.
@@ -168,9 +166,7 @@ impl Context {
 			return Err(Error::InvalidPointer);
 		}
 
-		Ok(ContextData {
-			handle: context_data,
-		})
+		Ok(ContextData::new(context_data))
 	}
 
 	/// Returns the last ContextData in the modulus switching chain.
@@ -185,9 +181,7 @@ impl Context {
 			return Err(Error::InvalidPointer);
 		}
 
-		Ok(ContextData {
-			handle: context_data,
-		})
+		Ok(ContextData::new(context_data))
 	}
 }
 

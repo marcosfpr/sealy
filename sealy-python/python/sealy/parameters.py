@@ -1,8 +1,6 @@
 from typing import List
 
-# re-exporting classes from sealy.sealy
-from sealy.sealy import (CoefficientModulus, DegreeType, EncryptionParameters,
-                         Modulus, PlainModulus, SchemeType, SecurityLevel)
+from sealy.sealy import DegreeType, EncryptionParameters, Modulus, SchemeType
 
 
 class BfvEncryptionParametersBuilder:

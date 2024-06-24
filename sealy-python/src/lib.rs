@@ -1,7 +1,11 @@
 use pyo3::prelude::*;
 
+mod context;
+mod context_data;
 mod parameters;
 
+use crate::context::PyContext;
+use crate::context_data::PyContextData;
 use crate::parameters::{
 	PyCoefficientModulus, PyDegreeType, PyEncryptionParameters, PyModulus, PyPlainModulus,
 	PySchemeType, PySecurityLevel,
@@ -19,6 +23,8 @@ fn sealy(m: &Bound<'_, PyModule>) -> PyResult<()> {
 	m.add_class::<PyPlainModulus>()?;
 	m.add_class::<PyCoefficientModulus>()?;
 	m.add_class::<PyEncryptionParameters>()?;
+	m.add_class::<PyContextData>()?;
+	m.add_class::<PyContext>()?;
 
 	Ok(())
 }

@@ -267,3 +267,76 @@ class EncryptionParameters:
         :param modulus: The constant value for the plain modulus.
         """
         ...
+
+class ContextData:
+    """
+    Represents the context data used in encryption parameters.
+    """
+
+    def get_encryption_parameters(self) -> "EncryptionParameters":
+        """
+        Get the encryption parameters from the context data.
+
+        :return: The encryption parameters.
+        """
+        ...
+
+    def get_total_coeff_modulus_bit_count(self) -> int:
+        """
+        Get the total coefficient modulus bit count from the context data.
+
+        :return: The total coefficient modulus bit count.
+        """
+        ...
+
+class Context:
+    """
+    Represents the context used in encryption parameters.
+    """
+
+    def __init__(
+        self,
+        params: "EncryptionParameters",
+        expand_mod_chain: bool,
+        security_level: "SecurityLevel",
+    ) -> None:
+        """
+        Initialize a new context with given parameters.
+
+        :param params: The encryption parameters.
+        :param expand_mod_chain: A flag indicating whether to expand the modulus chain.
+        :param security_level: The security level.
+        """
+        ...
+
+    def get_key_parms_id(self) -> List[int]:
+        """
+        Get the key parameters ID from the context.
+
+        :return: The key parameters ID.
+        """
+        ...
+
+    def get_last_parms_id(self) -> int:
+        """
+        Get the last parameters ID from the context.
+
+        :return: The last parameters ID.
+        """
+        ...
+
+    def get_first_parms_id(self) -> int:
+        """
+        Get the first parameters ID from the context.
+
+        :return: The first parameters ID.
+        """
+        ...
+
+    def get_context_data(self) -> "ContextData":
+        """
+        Get the context data from the context.
+
+        :return: The context data.
+        """
+        ...
