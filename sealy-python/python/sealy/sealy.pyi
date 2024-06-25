@@ -13,8 +13,8 @@ class SchemeType:
         """
         ...
 
-    @staticmethod
-    def bfv() -> "SchemeType":
+    @classmethod
+    def bfv(cls) -> "SchemeType":
         """
         Create a BFV scheme type.
 
@@ -22,8 +22,8 @@ class SchemeType:
         """
         ...
 
-    @staticmethod
-    def ckks() -> "SchemeType":
+    @classmethod
+    def ckks(cls) -> "SchemeType":
         """
         Create a CKKS scheme type.
 
@@ -36,8 +36,10 @@ class CoefficientModulus:
     Represents the coefficient modulus used in encryption parameters.
     """
 
-    @staticmethod
-    def create(degree: "DegreeType", bit_sizes: List[int]) -> List["Modulus"]:
+    @classmethod
+    def create(
+        cls, degree: "DegreeType", bit_sizes: List[int]
+    ) -> List["Modulus"]:
         """
         Initialize a new coefficient modulus with a given degree and bit sizes.
 
@@ -47,8 +49,10 @@ class CoefficientModulus:
         """
         ...
 
-    @staticmethod
-    def ckks(degree: "DegreeType", bit_sizes: List[int]) -> List["Modulus"]:
+    @classmethod
+    def ckks(
+        cls, degree: "DegreeType", bit_sizes: List[int]
+    ) -> List["Modulus"]:
         """
         Create a CKKS coefficient modulus.
 
@@ -58,9 +62,9 @@ class CoefficientModulus:
         """
         ...
 
-    @staticmethod
+    @classmethod
     def bfv(
-        degree: "DegreeType", security_level: "SecurityLevel"
+        cls, degree: "DegreeType", security_level: "SecurityLevel"
     ) -> List["Modulus"]:
         """
         Create a BFV coefficient modulus.
@@ -71,9 +75,9 @@ class CoefficientModulus:
         """
         ...
 
-    @staticmethod
+    @classmethod
     def max_bit_count(
-        degree: "DegreeType", security_level: "SecurityLevel"
+        cls, degree: "DegreeType", security_level: "SecurityLevel"
     ) -> int:
         """
         Get the maximum bit count for a given degree and security level.
@@ -89,8 +93,8 @@ class PlainModulus:
     Represents the plain modulus used in encryption parameters.
     """
 
-    @staticmethod
-    def batching(degree: "DegreeType", bit_size: int) -> "Modulus":
+    @classmethod
+    def batching(cls, degree: "DegreeType", bit_size: int) -> "Modulus":
         """
         Create a plain modulus for batching.
 
@@ -100,8 +104,8 @@ class PlainModulus:
         """
         ...
 
-    @staticmethod
-    def raw(val: int) -> "Modulus":
+    @classmethod
+    def raw(cls, val: int) -> "Modulus":
         """
         Create a plain modulus from a raw value.
 
@@ -157,8 +161,8 @@ class SecurityLevel:
         """
         ...
 
-    @staticmethod
-    def default() -> "SecurityLevel":
+    @classmethod
+    def default(cls) -> "SecurityLevel":
         """
         Get the default security level.
 
@@ -187,8 +191,8 @@ class EncryptionParameters:
         """
         ...
 
-    @staticmethod
-    def get_block_size() -> int:
+    @classmethod
+    def get_block_size(cls) -> int:
         """
         Get the block size of the encryption parameters.
 
@@ -338,5 +342,165 @@ class Context:
         Get the context data from the context.
 
         :return: The context data.
+        """
+        ...
+
+class PublicKey:
+    """
+    Represents the public key used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new public key.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the public key to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> None:
+        """
+        Load the public key from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class SecretKey:
+    """
+    Represents the secret key used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new secret key.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the secret key to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> None:
+        """
+        Load the secret key from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class RelinearizationKey:
+    """
+    Represents the relinearization keys used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new relinearization keys.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the relinearization keys to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> None:
+        """
+        Load the relinearization keys from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class GaloisKey:
+    """
+    Represents the Galois keys used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new Galois keys.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the Galois keys to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> None:
+        """
+        Load the Galois keys from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class KeyGenerator:
+    """
+    Represents the key generator used in encryption parameters.
+    """
+
+    def __init__(self, context: "Context") -> None:
+        """
+        Initialize a new key generator with a given context.
+
+        :param context: The context for the key generator.
+        """
+        ...
+
+    @classmethod
+    def from_secret_key(
+        cls, context: "Context", secret_key: "SecretKey"
+    ) -> "KeyGenerator":
+        """
+        Generate a public key.
+
+        :return: The public key.
+        """
+        ...
+
+    def secret_key(self) -> "SecretKey":
+        """
+        Copies the secret key.
+
+        :return: The secret key.
+        """
+        ...
+
+    def create_public_key(self) -> "PublicKey":
+        """
+        Generate a public key.
+
+        :return: The public key.
+        """
+        ...
+
+    def create_galois_key(self) -> "GaloisKey":
+        """
+        Generate Galois keys.
+
+        :return: The Galois keys.
+        """
+        ...
+
+    def create_relinearization_key(self) -> "RelinearizationKey":
+        """
+        Generate relinearization keys.
+
+        :return: The relinearization keys.
         """
         ...

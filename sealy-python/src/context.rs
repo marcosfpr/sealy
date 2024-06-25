@@ -10,7 +10,7 @@ use crate::{context_data::PyContextData, PyEncryptionParameters, PySecurityLevel
 /// several costly pre-computations.
 #[pyclass(name = "Context")]
 pub struct PyContext {
-	inner: sealy::Context,
+	pub(crate) inner: sealy::Context,
 }
 
 #[pymethods]
