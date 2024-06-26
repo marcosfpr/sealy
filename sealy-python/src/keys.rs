@@ -59,7 +59,7 @@ impl PyPublicKey {
 #[derive(Debug, Clone)]
 #[pyclass(name = "SecretKey")]
 pub struct PySecretKey {
-	inner: sealy::SecretKey,
+	pub(crate) inner: sealy::SecretKey,
 }
 
 #[pymethods]

@@ -1,5 +1,16 @@
 from typing import List
 
+class MemoryPool:
+    """
+    Represents the memory pool used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new memory pool.
+        """
+        ...
+
 class SchemeType:
     """
     Represents a scheme type used in encryption parameters.
@@ -363,7 +374,7 @@ class PublicKey:
         ...
 
     @classmethod
-    def from_bytes(cls, context: "Context", data: bytes) -> None:
+    def from_bytes(cls, context: "Context", data: bytes) -> "PublicKey":
         """
         Load the public key from a list of bytes.
 
@@ -389,7 +400,7 @@ class SecretKey:
         ...
 
     @classmethod
-    def from_bytes(cls, context: "Context", data: bytes) -> None:
+    def from_bytes(cls, context: "Context", data: bytes) -> "SecretKey":
         """
         Load the secret key from a list of bytes.
 
@@ -415,7 +426,9 @@ class RelinearizationKey:
         ...
 
     @classmethod
-    def from_bytes(cls, context: "Context", data: bytes) -> None:
+    def from_bytes(
+        cls, context: "Context", data: bytes
+    ) -> "RelinearizationKey":
         """
         Load the relinearization keys from a list of bytes.
 
@@ -441,7 +454,7 @@ class GaloisKey:
         ...
 
     @classmethod
-    def from_bytes(cls, context: "Context", data: bytes) -> None:
+    def from_bytes(cls, context: "Context", data: bytes) -> "GaloisKey":
         """
         Load the Galois keys from a list of bytes.
 
@@ -503,4 +516,235 @@ class KeyGenerator:
 
         :return: The relinearization keys.
         """
+        ...
+
+class Plaintext:
+    """
+    Represents the plaintext used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new plaintext.
+        """
+        ...
+
+    @classmethod
+    def with_pool(cls, pool: "MemoryPool") -> "Plaintext":
+        """
+        Initialize a new plaintext with a given memory pool.
+
+        :param pool: The memory pool.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the plaintext to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "Plaintext":
+        """
+        Load the plaintext from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+    @classmethod
+    def from_hex_string(cls, hex_string: str) -> "Plaintext":
+        """
+        Load the plaintext from a hex string.
+
+        :param hex_string: The hex string to load.
+        """
+        ...
+
+    def get_coefficient(self, index: int) -> int:
+        """
+        Get the coefficient at a given index.
+
+        :param index: The index of the coefficient.
+        :return: The coefficient at the given index.
+        """
+        ...
+
+    def set_coefficient(self, index: int, value: int) -> None:
+        """
+        Set the coefficient at a given index.
+
+        :param index: The index of the coefficient.
+        :param value: The value to set.
+        """
+        ...
+
+    def resize(self, size: int) -> None:
+        """
+        Resize the plaintext to a given size.
+
+        :param size: The size to resize to.
+        """
+        ...
+
+    def size(self) -> int:
+        """
+        Get the size of the plaintext.
+
+        :return: The size of the plaintext.
+        """
+        ...
+
+    def is_ntt_form(self) -> bool:
+        """
+        Check if the plaintext is in NTT form.
+
+        :return: True if the plaintext is in NTT form, False otherwise.
+        """
+        ...
+
+class Ciphertext:
+    """
+    Represents the ciphertext used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new ciphertext.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the ciphertext to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "Ciphertext":
+        """
+        Load the ciphertext from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+    def get_num_polynomials(self) -> int:
+        """
+        Get the number of polynomials in the ciphertext.
+
+        :return: The number of polynomials.
+        """
+        ...
+
+    def get_coefficient(self, poly_index: int, coeff_index: int) -> int:
+        """
+        Get the coefficient at a given polynomial and coefficient index.
+
+        :param poly_index: The polynomial index.
+        :param coeff_index: The coefficient index.
+        :return: The coefficient at the given polynomial and coefficient index.
+        """
+        ...
+
+    def get_coeff_modulus_size(self) -> int:
+        """
+        Get the coefficient modulus size of the ciphertext.
+
+        :return: The coefficient modulus size.
+        """
+        ...
+
+    def is_ntt_form(self) -> bool:
+        """
+        Check if the ciphertext is in NTT form.
+
+        :return: True if the ciphertext is in NTT form, False otherwise.
+        """
+        ...
+
+from typing import List, Optional
+
+class PolynomialArray:
+    def __init__(self) -> None:
+        """Creates a new empty polynomial array. Use an encoder to populate with a value."""
+        ...
+
+    @classmethod
+    def from_ciphertext(
+        cls, context: "Context", ciphertext: "Ciphertext"
+    ) -> "PolynomialArray":
+        """Creates a polynomial array from a reference to a ciphertext."""
+        ...
+
+    @classmethod
+    def from_public_key(
+        cls, context: "Context", public_key: "PublicKey"
+    ) -> "PolynomialArray":
+        """Creates a polynomial array from a reference to a public key."""
+        ...
+
+    @classmethod
+    def from_secret_key(
+        cls, context: "Context", secret_key: "SecretKey"
+    ) -> "PolynomialArray":
+        """Creates a polynomial array from a reference to a secret key."""
+        ...
+
+    def is_reserved(self) -> bool:
+        """Has the array data been loaded? When an array is created, it initially
+        has no data. Once data is loaded this is true. Additionally data can only
+        be loaded once."""
+        ...
+
+    def is_rns(self) -> bool:
+        """Is the array in RNS form (true)."""
+        ...
+
+    def is_multiprecision(self) -> bool:
+        """Is the array in RNS form (true)."""
+        ...
+
+    def to_rns(self) -> None:
+        """Converts the polynomial array into the RNS format regardless of its
+        current format."""
+        ...
+
+    def to_multiprecision(self) -> None:
+        """Converts the polynomial array into the multiprecision format regardless
+        of its current format."""
+        ...
+
+    def as_multiprecision_bytes(self) -> bytes:
+        """This will be in coefficient order; all the limbs with a given coefficient
+        are stored together in least significant order.
+
+        The number of limbs equals the number of moduli in the coefficient
+        modulus."""
+        ...
+
+    def as_rns_bytes(self) -> bytes:
+        """This will be in modulus order; all the values associated with a given
+        moduli are stored together.
+
+        The number of limbs equals the number of moduli in the coefficient
+        modulus."""
+        ...
+
+    def get_num_polynomials(self) -> int:
+        """Returns the number of polynomials stored in the `PolynomialArray`."""
+        ...
+
+    def get_poly_modulus_degree(self) -> int:
+        """Returns the number of coefficients in each polynomial in the `PolynomialArray`."""
+        ...
+
+    def get_coeff_modulus_size(self) -> int:
+        """Returns how many moduli are in the coefficient modulus set."""
+        ...
+
+    def drop_modulus(self) -> "PolynomialArray":
+        """Reduces the polynomial array by dropping the last modulus in the modulus
+        set."""
         ...

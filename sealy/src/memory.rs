@@ -6,6 +6,7 @@ use crate::bindgen;
 /// Memory pool handle for SEAL.
 ///
 /// Heavily incomplete and work in progress.
+#[derive(Debug)]
 pub struct MemoryPool {
 	pub(crate) handle: *mut c_void,
 }

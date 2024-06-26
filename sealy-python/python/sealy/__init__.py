@@ -2,9 +2,10 @@
 
 from sealy.parameters import (BfvEncryptionParametersBuilder,
                               CkksEncryptionParametersBuilder)
-from sealy.sealy import (CoefficientModulus, Context, ContextData, DegreeType,
-                         EncryptionParameters, KeyGenerator, Modulus,
-                         PlainModulus, SchemeType, SecurityLevel)
+from sealy.sealy import (Ciphertext, CoefficientModulus, Context, ContextData,
+                         DegreeType, EncryptionParameters, KeyGenerator,
+                         MemoryPool, Modulus, PlainModulus, Plaintext,
+                         PolynomialArray, SchemeType, SecurityLevel)
 
 __all__ = [
     "BfvEncryptionParametersBuilder",
@@ -19,4 +20,8 @@ __all__ = [
     "PlainModulus",
     "SchemeType",
     "SecurityLevel",
+    "Plaintext",
+    "MemoryPool",
+    "Ciphertext",
+    "PolynomialArray",
 ]
