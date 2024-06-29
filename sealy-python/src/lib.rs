@@ -3,6 +3,10 @@ use pyo3::prelude::*;
 mod ciphertext;
 mod context;
 mod context_data;
+mod decryptor;
+mod encoder;
+mod encryptor;
+mod evaluator;
 mod keys;
 mod memory;
 mod parameters;
@@ -12,6 +16,10 @@ mod poly_array;
 use crate::ciphertext::PyCiphertext;
 use crate::context::PyContext;
 use crate::context_data::PyContextData;
+use crate::decryptor::PyDecryptor;
+use crate::encoder::{PyBFVDecimalEncoder, PyBFVEncoder, PyCKKSEncoder};
+use crate::encryptor::{PyAsymmetricComponents, PyEncryptor};
+use crate::evaluator::{PyBFVEvaluator, PyCKKSEvaluator};
 use crate::keys::{PyGaloisKey, PyKeyGenerator, PyPublicKey, PyRelinearizationKey, PySecretKey};
 use crate::memory::PyMemoryPool;
 use crate::parameters::{
@@ -44,6 +52,14 @@ fn sealy(m: &Bound<'_, PyModule>) -> PyResult<()> {
 	m.add_class::<PyPlaintext>()?;
 	m.add_class::<PyCiphertext>()?;
 	m.add_class::<PyPolynomialArray>()?;
+	m.add_class::<PyBFVEncoder>()?;
+	m.add_class::<PyBFVDecimalEncoder>()?;
+	m.add_class::<PyCKKSEncoder>()?;
+	m.add_class::<PyAsymmetricComponents>()?;
+	m.add_class::<PyEncryptor>()?;
+	m.add_class::<PyDecryptor>()?;
+	m.add_class::<PyBFVEvaluator>()?;
+	m.add_class::<PyCKKSEvaluator>()?;
 
 	Ok(())
 }

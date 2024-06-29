@@ -23,6 +23,17 @@ pub struct AsymmetricComponents {
 	pub r: Plaintext,
 }
 
+impl AsymmetricComponents {
+	/// Create a new AsymmetricComponents instance.
+	pub fn new(u: PolynomialArray, e: PolynomialArray, r: Plaintext) -> Self {
+		Self {
+			u,
+			e,
+			r,
+		}
+	}
+}
+
 /// The components to a symmetric encryption.
 pub struct SymmetricComponents {
 	/// Error polynomial.
@@ -32,6 +43,16 @@ pub struct SymmetricComponents {
 	pub e: PolynomialArray,
 	/// Rounding component after scaling the message by delta.
 	pub r: Plaintext,
+}
+
+impl SymmetricComponents {
+	/// Create a new SymmetricComponents instance.
+	pub fn new(e: PolynomialArray, r: Plaintext) -> Self {
+		Self {
+			e,
+			r,
+		}
+	}
 }
 
 impl core::fmt::Debug for AsymmetricComponents {
@@ -122,8 +143,8 @@ pub struct SymAsym;
 impl marker::Sym for SymAsym {}
 impl marker::Asym for SymAsym {}
 
-unsafe impl Sync for Encryptor {}
-unsafe impl Send for Encryptor {}
+unsafe impl<T: Sync> Sync for Encryptor<T> {}
+unsafe impl<T: Send> Send for Encryptor<T> {}
 
 impl Encryptor {
 	/// Creates an Encryptor instance initialized with the specified SEALContext,
@@ -277,11 +298,7 @@ impl<T: marker::Asym> Encryptor<T> {
 
 		Ok((
 			ciphertext,
-			AsymmetricComponents {
-				u: u_destination,
-				e: e_destination,
-				r: r_destination,
-			},
+			AsymmetricComponents::new(u_destination, e_destination, r_destination),
 		))
 	}
 
@@ -369,11 +386,7 @@ impl<T: marker::Asym> Encryptor<T> {
 
 		Ok((
 			ciphertext,
-			AsymmetricComponents {
-				u: u_destination,
-				e: e_destination,
-				r: r_destination,
-			},
+			AsymmetricComponents::new(u_destination, e_destination, r_destination),
 		))
 	}
 }
@@ -478,10 +491,7 @@ impl<T: marker::Sym> Encryptor<T> {
 
 		Ok((
 			ciphertext,
-			SymmetricComponents {
-				e: e_destination,
-				r: r_destination,
-			},
+			SymmetricComponents::new(e_destination, r_destination),
 		))
 	}
 
@@ -524,10 +534,7 @@ impl<T: marker::Sym> Encryptor<T> {
 
 		Ok((
 			ciphertext,
-			SymmetricComponents {
-				e: e_destination,
-				r: r_destination,
-			},
+			SymmetricComponents::new(e_destination, r_destination),
 		))
 	}
 }

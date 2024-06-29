@@ -162,7 +162,7 @@ impl PolynomialArray {
 	/// Read out the raw data inside the vector. This function is not meant to be
 	/// called by users; instead users should call `as_multiprecision_u64s` or
 	/// `as_rns_u64s`
-	fn as_u64s(&self) -> Result<Vec<u64>> {
+	pub fn as_u64s(&self) -> Result<Vec<u64>> {
 		let mut num_u64: u64 = 0;
 
 		convert_seal_error(unsafe {

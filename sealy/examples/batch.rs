@@ -1,8 +1,45 @@
+use rand::Rng;
 use sealy::{
-	BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder,
+	Batch, BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, Ciphertext,
 	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
 	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
+
+fn generate_random_tensor(size: usize) -> Vec<f64> {
+	let mut rng = rand::thread_rng();
+	let mut tensor = Vec::with_capacity(size);
+	for _ in 0..size {
+		tensor.push(rng.gen_range(0.0..1.0));
+	}
+	tensor
+}
+
+fn average_ciphertexts(
+	ctx: &Context, encoder: &BatchEncoder<f64, CKKSEncoder>, ciphertexts: &[Batch<Ciphertext>],
+	size: usize,
+) -> Result<Batch<Ciphertext>, Error> {
+	let evaluator = BatchEvaluator::ckks(ctx)?;
+	let cipher = evaluator.add_many(ciphertexts)?;
+
+	let fraction = 1.0 / ciphertexts.len() as f64;
+	let fraction = vec![fraction; size];
+	let fraction = encoder.encode(&fraction)?;
+
+	evaluator.multiply_plain(&cipher, &fraction)
+}
+
+fn average_plaintexts(plaintexts: &[Vec<f64>]) -> Vec<f64> {
+	// average element-wise
+	let mut avg = vec![0.0; plaintexts[0].len()];
+	for tensor in plaintexts {
+		for (i, &val) in tensor.iter().enumerate() {
+			avg[i] += val;
+		}
+	}
+	avg.iter_mut()
+		.for_each(|val| *val /= plaintexts.len() as f64);
+	avg
+}
 
 fn main() -> Result<(), Error> {
 	// generate keypair to encrypt and decrypt data.
@@ -29,30 +66,57 @@ fn main() -> Result<(), Error> {
 	let encryptor = BatchEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
 	let decryptor = BatchDecryptor::new(&ctx, &private_key)?;
 
-	let evaluator = BatchEvaluator::ckks(&ctx)?;
+	let start = std::time::Instant::now();
+	let client_1_gradients = generate_random_tensor(11_000_000);
+	let client_2_gradients = generate_random_tensor(11_000_000);
+	let client_3_gradients = generate_random_tensor(11_000_000);
+	println!("generate time: {:?}", start.elapsed());
 
-	let x = 5.2;
-	let y = 3.3;
+	let start = std::time::Instant::now();
+	let client_1_encoded_gradients = encoder.encode(&client_1_gradients)?;
+	let client_2_encoded_gradients = encoder.encode(&client_2_gradients)?;
+	let client_3_encoded_gradients = encoder.encode(&client_3_gradients)?;
+	println!("encode time: {:?}", start.elapsed());
 
-	let x_encoded = encoder.encode(&[x])?;
-	let y_encoded = encoder.encode(&[y])?;
+	let start = std::time::Instant::now();
+	let client_1_encrypted_gradients = encryptor.encrypt(&client_1_encoded_gradients)?;
+	let client_2_encrypted_gradients = encryptor.encrypt(&client_2_encoded_gradients)?;
+	let client_3_encrypted_gradients = encryptor.encrypt(&client_3_encoded_gradients)?;
+	println!("encrypt time: {:?}", start.elapsed());
 
-	let x_enc = encryptor.encrypt(&x_encoded)?;
-	let y_enc = encryptor.encrypt(&y_encoded)?;
+	let start = std::time::Instant::now();
+	let avg_truth =
+		average_plaintexts(&[client_1_gradients, client_2_gradients, client_3_gradients]);
+	println!("avg plaintext time: {:?}", start.elapsed());
 
-	let sum = evaluator.add(&x_enc, &y_enc)?;
-	let sum_dec = decryptor.decrypt(&sum)?;
+	let start = std::time::Instant::now();
+	let avg = average_ciphertexts(
+		&ctx,
+		&encoder,
+		&[
+			client_1_encrypted_gradients,
+			client_2_encrypted_gradients,
+			client_3_encrypted_gradients,
+		],
+		10,
+	)?;
+	println!("avg ciphertext time: {:?}", start.elapsed());
 
-	let sum_plain = encoder.decode(&sum_dec)?;
+	let start = std::time::Instant::now();
+	let avg_dec = decryptor.decrypt(&avg)?;
+	println!("decrypt time: {:?}", start.elapsed());
 
-	let truth = x + y;
+	let start = std::time::Instant::now();
+	let avg_plain = encoder.decode(&avg_dec)?;
+	println!("decode time: {:?}", start.elapsed());
 
-	let result = sum_plain.first().unwrap();
+	// get the first 10
+	let avg_plain = avg_plain.iter().take(10).cloned().collect::<Vec<f64>>();
 
-	assert!((result - truth).abs() < 1e-6);
-
-	println!("truth: {:?}", truth);
-	println!("sum: {:?}", result);
+	// compare avg_truth and avg_plain with a tolerance of 1e-6
+	for (t, p) in avg_truth.iter().zip(avg_plain.iter()) {
+		assert!((t - p).abs() < 1e-6);
+	}
 
 	Ok(())
 }

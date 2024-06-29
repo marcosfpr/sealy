@@ -10,7 +10,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[pyclass(name = "PolynomialArray")]
 pub struct PyPolynomialArray {
-	inner: sealy::PolynomialArray,
+	pub(crate) inner: sealy::PolynomialArray,
 }
 
 #[pymethods]
@@ -130,6 +130,17 @@ impl PyPolynomialArray {
 		let data = self.inner.as_rns_u64s().map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to get polynomial array as RNS bytes: {:?}",
+				e
+			))
+		})?;
+		Ok(data)
+	}
+
+	/// Returns the polynomial array as a vector of integers.
+	pub fn as_ints(&self) -> PyResult<Vec<u64>> {
+		let data = self.inner.as_u64s().map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to get polynomial array as ints: {:?}",
 				e
 			))
 		})?;

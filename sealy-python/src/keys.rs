@@ -119,7 +119,7 @@ impl PySecretKey {
 #[derive(Debug, Clone)]
 #[pyclass(name = "RelinearizationKey")]
 pub struct PyRelinearizationKey {
-	inner: sealy::RelinearizationKey,
+	pub(crate) inner: sealy::RelinearizationKey,
 }
 
 #[pymethods]

@@ -10,7 +10,7 @@ use crate::{context::PyContext, memory::PyMemoryPool};
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 #[pyclass(name = "Plaintext")]
 pub struct PyPlaintext {
-	inner: sealy::Plaintext,
+	pub(crate) inner: sealy::Plaintext,
 }
 
 #[pymethods]

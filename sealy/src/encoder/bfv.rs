@@ -45,6 +45,7 @@ use super::SlotCount;
 /// appropriately. Thus, to construct a BatchEncoder the user must provide an instance
 /// of SEALContext such that its associated EncryptionParameterQualifiers object has the
 /// flags ParametersSet and EnableBatching set to true.
+#[derive(Debug)]
 pub struct BFVEncoder<T> {
 	handle: *mut c_void,
 	typ: std::marker::PhantomData<T>,
@@ -229,6 +230,7 @@ impl<T> Drop for BFVEncoder<T> {
 /// It uses a base to encode the float point number as an integer.
 /// This is a rough model of fixed-point arithmetic and is not recommended
 /// for production use.    
+#[derive(Debug)]
 pub struct BFVDecimalEncoder {
 	encoder: BFVEncoder<u64>,
 	base: u64,
