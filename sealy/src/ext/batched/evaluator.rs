@@ -1,5 +1,5 @@
 use super::Batch;
-use crate::{CKKSEvaluator, Context, Error, Evaluator, GaloisKeys, RelinearizationKeys, Result};
+use crate::{CKKSEvaluator, Context, Error, Evaluator, GaloisKey, RelinearizationKey, Result};
 
 /// An evaluator that evaluates batches of data.
 pub struct BatchEvaluator<E> {
@@ -84,7 +84,7 @@ where
 	}
 
 	fn multiply_many(
-		&self, a: &[Self::Ciphertext], relin_keys: &RelinearizationKeys,
+		&self, a: &[Self::Ciphertext], relin_keys: &RelinearizationKey,
 	) -> Result<Self::Ciphertext> {
 		let mut result = Vec::with_capacity(a.len());
 		let length = a.first().ok_or_else(|| Error::InvalidArgument)?.len();
@@ -169,14 +169,14 @@ where
 	}
 
 	fn exponentiate(
-		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<Self::Ciphertext> {
 		a.map(|value| self.evaluator.exponentiate(value, exponent, relin_keys))
 			.collect()
 	}
 
 	fn exponentiate_inplace(
-		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		for value in a.iter() {
 			self.evaluator
@@ -226,7 +226,7 @@ where
 	}
 
 	fn relinearize_inplace(
-		&self, a: &mut Self::Ciphertext, relin_keys: &RelinearizationKeys,
+		&self, a: &mut Self::Ciphertext, relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		for value in a.iter_mut() {
 			self.evaluator.relinearize_inplace(value, relin_keys)?;
@@ -236,21 +236,21 @@ where
 	}
 
 	fn relinearize(
-		&self, a: &Self::Ciphertext, relin_keys: &RelinearizationKeys,
+		&self, a: &Self::Ciphertext, relin_keys: &RelinearizationKey,
 	) -> Result<Self::Ciphertext> {
 		a.map(|value| self.evaluator.relinearize(value, relin_keys))
 			.collect()
 	}
 
 	fn rotate_rows(
-		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKey,
 	) -> Result<Self::Ciphertext> {
 		a.map(|value| self.evaluator.rotate_rows(value, steps, galois_keys))
 			.collect()
 	}
 
 	fn rotate_rows_inplace(
-		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKey,
 	) -> Result<()> {
 		for value in a.iter() {
 			self.evaluator
@@ -261,13 +261,13 @@ where
 	}
 
 	fn rotate_columns(
-		&self, a: &Self::Ciphertext, galois_keys: &GaloisKeys,
+		&self, a: &Self::Ciphertext, galois_keys: &GaloisKey,
 	) -> Result<Self::Ciphertext> {
 		a.map(|value| self.evaluator.rotate_columns(value, galois_keys))
 			.collect()
 	}
 
-	fn rotate_columns_inplace(&self, a: &Self::Ciphertext, galois_keys: &GaloisKeys) -> Result<()> {
+	fn rotate_columns_inplace(&self, a: &Self::Ciphertext, galois_keys: &GaloisKey) -> Result<()> {
 		for value in a.iter() {
 			self.evaluator.rotate_columns_inplace(value, galois_keys)?;
 		}

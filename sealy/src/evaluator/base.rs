@@ -3,7 +3,7 @@ use std::ptr::null_mut;
 
 use crate::bindgen;
 use crate::error::*;
-use crate::{Ciphertext, Context, Plaintext, RelinearizationKeys};
+use crate::{Ciphertext, Context, Plaintext, RelinearizationKey};
 
 /// Provides operations on ciphertexts. Due to the properties of the encryption scheme, the arithmetic operations
 /// pass through the encryption layer to the underlying plaintext, changing it according to the type of the
@@ -134,7 +134,7 @@ impl EvaluatorBase {
 	}
 
 	pub(crate) fn multiply_many(
-		&self, a: &[Ciphertext], relin_keys: &RelinearizationKeys,
+		&self, a: &[Ciphertext], relin_keys: &RelinearizationKey,
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
@@ -270,7 +270,7 @@ impl EvaluatorBase {
 	}
 
 	pub(crate) fn exponentiate(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
@@ -289,7 +289,7 @@ impl EvaluatorBase {
 	}
 
 	pub(crate) fn exponentiate_inplace(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_Exponentiate(

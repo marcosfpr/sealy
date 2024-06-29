@@ -1,4 +1,15 @@
-from typing import List
+from typing import List, Tuple
+
+class MemoryPool:
+    """
+    Represents the memory pool used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new memory pool.
+        """
+        ...
 
 class SchemeType:
     """
@@ -13,8 +24,8 @@ class SchemeType:
         """
         ...
 
-    @staticmethod
-    def bfv() -> "SchemeType":
+    @classmethod
+    def bfv(cls) -> "SchemeType":
         """
         Create a BFV scheme type.
 
@@ -22,8 +33,8 @@ class SchemeType:
         """
         ...
 
-    @staticmethod
-    def ckks() -> "SchemeType":
+    @classmethod
+    def ckks(cls) -> "SchemeType":
         """
         Create a CKKS scheme type.
 
@@ -36,8 +47,10 @@ class CoefficientModulus:
     Represents the coefficient modulus used in encryption parameters.
     """
 
-    @staticmethod
-    def create(degree: "DegreeType", bit_sizes: List[int]) -> List["Modulus"]:
+    @classmethod
+    def create(
+        cls, degree: "DegreeType", bit_sizes: List[int]
+    ) -> List["Modulus"]:
         """
         Initialize a new coefficient modulus with a given degree and bit sizes.
 
@@ -47,8 +60,10 @@ class CoefficientModulus:
         """
         ...
 
-    @staticmethod
-    def ckks(degree: "DegreeType", bit_sizes: List[int]) -> List["Modulus"]:
+    @classmethod
+    def ckks(
+        cls, degree: "DegreeType", bit_sizes: List[int]
+    ) -> List["Modulus"]:
         """
         Create a CKKS coefficient modulus.
 
@@ -58,9 +73,9 @@ class CoefficientModulus:
         """
         ...
 
-    @staticmethod
+    @classmethod
     def bfv(
-        degree: "DegreeType", security_level: "SecurityLevel"
+        cls, degree: "DegreeType", security_level: "SecurityLevel"
     ) -> List["Modulus"]:
         """
         Create a BFV coefficient modulus.
@@ -71,9 +86,9 @@ class CoefficientModulus:
         """
         ...
 
-    @staticmethod
+    @classmethod
     def max_bit_count(
-        degree: "DegreeType", security_level: "SecurityLevel"
+        cls, degree: "DegreeType", security_level: "SecurityLevel"
     ) -> int:
         """
         Get the maximum bit count for a given degree and security level.
@@ -89,8 +104,8 @@ class PlainModulus:
     Represents the plain modulus used in encryption parameters.
     """
 
-    @staticmethod
-    def batching(degree: "DegreeType", bit_size: int) -> "Modulus":
+    @classmethod
+    def batching(cls, degree: "DegreeType", bit_size: int) -> "Modulus":
         """
         Create a plain modulus for batching.
 
@@ -100,8 +115,8 @@ class PlainModulus:
         """
         ...
 
-    @staticmethod
-    def raw(val: int) -> "Modulus":
+    @classmethod
+    def raw(cls, val: int) -> "Modulus":
         """
         Create a plain modulus from a raw value.
 
@@ -157,8 +172,8 @@ class SecurityLevel:
         """
         ...
 
-    @staticmethod
-    def default() -> "SecurityLevel":
+    @classmethod
+    def default(cls) -> "SecurityLevel":
         """
         Get the default security level.
 
@@ -187,8 +202,8 @@ class EncryptionParameters:
         """
         ...
 
-    @staticmethod
-    def get_block_size() -> int:
+    @classmethod
+    def get_block_size(cls) -> int:
         """
         Get the block size of the encryption parameters.
 
@@ -265,5 +280,956 @@ class EncryptionParameters:
         Set the plain modulus of the encryption parameters using a constant value.
 
         :param modulus: The constant value for the plain modulus.
+        """
+        ...
+
+class ContextData:
+    """
+    Represents the context data used in encryption parameters.
+    """
+
+    def get_encryption_parameters(self) -> "EncryptionParameters":
+        """
+        Get the encryption parameters from the context data.
+
+        :return: The encryption parameters.
+        """
+        ...
+
+    def get_total_coeff_modulus_bit_count(self) -> int:
+        """
+        Get the total coefficient modulus bit count from the context data.
+
+        :return: The total coefficient modulus bit count.
+        """
+        ...
+
+class Context:
+    """
+    Represents the context used in encryption parameters.
+    """
+
+    def __init__(
+        self,
+        params: "EncryptionParameters",
+        expand_mod_chain: bool,
+        security_level: "SecurityLevel",
+    ) -> None:
+        """
+        Initialize a new context with given parameters.
+
+        :param params: The encryption parameters.
+        :param expand_mod_chain: A flag indicating whether to expand the modulus chain.
+        :param security_level: The security level.
+        """
+        ...
+
+    def get_key_parms_id(self) -> List[int]:
+        """
+        Get the key parameters ID from the context.
+
+        :return: The key parameters ID.
+        """
+        ...
+
+    def get_last_parms_id(self) -> int:
+        """
+        Get the last parameters ID from the context.
+
+        :return: The last parameters ID.
+        """
+        ...
+
+    def get_first_parms_id(self) -> int:
+        """
+        Get the first parameters ID from the context.
+
+        :return: The first parameters ID.
+        """
+        ...
+
+    def get_context_data(self) -> "ContextData":
+        """
+        Get the context data from the context.
+
+        :return: The context data.
+        """
+        ...
+
+class PublicKey:
+    """
+    Represents the public key used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new public key.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the public key to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "PublicKey":
+        """
+        Load the public key from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class SecretKey:
+    """
+    Represents the secret key used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new secret key.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the secret key to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "SecretKey":
+        """
+        Load the secret key from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class RelinearizationKey:
+    """
+    Represents the relinearization keys used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new relinearization keys.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the relinearization keys to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(
+        cls, context: "Context", data: bytes
+    ) -> "RelinearizationKey":
+        """
+        Load the relinearization keys from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class GaloisKey:
+    """
+    Represents the Galois keys used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new Galois keys.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the Galois keys to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "GaloisKey":
+        """
+        Load the Galois keys from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+class KeyGenerator:
+    """
+    Represents the key generator used in encryption parameters.
+    """
+
+    def __init__(self, context: "Context") -> None:
+        """
+        Initialize a new key generator with a given context.
+
+        :param context: The context for the key generator.
+        """
+        ...
+
+    @classmethod
+    def from_secret_key(
+        cls, context: "Context", secret_key: "SecretKey"
+    ) -> "KeyGenerator":
+        """
+        Generate a public key.
+
+        :return: The public key.
+        """
+        ...
+
+    def secret_key(self) -> "SecretKey":
+        """
+        Copies the secret key.
+
+        :return: The secret key.
+        """
+        ...
+
+    def create_public_key(self) -> "PublicKey":
+        """
+        Generate a public key.
+
+        :return: The public key.
+        """
+        ...
+
+    def create_galois_key(self) -> "GaloisKey":
+        """
+        Generate Galois keys.
+
+        :return: The Galois keys.
+        """
+        ...
+
+    def create_relinearization_key(self) -> "RelinearizationKey":
+        """
+        Generate relinearization keys.
+
+        :return: The relinearization keys.
+        """
+        ...
+
+class Plaintext:
+    """
+    Represents the plaintext used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new plaintext.
+        """
+        ...
+
+    @classmethod
+    def with_pool(cls, pool: "MemoryPool") -> "Plaintext":
+        """
+        Initialize a new plaintext with a given memory pool.
+
+        :param pool: The memory pool.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the plaintext to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "Plaintext":
+        """
+        Load the plaintext from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+    @classmethod
+    def from_hex_string(cls, hex_string: str) -> "Plaintext":
+        """
+        Load the plaintext from a hex string.
+
+        :param hex_string: The hex string to load.
+        """
+        ...
+
+    def get_coefficient(self, index: int) -> int:
+        """
+        Get the coefficient at a given index.
+
+        :param index: The index of the coefficient.
+        :return: The coefficient at the given index.
+        """
+        ...
+
+    def set_coefficient(self, index: int, value: int) -> None:
+        """
+        Set the coefficient at a given index.
+
+        :param index: The index of the coefficient.
+        :param value: The value to set.
+        """
+        ...
+
+    def resize(self, size: int) -> None:
+        """
+        Resize the plaintext to a given size.
+
+        :param size: The size to resize to.
+        """
+        ...
+
+    def size(self) -> int:
+        """
+        Get the size of the plaintext.
+
+        :return: The size of the plaintext.
+        """
+        ...
+
+    def is_ntt_form(self) -> bool:
+        """
+        Check if the plaintext is in NTT form.
+
+        :return: True if the plaintext is in NTT form, False otherwise.
+        """
+        ...
+
+class Ciphertext:
+    """
+    Represents the ciphertext used in encryption parameters.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a new ciphertext.
+        """
+        ...
+
+    def as_bytes(self) -> bytes:
+        """
+        Convert the ciphertext to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_bytes(cls, context: "Context", data: bytes) -> "Ciphertext":
+        """
+        Load the ciphertext from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
+    def get_num_polynomials(self) -> int:
+        """
+        Get the number of polynomials in the ciphertext.
+
+        :return: The number of polynomials.
+        """
+        ...
+
+    def get_coefficient(self, poly_index: int, coeff_index: int) -> int:
+        """
+        Get the coefficient at a given polynomial and coefficient index.
+
+        :param poly_index: The polynomial index.
+        :param coeff_index: The coefficient index.
+        :return: The coefficient at the given polynomial and coefficient index.
+        """
+        ...
+
+    def get_coeff_modulus_size(self) -> int:
+        """
+        Get the coefficient modulus size of the ciphertext.
+
+        :return: The coefficient modulus size.
+        """
+        ...
+
+    def is_ntt_form(self) -> bool:
+        """
+        Check if the ciphertext is in NTT form.
+
+        :return: True if the ciphertext is in NTT form, False otherwise.
+        """
+        ...
+
+from typing import List, Optional
+
+class PolynomialArray:
+    def __init__(self) -> None:
+        """Creates a new empty polynomial array. Use an encoder to populate with a value."""
+        ...
+
+    @classmethod
+    def from_ciphertext(
+        cls, context: "Context", ciphertext: "Ciphertext"
+    ) -> "PolynomialArray":
+        """Creates a polynomial array from a reference to a ciphertext."""
+        ...
+
+    @classmethod
+    def from_public_key(
+        cls, context: "Context", public_key: "PublicKey"
+    ) -> "PolynomialArray":
+        """Creates a polynomial array from a reference to a public key."""
+        ...
+
+    @classmethod
+    def from_secret_key(
+        cls, context: "Context", secret_key: "SecretKey"
+    ) -> "PolynomialArray":
+        """Creates a polynomial array from a reference to a secret key."""
+        ...
+
+    def is_reserved(self) -> bool:
+        """Has the array data been loaded? When an array is created, it initially
+        has no data. Once data is loaded this is true. Additionally data can only
+        be loaded once."""
+        ...
+
+    def is_rns(self) -> bool:
+        """Is the array in RNS form (true)."""
+        ...
+
+    def is_multiprecision(self) -> bool:
+        """Is the array in RNS form (true)."""
+        ...
+
+    def to_rns(self) -> None:
+        """Converts the polynomial array into the RNS format regardless of its
+        current format."""
+        ...
+
+    def to_multiprecision(self) -> None:
+        """Converts the polynomial array into the multiprecision format regardless
+        of its current format."""
+        ...
+
+    def as_multiprecision_bytes(self) -> bytes:
+        """This will be in coefficient order; all the limbs with a given coefficient
+        are stored together in least significant order.
+
+        The number of limbs equals the number of moduli in the coefficient
+        modulus."""
+        ...
+
+    def as_rns_bytes(self) -> bytes:
+        """This will be in modulus order; all the values associated with a given
+        moduli are stored together.
+
+        The number of limbs equals the number of moduli in the coefficient
+        modulus."""
+        ...
+
+    def as_ints(self) -> List[int]:
+        """Returns the array as a list of integers."""
+        ...
+
+    def get_num_polynomials(self) -> int:
+        """Returns the number of polynomials stored in the `PolynomialArray`."""
+        ...
+
+    def get_poly_modulus_degree(self) -> int:
+        """Returns the number of coefficients in each polynomial in the `PolynomialArray`."""
+        ...
+
+    def get_coeff_modulus_size(self) -> int:
+        """Returns how many moduli are in the coefficient modulus set."""
+        ...
+
+    def drop_modulus(self) -> "PolynomialArray":
+        """Reduces the polynomial array by dropping the last modulus in the modulus
+        set."""
+        ...
+
+class BFVEncoder:
+    def __init__(self, ctx: "Context") -> None:
+        """
+        Creates a BFVEncoder.
+
+        Parameters:
+        ctx (Context): The context to use for the encoder.
+        """
+        ...
+
+    def get_slot_count(self) -> int:
+        """
+        Returns the number of "Batched" slots this encoder produces.
+
+        Returns:
+        int: The number of slots.
+        """
+        ...
+
+    def encode(self, data: List[int]) -> "Plaintext":
+        """
+        Encodes the given data into a plaintext.
+
+        Parameters:
+        data (List[int]): The data to encode.
+
+        Returns:
+        Plaintext: The encoded plaintext.
+        """
+        ...
+
+    def decode(self, plaintext: "Plaintext") -> List[int]:
+        """
+        Decodes the given plaintext into data.
+
+        Parameters:
+        plaintext (Plaintext): The plaintext to decode.
+
+        Returns:
+        List[int]: The decoded data.
+        """
+        ...
+
+class BFVDecimalEncoder:
+    def __init__(self, ctx: "Context", base: int) -> None:
+        """
+        Creates a BFVDecimalEncoder.
+
+        Parameters:
+        ctx (PyContext): The context to use for the encoder.
+        base (int): The base to use for encoding.
+        """
+        ...
+
+    def get_slot_count(self) -> int:
+        """
+        Returns the number of "Batched" slots this encoder produces.
+
+        Returns:
+        int: The number of slots.
+        """
+        ...
+
+    def encode(self, data: List[float]) -> "Plaintext":
+        """
+        Encodes the given data into a plaintext.
+
+        Parameters:
+        data (List[float]): The data to encode.
+
+        Returns:
+        PyPlaintext: The encoded plaintext.
+        """
+        ...
+
+    def decode(self, plaintext: "Plaintext") -> List[float]:
+        """
+        Decodes the given plaintext into data.
+
+        Parameters:
+        plaintext (PyPlaintext): The plaintext to decode.
+
+        Returns:
+        List[float]: The decoded data.
+        """
+        ...
+
+class AsymmetricComponents:
+    """
+    Contains the asymmetric components of the encryption scheme.
+    """
+
+    def __init__(
+        self,
+        u: "PolynomialArray",
+        e: "PolynomialArray",
+        r: "Plaintext",
+    ) -> None:
+        """
+        Initializes the asymmetric components.
+
+        Parameters:
+        u (PolynomialArray): The first component.
+        e (PolynomialArray): The second component.
+        r (Plaintext): The plaintext component.
+        """
+        ...
+
+    def get_u(self) -> "PolynomialArray":
+        """
+        Gets the first component.
+
+        Returns:
+        PolynomialArray: The first component.
+        """
+        ...
+
+    def get_e(self) -> "PolynomialArray":
+        """
+        Gets the second component.
+
+        Returns:
+        PolynomialArray: The second component.
+        """
+        ...
+
+    def get_r(self) -> "Plaintext":
+        """
+        Gets the plaintext component.
+
+        Returns:
+        Plaintext: The plaintext component.
+        """
+        ...
+
+class Encryptor:
+    """
+    Encrypts plaintext data into ciphertext.
+    """
+
+    def __init__(self, ctx: "Context", public_key: "PublicKey") -> None:
+        """
+        Initializes the encryptor.
+
+        Parameters:
+        ctx (Context): The context to use.
+        public_key (PublicKey): The public key to use.
+        """
+        ...
+
+    def encrypt(self, plaintext: "Plaintext") -> "Ciphertext":
+        """
+        Encrypts the given plaintext.
+
+        Parameters:
+        plaintext (Plaintext): The plaintext to encrypt.
+
+        Returns:
+        Ciphertext: The encrypted ciphertext.
+        """
+        ...
+
+    def encrypt_return_components(
+        self, plaintext: "Plaintext"
+    ) -> Tuple["Ciphertext", "AsymmetricComponents"]:
+        """
+        Encrypts the given plaintext and returns the components.
+
+        Parameters:
+        plaintext (Plaintext): The plaintext to encrypt.
+
+        Returns:
+        AsymmetricComponents: The asymmetric components of the encryption.
+        """
+        ...
+
+class Decryptor:
+    """
+    Decrypts ciphertext data into plaintext.
+    """
+
+    def __init__(self, ctx: "Context", secret_key: "SecretKey") -> None:
+        """
+        Initializes the decryptor.
+
+        Parameters:
+        ctx (Context): The context to use.
+        secret_key (SecretKey): The secret key to use.
+        """
+        ...
+
+    def decrypt(self, ciphertext: "Ciphertext") -> "Plaintext":
+        """
+        Decrypts the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to decrypt.
+
+        Returns:
+        Plaintext: The decrypted plaintext.
+        """
+        ...
+
+    def invariant_noise_budget(self, ciphertext: "Ciphertext") -> int:
+        """
+        Returns the invariant noise budget of the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to analyze.
+
+        Returns:
+        int: The invariant noise budget.
+        """
+        ...
+
+    def invariant_noise(self, ciphertext: "Ciphertext") -> float:
+        """
+        Returns the invariant noise of the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to analyze.
+
+        Returns:
+        float: The invariant noise.
+        """
+        ...
+
+class BFVEvaluator:
+    """
+    Evaluates operations on BFV ciphertexts.
+    """
+
+    def __init__(self, ctx: "Context") -> None:
+        """
+        Initializes the evaluator.
+
+        Parameters:
+        ctx (Context): The context to use.
+        """
+        ...
+
+    def negate(self, ciphertext: "Ciphertext") -> "Ciphertext":
+        """
+        Negates the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to negate.
+
+        Returns:
+        Ciphertext: The negated ciphertext.
+        """
+        ...
+
+    def add(self, a: "Ciphertext", b: "Ciphertext") -> "Ciphertext":
+        """
+        Adds two ciphertexts.
+
+        Parameters:
+        a (Ciphertext): The first ciphertext.
+        b (Ciphertext): The second ciphertext.
+
+        Returns:
+        Ciphertext: The sum of the ciphertexts.
+        """
+        ...
+
+    def add_many(self, ciphertexts: List["Ciphertext"]) -> "Ciphertext":
+        """
+        Adds multiple ciphertexts.
+
+        Parameters:
+        ciphertexts (List[Ciphertext]): The ciphertexts to add.
+
+        Returns:
+        Ciphertext: The sum of the ciphertexts.
+        """
+        ...
+
+    def multiply(self, a: "Ciphertext", b: "Ciphertext") -> "Ciphertext":
+        """
+        Multiplies two ciphertexts.
+
+        Parameters:
+        a (Ciphertext): The first ciphertext.
+        b (Ciphertext): The second ciphertext.
+
+        Returns:
+        Ciphertext: The product of the ciphertexts.
+        """
+        ...
+
+    def multiply_many(self, ciphertexts: List["Ciphertext"]) -> "Ciphertext":
+        """
+        Multiplies multiple ciphertexts.
+
+        Parameters:
+        ciphertexts (List[Ciphertext]): The ciphertexts to multiply.
+
+        Returns:
+        Ciphertext: The product of the ciphertexts.
+        """
+        ...
+
+    def multiply_plain(self, a: "Ciphertext", b: "Plaintext") -> "Ciphertext":
+        """
+        Multiplies a ciphertext by a plaintext.
+
+        Parameters:
+        a (Ciphertext): The ciphertext.
+        b (Plaintext): The plaintext.
+
+        Returns:
+        Ciphertext: The product of the ciphertext and plaintext.
+        """
+        ...
+
+    def sub(self, a: "Ciphertext", b: "Ciphertext") -> "Ciphertext":
+        """
+        Subtracts two ciphertexts.
+
+        Parameters:
+        a (Ciphertext): The first ciphertext.
+        b (Ciphertext): The second ciphertext.
+
+        Returns:
+        Ciphertext: The difference of the ciphertexts.
+        """
+        ...
+
+    def sub_plain(self, a: "Ciphertext", b: "Plaintext") -> "Ciphertext":
+        """
+        Subtracts a plaintext from a ciphertext.
+
+        Parameters:
+        a (Ciphertext): The ciphertext.
+        b (Plaintext): The plaintext.
+
+        Returns:
+        Ciphertext: The difference of the ciphertext and plaintext.
+        """
+        ...
+
+    def relinearize(self, ciphertext: "Ciphertext") -> "Ciphertext":
+        """
+        Relinearizes the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to relinearize.
+
+        Returns:
+        Ciphertext: The relinearized ciphertext.
+        """
+        ...
+
+class CKKSEvaluator:
+    """
+    Evaluates operations on BFV ciphertexts.
+    """
+
+    def __init__(self, ctx: "Context") -> None:
+        """
+        Initializes the evaluator.
+
+        Parameters:
+        ctx (Context): The context to use.
+        """
+        ...
+
+    def negate(self, ciphertext: "Ciphertext") -> "Ciphertext":
+        """
+        Negates the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to negate.
+
+        Returns:
+        Ciphertext: The negated ciphertext.
+        """
+        ...
+
+    def add(self, a: "Ciphertext", b: "Ciphertext") -> "Ciphertext":
+        """
+        Adds two ciphertexts.
+
+        Parameters:
+        a (Ciphertext): The first ciphertext.
+        b (Ciphertext): The second ciphertext.
+
+        Returns:
+        Ciphertext: The sum of the ciphertexts.
+        """
+        ...
+
+    def add_many(self, ciphertexts: List["Ciphertext"]) -> "Ciphertext":
+        """
+        Adds multiple ciphertexts.
+
+        Parameters:
+        ciphertexts (List[Ciphertext]): The ciphertexts to add.
+
+        Returns:
+        Ciphertext: The sum of the ciphertexts.
+        """
+        ...
+
+    def multiply(self, a: "Ciphertext", b: "Ciphertext") -> "Ciphertext":
+        """
+        Multiplies two ciphertexts.
+
+        Parameters:
+        a (Ciphertext): The first ciphertext.
+        b (Ciphertext): The second ciphertext.
+
+        Returns:
+        Ciphertext: The product of the ciphertexts.
+        """
+        ...
+
+    def multiply_many(self, ciphertexts: List["Ciphertext"]) -> "Ciphertext":
+        """
+        Multiplies multiple ciphertexts.
+
+        Parameters:
+        ciphertexts (List[Ciphertext]): The ciphertexts to multiply.
+
+        Returns:
+        Ciphertext: The product of the ciphertexts.
+        """
+        ...
+
+    def multiply_plain(self, a: "Ciphertext", b: "Plaintext") -> "Ciphertext":
+        """
+        Multiplies a ciphertext by a plaintext.
+
+        Parameters:
+        a (Ciphertext): The ciphertext.
+        b (Plaintext): The plaintext.
+
+        Returns:
+        Ciphertext: The product of the ciphertext and plaintext.
+        """
+        ...
+
+    def sub(self, a: "Ciphertext", b: "Ciphertext") -> "Ciphertext":
+        """
+        Subtracts two ciphertexts.
+
+        Parameters:
+        a (Ciphertext): The first ciphertext.
+        b (Ciphertext): The second ciphertext.
+
+        Returns:
+        Ciphertext: The difference of the ciphertexts.
+        """
+        ...
+
+    def sub_plain(self, a: "Ciphertext", b: "Plaintext") -> "Ciphertext":
+        """
+        Subtracts a plaintext from a ciphertext.
+
+        Parameters:
+        a (Ciphertext): The ciphertext.
+        b (Plaintext): The plaintext.
+
+        Returns:
+        Ciphertext: The difference of the ciphertext and plaintext.
+        """
+        ...
+
+    def relinearize(self, ciphertext: "Ciphertext") -> "Ciphertext":
+        """
+        Relinearizes the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to relinearize.
+
+        Returns:
+        Ciphertext: The relinearized ciphertext.
         """
         ...

@@ -45,7 +45,7 @@ impl PySchemeType {
 #[pyclass(name = "EncryptionParameters")]
 #[derive(Debug)]
 pub struct PyEncryptionParameters {
-	inner: sealy::EncryptionParameters,
+	pub(crate) inner: sealy::EncryptionParameters,
 }
 
 #[pymethods]
@@ -298,7 +298,7 @@ impl PyDegreeType {
 #[pyclass(name = "SecurityLevel")]
 #[derive(Debug, Clone)]
 pub struct PySecurityLevel {
-	inner: sealy::SecurityLevel,
+	pub(crate) inner: sealy::SecurityLevel,
 }
 
 #[pymethods]

@@ -1,8 +1,7 @@
-import pytest
+from sealy import CoefficientModulus, PlainModulus, SecurityLevel
 from sealy.parameters import (BfvEncryptionParametersBuilder,
-                              CkksEncryptionParametersBuilder,
-                              CoefficientModulus, DegreeType, PlainModulus,
-                              SchemeType, SecurityLevel)
+                              CkksEncryptionParametersBuilder, DegreeType,
+                              SchemeType)
 
 
 def test_can_create_plain_modulus():
@@ -47,7 +46,7 @@ def test_can_build_ckks_params():
     params = (
         CkksEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(1024))
-        .with_coeff_modulus(modulus_chain)
+        .with_coefficient_modulus(modulus_chain)
         .build()
     )
 
@@ -58,7 +57,7 @@ def test_can_build_ckks_params():
     params = (
         CkksEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(1024))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
     ).build()
@@ -75,7 +74,7 @@ def test_can_build_bfv_params():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(1024))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.bfv(DegreeType(1024), SecurityLevel.default())
         )
         .with_plain_modulus_constant(1234)
@@ -90,7 +89,7 @@ def test_can_build_bfv_params():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(1024))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus_constant(1234)

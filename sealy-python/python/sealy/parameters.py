@@ -1,8 +1,6 @@
 from typing import List
 
-# re-exporting classes from sealy.sealy
-from sealy.sealy import (CoefficientModulus, DegreeType, EncryptionParameters,
-                         Modulus, PlainModulus, SchemeType, SecurityLevel)
+from sealy.sealy import DegreeType, EncryptionParameters, Modulus, SchemeType
 
 
 class BfvEncryptionParametersBuilder:
@@ -21,7 +19,7 @@ class BfvEncryptionParametersBuilder:
         self.poly_modulus_degree = poly_modulus_degree
         return self
 
-    def with_coeff_modulus(
+    def with_coefficient_modulus(
         self, coeff_modulus: List[Modulus]
     ) -> "BfvEncryptionParametersBuilder":
         """Sets the coefficient modulus for the encryption scheme."""
@@ -84,7 +82,7 @@ class CkksEncryptionParametersBuilder:
         self.poly_modulus_degree = poly_modulus_degree
         return self
 
-    def with_coeff_modulus(
+    def with_coefficient_modulus(
         self, coeff_modulus: List[Modulus]
     ) -> "CkksEncryptionParametersBuilder":
         """Sets the coefficient modulus for the encryption scheme."""

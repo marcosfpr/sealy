@@ -35,6 +35,7 @@ Repository = "https://github.com/marcosfpr/sealy"
 
 [project.optional-dependencies]
 tests = ["pytest"]
+build = ["maturin"]
 
 [tool.maturin]
 python-source = "python"

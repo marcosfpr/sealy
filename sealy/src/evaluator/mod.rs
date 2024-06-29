@@ -1,5 +1,5 @@
 use crate::error::*;
-use crate::{GaloisKeys, RelinearizationKeys};
+use crate::{GaloisKey, RelinearizationKey};
 
 pub mod base;
 pub mod bfv;
@@ -42,7 +42,7 @@ pub trait Evaluator {
 	///  * `a` - a slice of ciphertexts to sum.
 	///  * `relin_keys` - the relinearization keys.
 	fn multiply_many(
-		&self, a: &[Self::Ciphertext], relin_keys: &RelinearizationKeys,
+		&self, a: &[Self::Ciphertext], relin_keys: &RelinearizationKey,
 	) -> Result<Self::Ciphertext>;
 
 	/// Subtracts `b` from `a` and stores the result in `a`.
@@ -110,7 +110,7 @@ pub trait Evaluator {
 	/// automatically after every multiplication in the process. In relinearization the given relinearization keys
 	/// are used.
 	fn exponentiate(
-		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<Self::Ciphertext>;
 
 	/// This functions raises encrypted to a power and stores the result in the destination parameter. Dynamic
@@ -119,7 +119,7 @@ pub trait Evaluator {
 	/// automatically after every multiplication in the process. In relinearization the given relinearization keys
 	/// are used.
 	fn exponentiate_inplace(
-		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Self::Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<()>;
 
 	/// Adds a ciphertext and a plaintext.
@@ -156,13 +156,13 @@ pub trait Evaluator {
 	/// This functions relinearizes a ciphertext in-place, reducing it to 2 polynomials. This
 	/// reduces future noise growth under multiplication operations.
 	fn relinearize_inplace(
-		&self, a: &mut Self::Ciphertext, relin_keys: &RelinearizationKeys,
+		&self, a: &mut Self::Ciphertext, relin_keys: &RelinearizationKey,
 	) -> Result<()>;
 
 	/// This functions relinearizes a ciphertext, reducing it to 2 polynomials. This
 	/// reduces future noise growth under multiplication operations.
 	fn relinearize(
-		&self, a: &Self::Ciphertext, relin_keys: &RelinearizationKeys,
+		&self, a: &Self::Ciphertext, relin_keys: &RelinearizationKey,
 	) -> Result<Self::Ciphertext>;
 
 	/// Rotates plaintext matrix rows cyclically.
@@ -176,7 +176,7 @@ pub trait Evaluator {
 	/// * `steps` - The number of steps to rotate (positive left, negative right)
 	/// * `galois_keys` - The Galois keys
 	fn rotate_rows(
-		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKey,
 	) -> Result<Self::Ciphertext>;
 
 	/// Rotates plaintext matrix rows cyclically. This variant does so in-place
@@ -190,7 +190,7 @@ pub trait Evaluator {
 	/// * `steps` - The number of steps to rotate (positive left, negative right)
 	/// * `galois_keys` - The Galois keys
 	fn rotate_rows_inplace(
-		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self, a: &Self::Ciphertext, steps: i32, galois_keys: &GaloisKey,
 	) -> Result<()>;
 
 	/// Rotates plaintext matrix columns cyclically.
@@ -203,7 +203,7 @@ pub trait Evaluator {
 	/// * `encrypted` - The ciphertext to rotate
 	/// * `galoisKeys` - The Galois keys
 	fn rotate_columns(
-		&self, a: &Self::Ciphertext, galois_keys: &GaloisKeys,
+		&self, a: &Self::Ciphertext, galois_keys: &GaloisKey,
 	) -> Result<Self::Ciphertext>;
 
 	/// Rotates plaintext matrix columns cyclically. This variant does so in-place.
@@ -215,5 +215,5 @@ pub trait Evaluator {
 	///
 	/// * `encrypted` - The ciphertext to rotate
 	/// * `galoisKeys` - The Galois keys
-	fn rotate_columns_inplace(&self, a: &Self::Ciphertext, galois_keys: &GaloisKeys) -> Result<()>;
+	fn rotate_columns_inplace(&self, a: &Self::Ciphertext, galois_keys: &GaloisKey) -> Result<()>;
 }

@@ -1,4 +1,4 @@
-name: Tests
+name: Python Tests
 
 on:
   push:
@@ -31,13 +31,26 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          components: clippy, rustfmt
 
-      - name: clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
 
-      - name: rustfmt
-        run: cargo fmt --all -- --check
+      - name: Install dependencies
+        run: |
+          cd sealy-python
+          pip install --upgrade pip
+          pip install .'[build,tests]'
 
-      - name: Tests
-        run: cargo test --release
+      - name: Build and install Python bindings
+        run: |
+          cd sealy-python
+          python -m venv venv
+          source venv/bin/activate
+          maturin develop
+
+      - name: Run tests
+        run: |
+          cd sealy-python
+          source venv/bin/activate
+          pytest

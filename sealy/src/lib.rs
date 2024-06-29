@@ -78,7 +78,7 @@ pub use ext::batched::{
 	decryptor::BatchDecryptor, encoder::BatchEncoder, encryptor::BatchEncryptor,
 	evaluator::BatchEvaluator, Batch,
 };
-pub use key_generator::{GaloisKeys, KeyGenerator, PublicKey, RelinearizationKeys, SecretKey};
+pub use key_generator::{GaloisKey, KeyGenerator, PublicKey, RelinearizationKey, SecretKey};
 pub use memory::MemoryPool;
 pub use modulus::{CoefficientModulus, Modulus, PlainModulus, SecurityLevel};
 pub use parameters::*;

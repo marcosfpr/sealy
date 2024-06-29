@@ -2,8 +2,8 @@ use std::ptr::null_mut;
 
 use crate::evaluator::base::EvaluatorBase;
 use crate::{
-	bindgen, error::convert_seal_error, Ciphertext, Context, Evaluator, GaloisKeys, Plaintext,
-	RelinearizationKeys, Result,
+	bindgen, error::convert_seal_error, Ciphertext, Context, Evaluator, GaloisKey, Plaintext,
+	RelinearizationKey, Result,
 };
 
 /// An evaluator that contains additional operations specific to the CKKS scheme.
@@ -50,7 +50,7 @@ impl Evaluator for CKKSEvaluator {
 	}
 
 	fn multiply_many(
-		&self, a: &[Ciphertext], relin_keys: &RelinearizationKeys,
+		&self, a: &[Ciphertext], relin_keys: &RelinearizationKey,
 	) -> Result<Ciphertext> {
 		self.0.multiply_many(a, relin_keys)
 	}
@@ -96,13 +96,13 @@ impl Evaluator for CKKSEvaluator {
 	}
 
 	fn exponentiate(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<Ciphertext> {
 		self.0.exponentiate(a, exponent, relin_keys)
 	}
 
 	fn exponentiate_inplace(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKeys,
+		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		self.0.exponentiate_inplace(a, exponent, relin_keys)
 	}
@@ -132,7 +132,7 @@ impl Evaluator for CKKSEvaluator {
 	}
 
 	fn relinearize_inplace(
-		&self, a: &mut Ciphertext, relin_keys: &RelinearizationKeys,
+		&self, a: &mut Ciphertext, relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_Relinearize(
@@ -147,7 +147,7 @@ impl Evaluator for CKKSEvaluator {
 		Ok(())
 	}
 
-	fn relinearize(&self, a: &Ciphertext, relin_keys: &RelinearizationKeys) -> Result<Ciphertext> {
+	fn relinearize(&self, a: &Ciphertext, relin_keys: &RelinearizationKey) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
 		convert_seal_error(unsafe {
@@ -164,7 +164,7 @@ impl Evaluator for CKKSEvaluator {
 	}
 
 	fn rotate_rows(
-		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKey,
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
@@ -183,7 +183,7 @@ impl Evaluator for CKKSEvaluator {
 	}
 
 	fn rotate_rows_inplace(
-		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKeys,
+		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKey,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_RotateRows(
@@ -199,7 +199,7 @@ impl Evaluator for CKKSEvaluator {
 		Ok(())
 	}
 
-	fn rotate_columns(&self, a: &Ciphertext, galois_keys: &GaloisKeys) -> Result<Ciphertext> {
+	fn rotate_columns(&self, a: &Ciphertext, galois_keys: &GaloisKey) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
 		convert_seal_error(unsafe {
@@ -215,7 +215,7 @@ impl Evaluator for CKKSEvaluator {
 		Ok(out)
 	}
 
-	fn rotate_columns_inplace(&self, a: &Ciphertext, galois_keys: &GaloisKeys) -> Result<()> {
+	fn rotate_columns_inplace(&self, a: &Ciphertext, galois_keys: &GaloisKey) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_RotateColumns(
 				self.get_handle(),

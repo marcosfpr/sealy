@@ -8,10 +8,20 @@ use crate::{bindgen, EncryptionParameters};
 #[derive(Debug)]
 pub struct ContextData {
 	/// The handle to the context data.
-	pub(crate) handle: *mut c_void,
+	handle: *mut c_void,
 }
 
+unsafe impl Sync for ContextData {}
+unsafe impl Send for ContextData {}
+
 impl ContextData {
+	/// Creates a new [`ContextData`] with the given handle.
+	pub fn new(handle: *mut c_void) -> Self {
+		Self {
+			handle,
+		}
+	}
+
 	/// Returns the handle of this [`ContextData`].
 	pub fn get_handle(&self) -> *mut c_void {
 		self.handle

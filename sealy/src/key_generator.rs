@@ -12,6 +12,7 @@ use serde::{Serialize, Serializer};
 /// Generates matching secret key and public key. An existing KeyGenerator can
 /// also at any time be used to generate relinearization keys and Galois keys.
 /// Constructing a KeyGenerator requires only a SEALContext.
+#[derive(Debug)]
 pub struct KeyGenerator {
 	handle: *mut c_void,
 }
@@ -97,7 +98,7 @@ impl KeyGenerator {
 	}
 
 	/// Creates relinearization keys
-	pub fn create_relinearization_keys(&self) -> Result<RelinearizationKeys> {
+	pub fn create_relinearization_keys(&self) -> Result<RelinearizationKey> {
 		self.create_relinearization_keys_internal(false)
 	}
 
@@ -109,20 +110,20 @@ impl KeyGenerator {
 	/// the object size. The resulting serializable object cannot be used
 	/// directly and is meant to be serialized for the size reduction to have an
 	/// impact.
-	pub fn create_compact_relinearization_keys(&self) -> Result<CompactRelinearizationKeys> {
-		Ok(CompactRelinearizationKeys(
+	pub fn create_compact_relinearization_keys(&self) -> Result<CompactRelinearizationKey> {
+		Ok(CompactRelinearizationKey(
 			self.create_relinearization_keys_internal(true)?,
 		))
 	}
 
-	fn create_relinearization_keys_internal(&self, save_seed: bool) -> Result<RelinearizationKeys> {
+	fn create_relinearization_keys_internal(&self, save_seed: bool) -> Result<RelinearizationKey> {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
 			bindgen::KeyGenerator_CreateRelinKeys(self.handle, save_seed, &mut handle)
 		})?;
 
-		Ok(RelinearizationKeys {
+		Ok(RelinearizationKey {
 			handle,
 		})
 	}
@@ -155,18 +156,18 @@ impl KeyGenerator {
 	/// modulus) Galois keys that is sufficient to apply any Galois automorphism
 	/// (e.g. rotations) on encrypted data. Most users will want to use this
 	/// overload of the function.
-	pub fn create_galois_keys(&self) -> Result<GaloisKeys> {
+	pub fn create_galois_keys(&self) -> Result<GaloisKey> {
 		self.create_galois_keys_internal(false)
 	}
 
-	fn create_galois_keys_internal(&self, save_seed: bool) -> Result<GaloisKeys> {
+	fn create_galois_keys_internal(&self, save_seed: bool) -> Result<GaloisKey> {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
 			bindgen::KeyGenerator_CreateGaloisKeysAll(self.handle, save_seed, &mut handle)
 		})?;
 
-		Ok(GaloisKeys {
+		Ok(GaloisKey {
 			handle,
 		})
 	}
@@ -243,7 +244,8 @@ impl FromBytes for PublicKey {
 }
 
 impl PublicKey {
-	fn new() -> Result<Self> {
+	/// Creates a new PublicKey.
+	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe { bindgen::PublicKey_Create1(&mut handle) })?;
@@ -305,7 +307,8 @@ unsafe impl Sync for SecretKey {}
 unsafe impl Send for SecretKey {}
 
 impl SecretKey {
-	fn new() -> Result<Self> {
+	/// Creates a new SecretKey.
+	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe { bindgen::SecretKey_Create1(&mut handle) })?;
@@ -446,20 +449,22 @@ impl AsRef<SecretKey> for SecretKey {
 /// only then relinearize the sum. This is particularly important when using the
 /// CKKS scheme, where relinearization is much more computationally costly than
 /// multiplications and additions.
-pub struct RelinearizationKeys {
+#[derive(Debug)]
+pub struct RelinearizationKey {
 	handle: *mut c_void,
 }
 
-unsafe impl Sync for RelinearizationKeys {}
-unsafe impl Send for RelinearizationKeys {}
+unsafe impl Sync for RelinearizationKey {}
+unsafe impl Send for RelinearizationKey {}
 
-impl RelinearizationKeys {
+impl RelinearizationKey {
 	/// Returns the handle to the underlying SEAL object.
 	pub fn get_handle(&self) -> *mut c_void {
 		self.handle
 	}
 
-	fn new() -> Result<RelinearizationKeys> {
+	/// Creates a new RelinearizationKeys.
+	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe { bindgen::KSwitchKeys_Create1(&mut handle) })?;
@@ -498,13 +503,13 @@ impl RelinearizationKeys {
 	}
 }
 
-impl PartialEq for RelinearizationKeys {
+impl PartialEq for RelinearizationKey {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
 
-impl ToBytes for RelinearizationKeys {
+impl ToBytes for RelinearizationKey {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
@@ -533,9 +538,9 @@ impl ToBytes for RelinearizationKeys {
 	}
 }
 
-impl FromBytes for RelinearizationKeys {
+impl FromBytes for RelinearizationKey {
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
-		let keys = RelinearizationKeys::new()?;
+		let keys = RelinearizationKey::new()?;
 		let mut write_bytes: i64 = 0;
 
 		convert_seal_error(unsafe {
@@ -552,7 +557,7 @@ impl FromBytes for RelinearizationKeys {
 	}
 }
 
-impl Drop for RelinearizationKeys {
+impl Drop for RelinearizationKey {
 	fn drop(&mut self) {
 		convert_seal_error(unsafe {
 			// RelinKeys doesn't have a destructor, but inherits
@@ -564,7 +569,7 @@ impl Drop for RelinearizationKeys {
 	}
 }
 
-impl Clone for RelinearizationKeys {
+impl Clone for RelinearizationKey {
 	fn clone(&self) -> Self {
 		let mut handle: *mut c_void = null_mut();
 
@@ -584,9 +589,9 @@ impl Clone for RelinearizationKeys {
 #[derive(PartialEq)]
 /// A relinearization key that stores a random number seed to generate the rest of the key.
 /// This form isn't directly usable, but serializes in a compact representation.
-pub struct CompactRelinearizationKeys(RelinearizationKeys);
+pub struct CompactRelinearizationKey(RelinearizationKey);
 
-impl CompactRelinearizationKeys {
+impl CompactRelinearizationKey {
 	/// Returns the key as a byte array.
 	pub fn as_bytes(&self) -> Result<Vec<u8>> {
 		self.0.as_bytes()
@@ -604,20 +609,22 @@ impl CompactRelinearizationKeys {
 /// of the encrypted matrix rows, as well as row swaps (column rotations). In the CKKS
 /// scheme Galois keys can enable cyclic vector rotations, as well as a complex
 /// conjugation operation.
-pub struct GaloisKeys {
+#[derive(Debug)]
+pub struct GaloisKey {
 	handle: *mut c_void,
 }
 
-unsafe impl Sync for GaloisKeys {}
-unsafe impl Send for GaloisKeys {}
+unsafe impl Sync for GaloisKey {}
+unsafe impl Send for GaloisKey {}
 
-impl GaloisKeys {
+impl GaloisKey {
 	/// Returns the handle to the underlying SEAL object.
 	pub fn get_handle(&self) -> *mut c_void {
 		self.handle
 	}
 
-	fn new() -> Result<GaloisKeys> {
+	/// Creates a new GaloisKey.
+	pub fn new() -> Result<GaloisKey> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe { bindgen::KSwitchKeys_Create1(&mut handle) })?;
@@ -628,13 +635,13 @@ impl GaloisKeys {
 	}
 }
 
-impl PartialEq for GaloisKeys {
+impl PartialEq for GaloisKey {
 	fn eq(&self, other: &Self) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
 
-impl ToBytes for GaloisKeys {
+impl ToBytes for GaloisKey {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
@@ -663,9 +670,9 @@ impl ToBytes for GaloisKeys {
 	}
 }
 
-impl FromBytes for GaloisKeys {
+impl FromBytes for GaloisKey {
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
-		let keys = GaloisKeys::new()?;
+		let keys = GaloisKey::new()?;
 		let mut write_bytes: i64 = 0;
 
 		convert_seal_error(unsafe {
@@ -682,7 +689,7 @@ impl FromBytes for GaloisKeys {
 	}
 }
 
-impl Drop for GaloisKeys {
+impl Drop for GaloisKey {
 	fn drop(&mut self) {
 		convert_seal_error(unsafe {
 			// GaloisKeys doesn't have a destructor, but inherits
@@ -694,7 +701,7 @@ impl Drop for GaloisKeys {
 	}
 }
 
-impl Clone for GaloisKeys {
+impl Clone for GaloisKey {
 	fn clone(&self) -> Self {
 		let mut handle: *mut c_void = null_mut();
 
@@ -714,7 +721,7 @@ impl Clone for GaloisKeys {
 #[derive(PartialEq)]
 /// A galois key set that stores a random number seed to generate the rest of the key.
 /// This form isn't directly usable, but serializes in a compact representation.
-pub struct CompactGaloisKeys(GaloisKeys);
+pub struct CompactGaloisKeys(GaloisKey);
 
 impl CompactGaloisKeys {
 	/// Returns the key as a byte array.
