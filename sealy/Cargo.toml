@@ -47,6 +47,9 @@ name = "sum_float"
 [[example]]
 name = "sum_int"
 
+[[example]]
+name = "multiply_plain"
+
 [[bench]]
 name = "ckks_bench"
 harness = false
