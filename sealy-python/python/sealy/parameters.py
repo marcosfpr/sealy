@@ -19,7 +19,7 @@ class BfvEncryptionParametersBuilder:
         self.poly_modulus_degree = poly_modulus_degree
         return self
 
-    def with_coeff_modulus(
+    def with_coefficient_modulus(
         self, coeff_modulus: List[Modulus]
     ) -> "BfvEncryptionParametersBuilder":
         """Sets the coefficient modulus for the encryption scheme."""
@@ -82,7 +82,7 @@ class CkksEncryptionParametersBuilder:
         self.poly_modulus_degree = poly_modulus_degree
         return self
 
-    def with_coeff_modulus(
+    def with_coefficient_modulus(
         self, coeff_modulus: List[Modulus]
     ) -> "CkksEncryptionParametersBuilder":
         """Sets the coefficient modulus for the encryption scheme."""

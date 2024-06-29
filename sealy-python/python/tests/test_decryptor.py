@@ -7,7 +7,7 @@ def test_can_encrypt_and_decrypt_unsigned():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))
@@ -42,7 +42,7 @@ def test_can_encrypt_and_decrypt_from_return_components():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))

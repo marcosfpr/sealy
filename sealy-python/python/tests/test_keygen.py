@@ -8,7 +8,7 @@ def test_can_create_secret_key():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus_constant(1234)
@@ -30,7 +30,7 @@ def test_can_create_public_key():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus_constant(1234)
@@ -47,7 +47,7 @@ def test_can_create_relin_key():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus_constant(1234)
@@ -64,7 +64,7 @@ def test_can_create_galois_key():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.bfv(DegreeType(8192), SecurityLevel(128))
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 32))
@@ -81,7 +81,7 @@ def test_can_init_from_existing_secret_key():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus_constant(1234)

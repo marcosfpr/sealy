@@ -7,7 +7,7 @@ def test_can_create_and_drop_context():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(1024))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(1024), [60, 40, 40, 60])
         )
         .with_plain_modulus_constant(1234)

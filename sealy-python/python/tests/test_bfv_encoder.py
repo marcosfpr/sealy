@@ -7,7 +7,7 @@ def test_can_create_and_drop_bfv_encoder():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))
@@ -23,7 +23,7 @@ def test_can_get_slots_bfv_encoder():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))
@@ -40,7 +40,7 @@ def test_can_get_encode_and_decode_unsigned():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))
@@ -62,7 +62,7 @@ def test_can_get_encode_and_decode_signed():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))
@@ -84,7 +84,7 @@ def test_scalar_encoder_can_encode_decode_signed():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))
@@ -103,7 +103,7 @@ def test_scalar_encoder_can_encode_decode_unsigned():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus(PlainModulus.batching(DegreeType(8192), 20))

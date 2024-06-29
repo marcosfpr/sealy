@@ -6,7 +6,7 @@ def test_can_create_and_drop_encryptor():
     params = (
         BfvEncryptionParametersBuilder()
         .with_poly_modulus_degree(DegreeType(8192))
-        .with_coeff_modulus(
+        .with_coefficient_modulus(
             CoefficientModulus.create(DegreeType(8192), [50, 30, 30, 50, 50])
         )
         .with_plain_modulus_constant(1234)
