@@ -16,7 +16,7 @@
 
 Microsoft SEAL bindings for Rust and Python.
 
-SEALy is a project that aims to create FFI bindings from the famous [SEAL](<[https://sourceforge.net/p/lemur/wiki/RankLib%20How%20to%20use/](https://github.com/microsoft/SEAL)>) library for Rust and Python. The main goal of this project is to provide a simple and fast way to install SEAL for both programming languages.
+SEALy is a project that aims to create FFI bindings from the famous [SEAL](https://github.com/microsoft/SEAL) library for Rust and Python. The main goal of this project is to provide a simple and fast way to install SEAL for both programming languages.
 
 ### Built With
 
@@ -26,7 +26,7 @@ The SEAL bindings are a continuation from the [seal_fhe](https://github.com/suns
 
 Currently, this crate is available only for a few architectures. Please, make sure that your operating system is compatible with any build that is working:
 
-|    System     |                                                   1.0.0                                                    |
+|    System     |                                                   Support                                                  |
 | :-----------: | :--------------------------------------------------------------------------------------------------------: |
 | MacOSX aarch6 | [![sealy-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/sealy) |
 | Linux x86_64  | [![sealy-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/sealy) |

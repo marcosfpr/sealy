@@ -7,7 +7,7 @@ description = "Python bindings for the SEALy library"
 repository = "https://github.com/marcosfpr/sealy"
 readme = "../README.md"
 license-file = "../LICENSE"
-keywords = ["federated-learning", "fl", "ai", "machine-learning"]
+keywords = ["fhe", "homomorphic", "encryption", "ckks", "bfv", "seal", "ai", "machine-learning"]
 categories = ["science", "cryptography"]
 
 [lib]
