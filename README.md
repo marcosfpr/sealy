@@ -1,6 +1,13 @@
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sealy)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/marcosfpr/sealy/pypublish.yml)
-![Crates.io Version](https://img.shields.io/crates/v/sealy)
+[![Crates.io][crates-badge]][crates-url]
+[![PyPI][pypi-badge]][pypi-url]
+[![CI][ci-badge]][ci-url]
+
+[crates-badge]: https://img.shields.io/crates/v/sealy.svg
+[crates-url]: https://crates.io/crates/sealy
+[pypi-badge]: https://img.shields.io/pypi/pyversions/sealy
+[pypi-url]: https://pypi.org/project/sealy/
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/sealy/pypublish.yml
+[ci-url]: https://github.com/marcosfpr/sealy/actions?query=+branch%3Amain
 
 <br />
 <p align="center">
