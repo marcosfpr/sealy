@@ -840,6 +840,50 @@ class BFVDecimalEncoder:
         """
         ...
 
+class CKKSEncoder:
+    def __init__(self, ctx: "Context", scale: float) -> None:
+        """
+        Creates a CKKSEncoder.
+
+        Parameters:
+        ctx (Context): The context to use for the encoder.
+        scale (float): The scale to use for encoding.
+        """
+        ...
+
+    def get_slot_count(self) -> int:
+        """
+        Returns the number of "Batched" slots this encoder produces.
+
+        Returns:
+        int: The number of slots.
+        """
+        ...
+
+    def encode(self, data: List[float]) -> "Plaintext":
+        """
+        Encodes the given data into a plaintext.
+
+        Parameters:
+        data (List[float]): The data to encode.
+
+        Returns:
+        Plaintext: The encoded plaintext.
+        """
+        ...
+
+    def decode(self, plaintext: "Plaintext") -> List[float]:
+        """
+        Decodes the given plaintext into data.
+
+        Parameters:
+        plaintext (Plaintext): The plaintext to decode.
+
+        Returns:
+        List[float]: The decoded data.
+        """
+        ...
+
 class AsymmetricComponents:
     """
     Contains the asymmetric components of the encryption scheme.
