@@ -181,7 +181,7 @@ impl PyBFVEvaluator {
 /// An evaluator that contains additional operations specific to the CKKS scheme.
 #[pyclass(name = "CKKSEvaluator")]
 pub struct PyCKKSEvaluator {
-	inner: sealy::CKKSEvaluator,
+	pub(crate) inner: sealy::CKKSEvaluator,
 }
 
 #[pymethods]

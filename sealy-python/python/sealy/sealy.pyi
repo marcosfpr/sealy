@@ -1088,12 +1088,15 @@ class BFVEvaluator:
         """
         ...
 
-    def multiply_many(self, ciphertexts: List["Ciphertext"]) -> "Ciphertext":
+    def multiply_many(
+        self, ciphertexts: List["Ciphertext"], relin_key: "RelinearizationKey"
+    ) -> "Ciphertext":
         """
         Multiplies multiple ciphertexts.
 
         Parameters:
         ciphertexts (List[Ciphertext]): The ciphertexts to multiply.
+        relin_key (RelinearizationKey): The relinearization key to use.
 
         Returns:
         Ciphertext: The product of the ciphertexts.
@@ -1215,12 +1218,15 @@ class CKKSEvaluator:
         """
         ...
 
-    def multiply_many(self, ciphertexts: List["Ciphertext"]) -> "Ciphertext":
+    def multiply_many(
+        self, ciphertexts: List["Ciphertext"], relin_key: "RelinearizationKey"
+    ) -> "Ciphertext":
         """
         Multiplies multiple ciphertexts.
 
         Parameters:
         ciphertexts (List[Ciphertext]): The ciphertexts to multiply.
+        relin_key (RelinearizationKey): The relinearization key to use.
 
         Returns:
         Ciphertext: The product of the ciphertexts.
@@ -1275,5 +1281,276 @@ class CKKSEvaluator:
 
         Returns:
         Ciphertext: The relinearized ciphertext.
+        """
+        ...
+
+class PlaintextBatchArray:
+    """
+    Stores a batch of plaintexts.
+    """
+
+    def __init__(self, plaintexts: List["Plaintext"]) -> None:
+        """
+        Initializes the plaintext batch array.
+
+        Parameters:
+        plaintexts (List[Plaintext]): The plaintexts to store.
+        """
+        ...
+
+class CiphertextBatchArray:
+    """
+    Stores a batch of ciphertexts.
+    """
+
+    def __init__(self, ciphertexts: List["Ciphertext"]) -> None:
+        """
+        Initializes the ciphertext batch array.
+
+        Parameters:
+        ciphertexts (List[Ciphertext]): The ciphertexts to store.
+        """
+        ...
+
+class BatchEncryptor:
+    """
+    Encrypts a batch of plaintexts into a batch of ciphertexts.
+    """
+
+    def __init__(self, ctx: "Context", public_key: "PublicKey") -> None:
+        """
+        Initializes the batch encryptor.
+
+        Parameters:
+        ctx (Context): The context to use.
+        public_key (PublicKey): The public key to use.
+        """
+        ...
+
+    def encrypt(
+        self, plaintexts: "PlaintextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Encrypts the given batch of plaintexts.
+
+        Parameters:
+        plaintexts (PlaintextBatchArray): The plaintexts to encrypt.
+
+        Returns:
+        CiphertextBatchArray: The encrypted ciphertexts.
+        """
+        ...
+
+class BatchDecryptor:
+    """
+    Decrypts a batch of ciphertexts into a batch of plaintexts.
+    """
+
+    def __init__(self, ctx: "Context", secret_key: "SecretKey") -> None:
+        """
+        Initializes the batch decryptor.
+
+        Parameters:
+        ctx (Context): The context to use.
+        secret_key (SecretKey): The secret key to use.
+        """
+        ...
+
+    def decrypt(
+        self, ciphertexts: "CiphertextBatchArray"
+    ) -> "PlaintextBatchArray":
+        """
+        Decrypts the given batch of ciphertexts.
+
+        Parameters:
+        ciphertexts (CiphertextBatchArray): The ciphertexts to decrypt.
+
+        Returns:
+        PlaintextBatchArray: The decrypted plaintexts.
+        """
+        ...
+
+class CKKSBatchEncoder:
+    """
+    Encodes a batch of floating-point values into a batch of plaintexts.
+    """
+
+    def __init__(self, ctx: "Context", scale: float) -> None:
+        """
+        Initializes the batch encoder.
+
+        Parameters:
+        ctx (Context): The context to use.
+        scale (float): The scale to use for encoding.
+        """
+        ...
+
+    def encode(self, values: List[float]) -> "PlaintextBatchArray":
+        """
+        Encodes the given batch of floating-point values.
+
+        Parameters:
+        values (List[float]): The values to encode.
+
+        Returns:
+        PlaintextBatchArray: The encoded plaintexts.
+        """
+        ...
+
+    def decode(self, plaintexts: "PlaintextBatchArray") -> List[float]:
+        """
+        Decodes the given batch of plaintexts.
+
+        Parameters:
+        plaintexts (PlaintextBatchArray): The plaintexts to decode.
+
+        Returns:
+        List[float]: The decoded values.
+        """
+        ...
+
+class CKKSBatchEvaluator:
+    """
+    Evaluates operations on CKKS ciphertexts.
+    """
+
+    def __init__(self, ctx: "Context") -> None:
+        """
+        Initializes the evaluator.
+
+        Parameters:
+        ctx (Context): The context to use.
+        """
+        ...
+
+    def negate(self, a: "CiphertextBatchArray") -> "CiphertextBatchArray":
+        """
+        Negates the given batch of ciphertexts.
+
+        Parameters:
+        a (CiphertextBatchArray): The ciphertexts to negate.
+
+        Returns:
+        CiphertextBatchArray: The negated ciphertexts.
+        """
+        ...
+
+    def add(
+        self, a: "CiphertextBatchArray", b: "CiphertextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Adds two batches of ciphertexts.
+
+        Parameters:
+        a (CiphertextBatchArray): The first batch of ciphertexts.
+        b (CiphertextBatchArray): The second batch of ciphertexts.
+
+        Returns:
+        CiphertextBatchArray: The sum of the ciphertexts.
+        """
+        ...
+
+    def add_many(
+        self, ciphertexts: List["CiphertextBatchArray"]
+    ) -> "CiphertextBatchArray":
+        """
+        Adds multiple batches of ciphertexts.
+
+        Parameters:
+        ciphertexts (List[CiphertextBatchArray]): The batches of ciphertexts to add.
+
+        Returns:
+        CiphertextBatchArray: The sum of the ciphertexts.
+        """
+        ...
+
+    def multiply(
+        self, a: "CiphertextBatchArray", b: "CiphertextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Multiplies two batches of ciphertexts.
+
+        Parameters:
+        a (CiphertextBatchArray): The first batch of ciphertexts.
+        b (CiphertextBatchArray): The second batch of ciphertexts.
+
+        Returns:
+        CiphertextBatchArray: The product of the ciphertexts.
+        """
+        ...
+
+    def multiply_many(
+        self,
+        ciphertexts: List["CiphertextBatchArray"],
+        relin_key: "RelinearizationKey",
+    ) -> "CiphertextBatchArray":
+        """
+        Multiplies multiple batches of ciphertexts.
+
+        Parameters:
+        ciphertexts (List[CiphertextBatchArray]): The batches of ciphertexts to multiply.
+        relin_key (RelinearizationKey): The relinearization key to use.
+
+        Returns:
+        CiphertextBatchArray: The product of the ciphertexts.
+        """
+        ...
+
+    def multiply_plain(
+        self, a: "CiphertextBatchArray", b: "PlaintextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Multiplies a batch of ciphertexts by a plaintext.
+
+        Parameters:
+        a (CiphertextBatchArray): The batch of ciphertexts.
+        b (PlaintextBatchArray): The batch of plaintexts.
+
+        Returns:
+        CiphertextBatchArray: The product of the ciphertexts and plaintext.
+        """
+        ...
+
+    def sub(
+        self, a: "CiphertextBatchArray", b: "CiphertextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Subtracts two batches of ciphertexts.
+
+        Parameters:
+        a (CiphertextBatchArray): The first batch of ciphertexts.
+        b (CiphertextBatchArray): The second batch of ciphertexts.
+
+        Returns:
+        CiphertextBatchArray: The difference of the ciphertexts.
+        """
+        ...
+
+    def sub_plain(
+        self, a: "CiphertextBatchArray", b: "PlaintextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Subtracts a batch of plaintexts from a batch of ciphertexts.
+
+        Parameters:
+        a (CiphertextBatchArray): The batch of ciphertexts.
+        b (PlaintextBatchArray): The batch of plaintexts.
+
+        Returns:
+        CiphertextBatchArray: The difference of the ciphertexts and plaintext.
+        """
+        ...
+
+    def relinearize(
+        self, ciphertexts: "CiphertextBatchArray"
+    ) -> "CiphertextBatchArray":
+        """
+        Relinearizes the given batch of ciphertexts.
+
+        Parameters:
+        ciphertexts (CiphertextBatchArray): The batch of ciphertexts to relinearize.
+
+        Returns:
+        CiphertextBatchArray: The relinearized ciphertexts.
         """
         ...

@@ -2,6 +2,7 @@ use super::Batch;
 use crate::{Encoder, Plaintext, Result, SlotCount};
 
 /// An encoder that encodes data in batches.
+#[derive(Clone)]
 pub struct BatchEncoder<T, E> {
 	encoder: E,
 	data_type: std::marker::PhantomData<T>,

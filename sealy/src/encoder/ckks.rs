@@ -12,7 +12,7 @@ use super::{Encoder, SlotCount};
 /// Plaintext objects, which can subsequently be encrypted. At a high level this
 /// looks a lot like what BatchEncoder does for the BFV scheme, but the theory
 /// behind it is completely different.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CKKSEncoder {
 	handle: *mut c_void,
 	parms_id: Vec<u64>,
