@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 
+mod batched;
 mod ciphertext;
 mod context;
 mod context_data;
@@ -13,6 +14,10 @@ mod parameters;
 mod plaintext;
 mod poly_array;
 
+use crate::batched::{
+	PyBatchDecryptor, PyBatchEncryptor, PyCKKSBatchEncoder, PyCKKSBatchEvaluator,
+	PyCiphertextBatchArray, PyPlaintextBatchArray,
+};
 use crate::ciphertext::PyCiphertext;
 use crate::context::PyContext;
 use crate::context_data::PyContextData;
@@ -60,6 +65,14 @@ fn sealy(m: &Bound<'_, PyModule>) -> PyResult<()> {
 	m.add_class::<PyDecryptor>()?;
 	m.add_class::<PyBFVEvaluator>()?;
 	m.add_class::<PyCKKSEvaluator>()?;
+
+	// Batch operations: maybe will be drepecated.
+	m.add_class::<PyPlaintextBatchArray>()?;
+	m.add_class::<PyCiphertextBatchArray>()?;
+	m.add_class::<PyCKKSBatchEncoder>()?;
+	m.add_class::<PyCKKSBatchEvaluator>()?;
+	m.add_class::<PyBatchEncryptor>()?;
+	m.add_class::<PyBatchDecryptor>()?;
 
 	Ok(())
 }

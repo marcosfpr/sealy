@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2]
+
+- Added batching in Python to overcome size limits of SEAL. (#14)(@marcosfpr)
+
 ## [0.1.1]
 
 ### Fixed
@@ -21,5 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tensor operations for ciphertexts using batching (#8)(@marcosfpr)
 - Added python bindings for sealy (#9)(@marcosfpr)
 
-[0.1.0]: https://github.com/marcosfpr/sealy/compare/v0.1.0...HEAD
-[unreleased]: https://github.com/marcosfpr/sealy/compare/v0.1.0...v0.1.0
+[0.1.0]: https://github.com/marcosfpr/sealy/compare/v0.1.0...v0.1.0
+[0.1.1]: https://github.com/marcosfpr/sealy/compare/v0.1.0...v0.1.1
+[0.1.2]: https://github.com/marcosfpr/sealy/compare/v0.1.1...v0.1.2
+[unreleased]: https://github.com/marcosfpr/sealy/compare/v0.1.2...HEAD

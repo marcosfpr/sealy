@@ -2,12 +2,15 @@
 
 from sealy.parameters import (BfvEncryptionParametersBuilder,
                               CkksEncryptionParametersBuilder)
-from sealy.sealy import (AsymmetricComponents, BFVDecimalEncoder, BFVEncoder,
-                         BFVEvaluator, Ciphertext, CKKSEncoder, CKKSEvaluator,
+from sealy.sealy import (AsymmetricComponents, BatchDecryptor, BatchEncryptor,
+                         BFVDecimalEncoder, BFVEncoder, BFVEvaluator,
+                         Ciphertext, CiphertextBatchArray, CKKSBatchEncoder,
+                         CKKSBatchEvaluator, CKKSEncoder, CKKSEvaluator,
                          CoefficientModulus, Context, ContextData, Decryptor,
                          DegreeType, EncryptionParameters, Encryptor,
                          KeyGenerator, MemoryPool, Modulus, PlainModulus,
-                         Plaintext, PolynomialArray, SchemeType, SecurityLevel)
+                         Plaintext, PlaintextBatchArray, PolynomialArray,
+                         SchemeType, SecurityLevel)
 
 __all__ = [
     "BfvEncryptionParametersBuilder",
@@ -34,4 +37,10 @@ __all__ = [
     "BFVEvaluator",
     "CKKSEvaluator",
     "CKKSEncoder",
+    "BatchEncryptor",
+    "BatchDecryptor",
+    "CiphertextBatchArray",
+    "PlaintextBatchArray",
+    "CKKSBatchEncoder",
+    "CKKSBatchEvaluator",
 ]

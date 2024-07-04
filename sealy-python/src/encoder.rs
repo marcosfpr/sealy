@@ -115,10 +115,10 @@ impl PyBFVDecimalEncoder {
 /// Plaintext objects, which can subsequently be encrypted. At a high level this
 /// looks a lot like what BatchEncoder does for the BFV scheme, but the theory
 /// behind it is completely different.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[pyclass(name = "CKKSEncoder")]
 pub struct PyCKKSEncoder {
-	inner: sealy::CKKSEncoder,
+	pub(crate) inner: sealy::CKKSEncoder,
 }
 
 #[pymethods]

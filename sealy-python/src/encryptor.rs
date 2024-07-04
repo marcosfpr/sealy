@@ -47,7 +47,7 @@ impl PyAsymmetricComponents {
 /// Encrypts Plaintext objects into Ciphertext objects.
 #[pyclass(name = "Encryptor")]
 pub struct PyEncryptor {
-	inner: sealy::Encryptor<sealy::Asym>,
+	pub(crate) inner: sealy::Encryptor<sealy::Asym>,
 }
 
 #[pymethods]
