@@ -1,3 +1,8 @@
+use crate::Context;
+use crate::FromBytes;
+use crate::Result;
+use crate::ToBytes;
+
 pub mod decryptor;
 pub mod encoder;
 pub mod encryptor;
@@ -6,6 +11,21 @@ pub mod evaluator;
 /// Struct to store a batch of elements of the same type.
 #[derive(Debug, Clone)]
 pub struct Batch<T>(pub Vec<T>);
+
+/// A trait for converting batch of objects into a list of byte arrays.
+pub trait ToBatchedBytes {
+	/// Returns the object as a byte array.
+	fn as_batched_bytes(&self) -> Result<Vec<Vec<u8>>>;
+}
+
+/// A trait for converting data from a byte slice under a given SEAL context.
+pub trait FromBatchedBytes {
+	/// Deserialize an object from the given bytes using the given
+	/// context.
+	fn from_batched_bytes(context: &Context, batched: &[Vec<u8>]) -> Result<Self>
+	where
+		Self: Sized;
+}
 
 impl<T> IntoIterator for Batch<T> {
 	type Item = T;
@@ -79,6 +99,28 @@ impl<T> Batch<T> {
 	}
 }
 
+impl<T> FromBatchedBytes for Batch<T>
+where
+	T: FromBytes,
+{
+	fn from_batched_bytes(context: &Context, batched: &[Vec<u8>]) -> Result<Self> {
+		let values = batched
+			.iter()
+			.map(|bytes| T::from_bytes(context, bytes))
+			.collect::<Result<Vec<_>>>()?;
+		Ok(Batch(values))
+	}
+}
+
+impl<T> ToBatchedBytes for Batch<T>
+where
+	T: ToBytes,
+{
+	fn as_batched_bytes(&self) -> Result<Vec<Vec<u8>>> {
+		self.0.iter().map(|value| value.as_bytes()).collect()
+	}
+}
+
 impl<T> Batch<T>
 where
 	T: Clone,
@@ -89,10 +131,13 @@ where
 	}
 }
 
-impl<T, E> Batch<Result<T, E>> {
+impl<T, E> Batch<std::result::Result<T, E>> {
 	/// Collects the results in this batch, returning the successful values.
-	pub fn collect(self) -> Result<Batch<T>, E> {
-		let values = self.0.into_iter().collect::<Result<Vec<_>, _>>()?;
+	pub fn collect(self) -> std::result::Result<Batch<T>, E> {
+		let values = self
+			.0
+			.into_iter()
+			.collect::<std::result::Result<Vec<_>, _>>()?;
 		Ok(Batch(values))
 	}
 }

@@ -1312,6 +1312,23 @@ class CiphertextBatchArray:
         """
         ...
 
+    def as_batched_bytes(self) -> List[bytes]:
+        """
+        Convert the ciphertexts to a list of bytes.
+        """
+        ...
+
+    @classmethod
+    def from_batched_bytes(
+        cls, context: "Context", data: List[bytes]
+    ) -> "CiphertextBatchArray":
+        """
+        Load the ciphertexts from a list of bytes.
+
+        :param data: The list of bytes to load.
+        """
+        ...
+
 class BatchEncryptor:
     """
     Encrypts a batch of plaintexts into a batch of ciphertexts.
