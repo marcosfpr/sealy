@@ -1,6 +1,6 @@
 [package]
 name = "sealy"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["marcosfpr <mfprezende@gmail.com>"]
 description = "Rust bindings for Microsoft's SEAL Fully Homomorphic Encryption (FHE) library"

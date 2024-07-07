@@ -6,7 +6,7 @@ use crate::{
 	PyCKKSEvaluator,
 };
 use pyo3::prelude::*;
-use sealy::{Encoder, Evaluator, SlotCount};
+use sealy::{Encoder, Evaluator, FromBatchedBytes, SlotCount, ToBatchedBytes};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "PlaintextBatchArray")]
@@ -38,6 +38,31 @@ impl PyCiphertextBatchArray {
 	#[new]
 	fn new(ndarr: Vec<PyCiphertext>) -> PyResult<Self> {
 		let batch = sealy::Batch(ndarr.iter().map(|x| x.inner.clone()).collect());
+		Ok(Self {
+			inner: batch,
+		})
+	}
+
+	/// Converts the batch array to a list of byte arrays.
+	pub fn as_batched_bytes(&self) -> PyResult<Vec<Vec<u8>>> {
+		let bytes = self.inner.as_batched_bytes().map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to get ciphertext batch as bytes: {:?}",
+				e
+			))
+		})?;
+		Ok(bytes)
+	}
+
+	/// Creates a new ciphertext batch array from a list of byte arrays.
+	#[staticmethod]
+	pub fn from_batched_bytes(ctx: &PyContext, bytes: Vec<Vec<u8>>) -> PyResult<Self> {
+		let batch = sealy::Batch::from_batched_bytes(&ctx.inner, &bytes).map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to create ciphertext batch from bytes: {:?}",
+				e
+			))
+		})?;
 		Ok(Self {
 			inner: batch,
 		})

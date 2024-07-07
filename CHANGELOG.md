@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3]
+
+### Added
+
+- Added batch bytes serialization (#15)(@marcosfpr)
+
 ## [0.1.2]
+
+### Added
 
 - Added batching in Python to overcome size limits of SEAL. (#14)(@marcosfpr)
 

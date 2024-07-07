@@ -76,7 +76,7 @@ pub use evaluator::ckks::CKKSEvaluator;
 pub use evaluator::Evaluator;
 pub use ext::batched::{
 	decryptor::BatchDecryptor, encoder::BatchEncoder, encryptor::BatchEncryptor,
-	evaluator::BatchEvaluator, Batch,
+	evaluator::BatchEvaluator, Batch, FromBatchedBytes, ToBatchedBytes,
 };
 pub use key_generator::{GaloisKey, KeyGenerator, PublicKey, RelinearizationKey, SecretKey};
 pub use memory::MemoryPool;
