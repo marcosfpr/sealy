@@ -52,7 +52,9 @@ def context() -> Context:
         .build()
     )
 
-    return Context(encryption_parameters, expand_mod_chain, security_level)
+    return Context.build(
+        encryption_parameters, expand_mod_chain, security_level
+    )
 
 
 @pytest.fixture

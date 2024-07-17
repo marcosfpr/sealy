@@ -15,7 +15,7 @@ def test_can_create_secret_key():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     secret_key = gen.secret_key()
@@ -37,7 +37,7 @@ def test_can_create_public_key():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     gen.create_public_key()
@@ -54,7 +54,7 @@ def test_can_create_relin_key():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     gen.create_relinearization_key()
@@ -71,7 +71,7 @@ def test_can_create_galois_key():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     gen.create_galois_key()
@@ -88,7 +88,7 @@ def test_can_init_from_existing_secret_key():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     secret_key = gen.secret_key()

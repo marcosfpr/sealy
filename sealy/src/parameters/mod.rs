@@ -161,7 +161,6 @@ impl EncryptionParameters {
 			))
 			.expect("Internal error")
 		};
-
 		let mut borrowed_modulus = Vec::with_capacity(len as usize);
 		let borrowed_modulus_ptr = borrowed_modulus.as_mut_ptr();
 

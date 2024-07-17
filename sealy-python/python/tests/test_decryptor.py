@@ -14,7 +14,7 @@ def test_can_encrypt_and_decrypt_unsigned():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
 
     gen = KeyGenerator(ctx)
 
@@ -49,7 +49,7 @@ def test_can_encrypt_and_decrypt_from_return_components():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
 
     gen = KeyGenerator(ctx)
 

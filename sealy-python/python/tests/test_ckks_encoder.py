@@ -13,7 +13,7 @@ def test_can_create_and_drop_ckks_encoder():
     )
     scale = 2.0**40
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = CKKSEncoder(ctx, scale)
     del encoder
 
@@ -29,7 +29,7 @@ def test_can_get_slots_ckks_encoder():
     )
     scale = 2.0**40
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = CKKSEncoder(ctx, scale)
 
     assert encoder.get_slot_count() == 4096
@@ -46,7 +46,7 @@ def test_can_get_encode_and_decode_float():
     )
     scale = 2.0**40
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = CKKSEncoder(ctx, scale)
 
     data = [i / 10 for i in range(encoder.get_slot_count())]

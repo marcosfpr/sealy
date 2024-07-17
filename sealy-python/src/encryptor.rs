@@ -7,7 +7,7 @@ use crate::{
 
 /// The components to an asymmetric encryption.
 #[derive(Debug)]
-#[pyclass(name = "AsymmetricComponents")]
+#[pyclass(module = "sealy", name = "AsymmetricComponents")]
 pub struct PyAsymmetricComponents {
 	inner: sealy::AsymmetricComponents,
 }
@@ -45,7 +45,7 @@ impl PyAsymmetricComponents {
 }
 
 /// Encrypts Plaintext objects into Ciphertext objects.
-#[pyclass(name = "Encryptor")]
+#[pyclass(module = "sealy", name = "Encryptor")]
 pub struct PyEncryptor {
 	pub(crate) inner: sealy::Encryptor<sealy::Asym>,
 }
