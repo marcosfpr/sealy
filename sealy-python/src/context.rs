@@ -1,6 +1,12 @@
-use pyo3::prelude::*;
+use pyo3::{
+	prelude::*,
+	types::{PyBytes, PyType},
+};
 
-use crate::{context_data::PyContextData, PyEncryptionParameters, PySecurityLevel};
+use crate::{
+	context_data::PyContextData,
+	parameters::{PyEncryptionParameters, PySecurityLevel},
+};
 
 /// Performs sanity checks (validation) and pre-computations for a given set of encryption
 /// parameters. While the EncryptionParameters class is intended to be a light-weight class
@@ -8,18 +14,27 @@ use crate::{context_data::PyContextData, PyEncryptionParameters, PySecurityLevel
 /// is constructed from a given set of encryption parameters. It validates the parameters
 /// for correctness, evaluates their properties, and performs and stores the results of
 /// several costly pre-computations.
-#[pyclass(name = "Context")]
+#[pyclass(module = "sealy", name = "Context")]
 pub struct PyContext {
 	pub(crate) inner: sealy::Context,
 }
 
 #[pymethods]
 impl PyContext {
+	/// Creates a new dangling context.
+	#[new]
+	pub fn new() -> PyResult<Self> {
+		Ok(Self {
+			inner: sealy::Context::new_dangling(),
+		})
+	}
+
 	/// Creates an instance of SEALContext and performs several pre-computations
 	/// on the given EncryptionParameters.
-	#[new]
-	pub fn new(
-		params: &PyEncryptionParameters, expand_mod_chain: bool, security_level: PySecurityLevel,
+	#[classmethod]
+	pub fn build(
+		_cls: &Bound<'_, PyType>, params: &PyEncryptionParameters, expand_mod_chain: bool,
+		security_level: PySecurityLevel,
 	) -> PyResult<Self> {
 		let context = sealy::Context::new(&params.inner, expand_mod_chain, security_level.inner)
 			.map_err(|e| {
@@ -104,5 +119,100 @@ impl PyContext {
 		Ok(PyContextData {
 			inner: last_context_data,
 		})
+	}
+
+	/// Returns the key ContextData in the modulus switching chain.
+	pub fn __deepcopy__(&self, _memo: Py<PyAny>) -> PyResult<Self> {
+		let params = self.inner.get_params().cloned().ok_or(PyErr::new::<
+			pyo3::exceptions::PyRuntimeError,
+			_,
+		>(
+			"Failed to get parameters".to_string(),
+		))?;
+
+		let enc_params = sealy::EncryptionParameters::new(params.scheme_type()).map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Error creating parameters: {}",
+				e
+			))
+		})?;
+
+		let inner = sealy::Context::new(
+			&enc_params,
+			params.expand_mod_chain(),
+			params.security_level(),
+		)
+		.map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to create context: {:?}",
+				e
+			))
+		})?;
+
+		Ok(Self {
+			inner,
+		})
+	}
+
+	/// Returns the parameters used to create the context.
+	pub fn __getstate__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+		let params = self.inner.get_params().cloned().ok_or(PyErr::new::<
+			pyo3::exceptions::PyRuntimeError,
+			_,
+		>(
+			"Failed to get parameters".to_string(),
+		))?;
+
+		// serde serialize to string
+		let serialized = serde_json::to_string(&params).map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to serialize context: {:?}",
+				e
+			))
+		})?;
+
+		let bytes = PyBytes::new_bound(py, serialized.as_bytes());
+
+		Ok(bytes)
+	}
+
+	/// Reconstructs the context from the serialized state.
+	pub fn __setstate__(&mut self, state: Bound<'_, PyBytes>) -> PyResult<()> {
+		println!("setting state from {:?}", state);
+
+		let state = state.as_bytes();
+
+		// reconstruct the parameters from the serialized state
+		let params: sealy::ContextParams = serde_json::from_slice(state).map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to deserialize context params: {:?}",
+				e
+			))
+		})?;
+
+		let enc_params = sealy::EncryptionParameters::new(params.scheme_type()).map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Error creating parameters: {}",
+				e
+			))
+		})?;
+
+		let inner = sealy::Context::new(
+			&enc_params,
+			params.expand_mod_chain(),
+			params.security_level(),
+		)
+		.map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to create context: {:?}",
+				e
+			))
+		})?;
+
+		self.inner = inner;
+
+		println!("set state to {:?}", self.inner.get_params());
+
+		Ok(())
 	}
 }

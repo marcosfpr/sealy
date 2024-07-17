@@ -20,7 +20,7 @@ def test_can_create_polynomial_from_ciphertext():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     ciphertext = Ciphertext()
     poly_array = PolynomialArray.from_ciphertext(ctx, ciphertext)
 
@@ -44,7 +44,7 @@ def generate_ciphertext_example():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     encoder = BFVEncoder(ctx)

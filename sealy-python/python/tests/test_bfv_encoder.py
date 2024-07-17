@@ -14,7 +14,7 @@ def test_can_create_and_drop_bfv_encoder():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = BFVEncoder(ctx)
     del encoder
 
@@ -30,7 +30,7 @@ def test_can_get_slots_bfv_encoder():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = BFVEncoder(ctx)
 
     assert encoder.get_slot_count() == 8192
@@ -47,7 +47,7 @@ def test_can_get_encode_and_decode_unsigned():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = BFVEncoder(ctx)
 
     data = [i for i in range(encoder.get_slot_count())]
@@ -69,7 +69,7 @@ def test_can_get_encode_and_decode_signed():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = BFVEncoder(ctx)
 
     data = [i for i in range(encoder.get_slot_count())]
@@ -91,7 +91,7 @@ def test_scalar_encoder_can_encode_decode_signed():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = BFVEncoder(ctx)
 
     p = encoder.encode([-15])
@@ -110,7 +110,7 @@ def test_scalar_encoder_can_encode_decode_unsigned():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
     encoder = BFVEncoder(ctx)
 
     p = encoder.encode([42])

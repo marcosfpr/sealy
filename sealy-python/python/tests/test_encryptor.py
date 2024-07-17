@@ -13,7 +13,7 @@ def test_can_create_and_drop_encryptor():
         .build()
     )
 
-    ctx = Context(params, False, SecurityLevel(128))
+    ctx = Context.build(params, False, SecurityLevel(128))
 
     gen = KeyGenerator(ctx)
 

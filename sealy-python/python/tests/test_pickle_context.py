@@ -1,8 +1,12 @@
+import os
+import pickle
+import tempfile
+
 from sealy import (BfvEncryptionParametersBuilder, CoefficientModulus, Context,
                    DegreeType, SecurityLevel)
 
 
-def test_can_create_and_drop_context():
+def test_pickle_context():
     # Create encryption parameters
     params = (
         BfvEncryptionParametersBuilder()
@@ -17,5 +21,17 @@ def test_can_create_and_drop_context():
     # Create context
     ctx = Context.build(params, False, SecurityLevel(128))
 
-    # Drop context
-    del ctx
+    # create a temporary file
+    temp_file = tempfile.mktemp()
+
+    # Save the context to the file
+    with open(temp_file, "wb") as f:
+        pickle.dump(ctx, f)
+
+    # Load the context from the file
+    with open(temp_file, "rb") as f:
+        ctx_2: Context = pickle.load(f)
+
+    assert len(ctx_2.get_key_parms_id()) > 0
+    assert len(ctx_2.get_last_parms_id()) > 0
+    assert len(ctx_2.get_last_parms_id()) > 0
