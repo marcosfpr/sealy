@@ -8,7 +8,7 @@ use crate::{context::PyContext, memory::PyMemoryPool};
 /// Class to store a plaintext element. The data for the plaintext is
 /// a polynomial with coefficients modulo the plaintext modulus.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-#[pyclass(module = "sealy", name = "Plaintext")]
+#[pyclass(name = "Plaintext")]
 pub struct PyPlaintext {
 	pub(crate) inner: sealy::Plaintext,
 }

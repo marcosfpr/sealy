@@ -15,7 +15,7 @@ def test_can_create_and_drop_context():
     )
 
     # Create context
-    ctx = Context.build(params, False, SecurityLevel(128))
+    ctx = Context(params, False, SecurityLevel(128))
 
     # Drop context
     del ctx

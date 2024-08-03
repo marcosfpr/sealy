@@ -1,9 +1,6 @@
-use pyo3::{prelude::*, types::PyType};
+use pyo3::prelude::*;
 
-use crate::{
-	context_data::PyContextData,
-	parameters::{PyEncryptionParameters, PySecurityLevel},
-};
+use crate::{context_data::PyContextData, PyEncryptionParameters, PySecurityLevel};
 
 /// Performs sanity checks (validation) and pre-computations for a given set of encryption
 /// parameters. While the EncryptionParameters class is intended to be a light-weight class
@@ -11,27 +8,18 @@ use crate::{
 /// is constructed from a given set of encryption parameters. It validates the parameters
 /// for correctness, evaluates their properties, and performs and stores the results of
 /// several costly pre-computations.
-#[pyclass(module = "sealy", name = "Context")]
+#[pyclass(name = "Context")]
 pub struct PyContext {
 	pub(crate) inner: sealy::Context,
 }
 
 #[pymethods]
 impl PyContext {
-	/// Creates a new dangling context.
-	#[new]
-	pub fn new() -> PyResult<Self> {
-		Ok(Self {
-			inner: sealy::Context::new_dangling(),
-		})
-	}
-
 	/// Creates an instance of SEALContext and performs several pre-computations
 	/// on the given EncryptionParameters.
-	#[classmethod]
-	pub fn build(
-		_cls: &Bound<'_, PyType>, params: &PyEncryptionParameters, expand_mod_chain: bool,
-		security_level: PySecurityLevel,
+	#[new]
+	pub fn new(
+		params: &PyEncryptionParameters, expand_mod_chain: bool, security_level: PySecurityLevel,
 	) -> PyResult<Self> {
 		let context = sealy::Context::new(&params.inner, expand_mod_chain, security_level.inner)
 			.map_err(|e| {

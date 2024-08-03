@@ -5,7 +5,7 @@ use crate::context::PyContext;
 
 /// Class to store a public key.
 #[derive(Debug, Clone)]
-#[pyclass(module = "sealy", name = "PublicKey")]
+#[pyclass(name = "PublicKey")]
 pub struct PyPublicKey {
 	pub(crate) inner: sealy::PublicKey,
 }
@@ -57,7 +57,7 @@ impl PyPublicKey {
 
 /// Class to store a secret key.
 #[derive(Debug, Clone)]
-#[pyclass(module = "sealy", name = "SecretKey")]
+#[pyclass(name = "SecretKey")]
 pub struct PySecretKey {
 	pub(crate) inner: sealy::SecretKey,
 }
@@ -117,7 +117,7 @@ impl PySecretKey {
 
 /// Class to store relinearization keys.
 #[derive(Debug, Clone)]
-#[pyclass(module = "sealy", name = "RelinearizationKey")]
+#[pyclass(name = "RelinearizationKey")]
 pub struct PyRelinearizationKey {
 	pub(crate) inner: sealy::RelinearizationKey,
 }
@@ -168,7 +168,7 @@ impl PyRelinearizationKey {
 
 /// Class to store Galois keys.
 #[derive(Debug, Clone)]
-#[pyclass(module = "sealy", name = "GaloisKey")]
+#[pyclass(name = "GaloisKey")]
 pub struct PyGaloisKey {
 	inner: sealy::GaloisKey,
 }
@@ -219,7 +219,7 @@ impl PyGaloisKey {
 
 /// Generates matching secret key and public key.
 #[derive(Debug)]
-#[pyclass(module = "sealy", name = "KeyGenerator")]
+#[pyclass(name = "KeyGenerator")]
 pub struct PyKeyGenerator {
 	inner: sealy::KeyGenerator,
 }

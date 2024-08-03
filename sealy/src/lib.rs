@@ -60,7 +60,7 @@ mod plaintext;
 mod poly_array;
 
 pub use ciphertext::Ciphertext;
-pub use context::{Context, ContextParams};
+pub use context::Context;
 pub use context_data::ContextData;
 pub use decryptor::Decryptor;
 pub use encoder::bfv::{BFVDecimalEncoder, BFVEncoder};

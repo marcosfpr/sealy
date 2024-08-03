@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 
 /// Memory pool handle for SEAL.
 #[derive(Debug)]
-#[pyclass(module = "sealy", name = "MemoryPool")]
+#[pyclass(name = "MemoryPool")]
 pub struct PyMemoryPool {
 	pub(crate) inner: sealy::MemoryPool,
 }

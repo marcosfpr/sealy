@@ -5,7 +5,7 @@ use crate::{
 };
 
 /// Decrypts Ciphertext objects into Plaintext objects.
-#[pyclass(module = "sealy", name = "Decryptor")]
+#[pyclass(name = "Decryptor")]
 pub struct PyDecryptor {
 	inner: sealy::Decryptor,
 }

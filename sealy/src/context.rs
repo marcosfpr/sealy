@@ -2,40 +2,11 @@ use std::ffi::c_int;
 use std::ffi::c_void;
 use std::ptr::null_mut;
 
-use serde::Deserialize;
-use serde::Serialize;
-
 use crate::bindgen;
 use crate::error::*;
 use crate::ContextData;
 use crate::EncryptionParameters;
-use crate::SchemeType;
 use crate::SecurityLevel;
-
-/// Saves the state used by SEAL to create a Context.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ContextParams {
-	pub(crate) scheme_type: SchemeType,
-	pub(crate) expand_mod_chain: bool,
-	pub(crate) security_level: SecurityLevel,
-}
-
-impl ContextParams {
-	/// Returns the scheme type used by the context.
-	pub fn scheme_type(&self) -> SchemeType {
-		self.scheme_type
-	}
-
-	/// Returns whether the modulus switching chain should be created.
-	pub fn expand_mod_chain(&self) -> bool {
-		self.expand_mod_chain
-	}
-
-	/// Returns the security level enforced by the context.
-	pub fn security_level(&self) -> SecurityLevel {
-		self.security_level
-	}
-}
 
 /// Performs sanity checks (validation) and pre-computations for a given set of encryption
 /// parameters. While the EncryptionParameters class is intended to be a light-weight class
@@ -72,21 +43,12 @@ impl ContextParams {
 /// The chain is a doubly linked list and is referred to as the modulus switching chain.
 pub struct Context {
 	pub(crate) handle: *mut c_void,
-	pub(crate) params: Option<ContextParams>,
 }
 
 unsafe impl Sync for Context {}
 unsafe impl Send for Context {}
 
 impl Context {
-	/// Creates an empty instance of SEALContext.
-	pub fn new_dangling() -> Self {
-		Context {
-			handle: null_mut(),
-			params: None,
-		}
-	}
-
 	/// Creates an instance of SEALContext and performs several pre-computations
 	/// on the given EncryptionParameters.
 	///
@@ -111,17 +73,7 @@ impl Context {
 
 		Ok(Context {
 			handle,
-			params: Some(ContextParams {
-				scheme_type: params.get_scheme(),
-				expand_mod_chain,
-				security_level,
-			}),
 		})
-	}
-
-	/// Returns the parameters used to create the context.
-	pub fn get_params(&self) -> Option<&ContextParams> {
-		self.params.as_ref()
 	}
 
 	/// Creates an instance of SEALContext and performs several pre-computations
@@ -246,10 +198,6 @@ impl Context {
 
 impl Drop for Context {
 	fn drop(&mut self) {
-		if self.handle.is_null() {
-			return;
-		}
-
 		convert_seal_error(unsafe { bindgen::SEALContext_Destroy(self.handle) })
 			.expect("Internal error in Context::drop().");
 	}
