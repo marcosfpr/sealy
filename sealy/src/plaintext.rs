@@ -105,6 +105,7 @@ impl Serialize for Plaintext {
 }
 
 impl FromBytes for Plaintext {
+	type State = Context;
 	/// Deserializes a byte stream into a plaintext. This requires a context, which is why
 	/// Plaintext doesn't `impl Deserialize`.
 	fn from_bytes(context: &Context, data: &[u8]) -> Result<Self> {

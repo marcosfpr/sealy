@@ -370,6 +370,22 @@ class Context:
         """
         ...
 
+    def get_first_context_data(self) -> "ContextData":
+        """
+        Get the first context data from the context.
+
+        :return: The first context data.
+        """
+        ...
+
+    def get_last_context_data(self) -> "ContextData":
+        """
+        Get the last context data from the context.
+
+        :return: The last context data.
+        """
+        ...
+
 class PublicKey:
     """
     Represents the public key used in encryption parameters.

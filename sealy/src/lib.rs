@@ -93,9 +93,11 @@ pub trait ToBytes {
 
 /// A trait for converting data from a byte slice under a given SEAL context.
 pub trait FromBytes {
+	/// State used to deserialize an object from bytes.
+	type State;
 	/// Deserialize an object from the given bytes using the given
-	/// context.
-	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self>
+	/// state.
+	fn from_bytes(state: &Self::State, bytes: &[u8]) -> Result<Self>
 	where
 		Self: Sized;
 }

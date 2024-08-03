@@ -101,7 +101,7 @@ impl<T> Batch<T> {
 
 impl<T> FromBatchedBytes for Batch<T>
 where
-	T: FromBytes,
+	T: FromBytes<State = Context>,
 {
 	fn from_batched_bytes(context: &Context, batched: &[Vec<u8>]) -> Result<Self> {
 		let values = batched

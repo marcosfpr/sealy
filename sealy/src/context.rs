@@ -149,6 +149,17 @@ impl Context {
 		self.handle
 	}
 
+	/// Returns the security level of the encryption parameters.
+	pub fn get_security_level(&self) -> Result<SecurityLevel> {
+		let mut security_level: c_int = 0;
+
+		convert_seal_error(unsafe {
+			bindgen::SEALContext_GetSecurityLevel(self.handle, &mut security_level)
+		})?;
+
+		security_level.try_into()
+	}
+
 	/// Returns the key ContextData in the modulus switching chain.
 	pub fn get_key_parms_id(&self) -> Result<Vec<u64>> {
 		let mut parms_id: Vec<u64> =

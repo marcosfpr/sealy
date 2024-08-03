@@ -225,6 +225,7 @@ impl PartialEq for PublicKey {
 }
 
 impl FromBytes for PublicKey {
+	type State = Context;
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
 		let key = PublicKey::new()?;
 		let mut bytes_read = 0;
@@ -361,6 +362,7 @@ impl ToBytes for SecretKey {
 }
 
 impl FromBytes for SecretKey {
+	type State = Context;
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
 		let key = SecretKey::new()?;
 		let mut bytes_read = 0;
@@ -539,6 +541,7 @@ impl ToBytes for RelinearizationKey {
 }
 
 impl FromBytes for RelinearizationKey {
+	type State = Context;
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
 		let keys = RelinearizationKey::new()?;
 		let mut write_bytes: i64 = 0;
@@ -671,6 +674,7 @@ impl ToBytes for GaloisKey {
 }
 
 impl FromBytes for GaloisKey {
+	type State = Context;
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
 		let keys = GaloisKey::new()?;
 		let mut write_bytes: i64 = 0;

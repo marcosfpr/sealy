@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use sealy::{FromBytes, ToBytes};
 
 #[pyclass(module = "sealy", name = "SchemeType")]
 #[derive(Debug, Clone)]
@@ -39,6 +40,10 @@ impl PySchemeType {
 
 	fn __eq__(&self, other: &PySchemeType) -> bool {
 		self.inner == other.inner
+	}
+
+	fn __getnewargs__(&self) -> PyResult<(u8,)> {
+		Ok((self.inner.to_u8(),))
 	}
 }
 
@@ -145,6 +150,30 @@ impl PyEncryptionParameters {
 
 	fn __repr__(&self) -> String {
 		format!("{:?}", self.inner)
+	}
+
+	fn __getnewargs__(&self) -> PyResult<(PySchemeType,)> {
+		Ok((self.get_scheme(),))
+	}
+
+	pub fn __setstate__(&mut self, state: Vec<u8>) -> PyResult<()> {
+		self.inner = sealy::EncryptionParameters::from_bytes(&self.get_scheme().inner, &state)
+			.map_err(|e| {
+				PyErr::new::<pyo3::exceptions::PyException, _>(format!(
+					"Error deserializing EncryptionParameters: {}",
+					e
+				))
+			})?;
+		Ok(())
+	}
+
+	pub fn __getstate__(&self) -> PyResult<Vec<u8>> {
+		self.inner.as_bytes().map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyException, _>(format!(
+				"Error serializing EncryptionParameters: {}",
+				e
+			))
+		})
 	}
 }
 
@@ -338,5 +367,9 @@ impl PySecurityLevel {
 
 	fn __eq__(&self, other: &PySecurityLevel) -> bool {
 		self.inner == other.inner
+	}
+
+	fn __getnewargs__(&self) -> PyResult<(i32,)> {
+		Ok((self.get_value(),))
 	}
 }

@@ -171,6 +171,7 @@ impl ToBytes for Ciphertext {
 }
 
 impl FromBytes for Ciphertext {
+	type State = Context;
 	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
 		let ciphertext = Self::new()?;
 		let mut bytes_read = 0i64;

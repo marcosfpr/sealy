@@ -50,3 +50,30 @@ impl ContextData {
 		Ok(bit_count)
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use crate::*;
+
+	#[test]
+	fn test_can_create_context_data() {
+		let params = BfvEncryptionParametersBuilder::new()
+			.set_poly_modulus_degree(DegreeType::D1024)
+			.set_coefficient_modulus(
+				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+			)
+			.set_plain_modulus_u64(1234)
+			.build()
+			.unwrap();
+
+		let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
+		assert_eq!(ctx.get_security_level().unwrap(), SecurityLevel::TC128);
+
+		let ctx_data = ctx.get_first_context_data().unwrap();
+		let expected_params = ctx_data.get_encryption_parameters().unwrap();
+		assert_eq!(expected_params.get_poly_modulus_degree(), 1024);
+		assert_eq!(expected_params.get_scheme(), SchemeType::Bfv);
+		assert_eq!(expected_params.get_plain_modulus().value(), 1234);
+		assert_eq!(expected_params.get_coefficient_modulus().len(), 5);
+	}
+}
