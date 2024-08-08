@@ -8,7 +8,7 @@ name: Python CI
 on:
   push:
     tags:
-      - "*"
+      - "python-v*"
   workflow_dispatch:
 
 permissions:

@@ -8,7 +8,7 @@ use crate::{context_data::PyContextData, PyEncryptionParameters, PySecurityLevel
 /// is constructed from a given set of encryption parameters. It validates the parameters
 /// for correctness, evaluates their properties, and performs and stores the results of
 /// several costly pre-computations.
-#[pyclass(name = "Context")]
+#[pyclass(module = "sealy", name = "Context")]
 pub struct PyContext {
 	pub(crate) inner: sealy::Context,
 }

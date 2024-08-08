@@ -5,7 +5,7 @@ use crate::parameters::PyEncryptionParameters;
 
 ///  ContextData holds context pre-computation data for a given set of encryption parameters.
 #[derive(Debug)]
-#[pyclass(name = "ContextData")]
+#[pyclass(module = "sealy", name = "ContextData")]
 pub struct PyContextData {
 	pub(crate) inner: ContextData,
 }

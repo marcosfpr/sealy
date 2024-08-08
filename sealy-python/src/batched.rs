@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 use sealy::{Encoder, Evaluator, FromBatchedBytes, SlotCount, ToBatchedBytes};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "PlaintextBatchArray")]
+#[pyclass(module = "sealy", name = "PlaintextBatchArray")]
 pub struct PyPlaintextBatchArray {
 	inner: sealy::Batch<sealy::Plaintext>,
 }
@@ -27,7 +27,7 @@ impl PyPlaintextBatchArray {
 }
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "CiphertextBatchArray")]
+#[pyclass(module = "sealy", name = "CiphertextBatchArray")]
 pub struct PyCiphertextBatchArray {
 	inner: sealy::Batch<sealy::Ciphertext>,
 }
@@ -73,7 +73,7 @@ impl PyCiphertextBatchArray {
 }
 
 /// Encryptor that can encrypt multiple messages at once.
-#[pyclass(name = "BatchEncryptor")]
+#[pyclass(module = "sealy", name = "BatchEncryptor")]
 pub struct PyBatchEncryptor {
 	inner: sealy::BatchEncryptor<sealy::Asym>,
 }
@@ -118,7 +118,7 @@ impl PyBatchEncryptor {
 }
 
 /// Decrypts batches of ciphertexts.
-#[pyclass(name = "BatchDecryptor")]
+#[pyclass(module = "sealy", name = "BatchDecryptor")]
 pub struct PyBatchDecryptor {
 	inner: sealy::BatchDecryptor,
 }
@@ -161,7 +161,7 @@ impl PyBatchDecryptor {
 
 /// An encoder that encodes data in batches.
 #[derive(Clone)]
-#[pyclass(name = "CKKSBatchEncoder")]
+#[pyclass(module = "sealy", name = "CKKSBatchEncoder")]
 pub struct PyCKKSBatchEncoder {
 	inner: sealy::BatchEncoder<f64, sealy::CKKSEncoder>,
 }
@@ -236,7 +236,7 @@ impl PyCKKSBatchEncoder {
 }
 
 // An evaluator that evaluates batches of data.
-#[pyclass(name = "CKKSBatchEvaluator")]
+#[pyclass(module = "sealy", name = "CKKSBatchEvaluator")]
 pub struct PyCKKSBatchEvaluator {
 	inner: sealy::BatchEvaluator<sealy::CKKSEvaluator>,
 }

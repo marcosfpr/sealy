@@ -8,7 +8,7 @@ use crate::{
 
 /// A SEAL array storing a number of polynomials.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[pyclass(name = "PolynomialArray")]
+#[pyclass(module = "sealy", name = "PolynomialArray")]
 pub struct PyPolynomialArray {
 	pub(crate) inner: sealy::PolynomialArray,
 }

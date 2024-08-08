@@ -5,7 +5,7 @@ use crate::{context::PyContext, plaintext::PyPlaintext};
 
 /// Provides functionality for CRT batching.
 #[derive(Debug)]
-#[pyclass(name = "BFVEncoder")]
+#[pyclass(module = "sealy", name = "BFVEncoder")]
 pub struct PyBFVEncoder {
 	inner: sealy::BFVEncoder<i64>,
 }
@@ -64,7 +64,7 @@ impl PyBFVEncoder {
 
 /// Creates an encoder that can turn f64 or u64 values into a Plaintext.
 #[derive(Debug)]
-#[pyclass(name = "BFVDecimalEncoder")]
+#[pyclass(module = "sealy", name = "BFVDecimalEncoder")]
 pub struct PyBFVDecimalEncoder {
 	inner: sealy::BFVDecimalEncoder,
 }
@@ -131,7 +131,7 @@ impl PyBFVDecimalEncoder {
 /// looks a lot like what BatchEncoder does for the BFV scheme, but the theory
 /// behind it is completely different.
 #[derive(Debug, Clone)]
-#[pyclass(name = "CKKSEncoder")]
+#[pyclass(module = "sealy", name = "CKKSEncoder")]
 pub struct PyCKKSEncoder {
 	pub(crate) inner: sealy::CKKSEncoder,
 }

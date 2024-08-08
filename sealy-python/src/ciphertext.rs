@@ -4,7 +4,7 @@ use sealy::{FromBytes, ToBytes};
 use crate::context::PyContext;
 /// Class to store a ciphertext element.
 #[derive(Debug, Clone)]
-#[pyclass(name = "Ciphertext")]
+#[pyclass(module = "sealy", name = "Ciphertext")]
 pub struct PyCiphertext {
 	pub(crate) inner: sealy::Ciphertext,
 }

@@ -7,7 +7,7 @@ use crate::{
 use sealy::Evaluator;
 
 /// An evaluator that contains additional operations specific to the BFV scheme.
-#[pyclass(name = "BFVEvaluator")]
+#[pyclass(module = "sealy", name = "BFVEvaluator")]
 pub struct PyBFVEvaluator {
 	inner: sealy::BFVEvaluator,
 }
@@ -213,7 +213,7 @@ impl PyBFVEvaluator {
 }
 
 /// An evaluator that contains additional operations specific to the CKKS scheme.
-#[pyclass(name = "CKKSEvaluator")]
+#[pyclass(module = "sealy", name = "CKKSEvaluator")]
 pub struct PyCKKSEvaluator {
 	pub(crate) inner: sealy::CKKSEvaluator,
 }

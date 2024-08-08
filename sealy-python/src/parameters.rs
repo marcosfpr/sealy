@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use sealy::{FromBytes, ToBytes};
 
-#[pyclass(name = "SchemeType")]
+#[pyclass(module = "sealy", name = "SchemeType")]
 #[derive(Debug, Clone)]
 pub struct PySchemeType {
 	inner: sealy::SchemeType,
@@ -50,7 +50,7 @@ impl PySchemeType {
 	}
 }
 
-#[pyclass(name = "EncryptionParameters")]
+#[pyclass(module = "sealy", name = "EncryptionParameters")]
 #[derive(Debug)]
 pub struct PyEncryptionParameters {
 	pub(crate) inner: sealy::EncryptionParameters,
@@ -195,7 +195,7 @@ impl PyEncryptionParameters {
 	}
 }
 
-#[pyclass(name = "CoefficientModulus")]
+#[pyclass(module = "sealy", name = "CoefficientModulus")]
 #[derive(Debug)]
 pub struct PyCoefficientModulus;
 
@@ -257,7 +257,7 @@ impl PyCoefficientModulus {
 	}
 }
 
-#[pyclass(name = "PlainModulus")]
+#[pyclass(module = "sealy", name = "PlainModulus")]
 pub struct PyPlainModulus;
 
 #[pymethods]
@@ -286,7 +286,7 @@ impl PyPlainModulus {
 	}
 }
 
-#[pyclass(name = "Modulus")]
+#[pyclass(module = "sealy", name = "Modulus")]
 #[derive(Debug, Clone)]
 pub struct PyModulus {
 	inner: sealy::Modulus,
@@ -324,7 +324,7 @@ impl PyModulus {
 	}
 }
 
-#[pyclass(name = "DegreeType")]
+#[pyclass(module = "sealy", name = "DegreeType")]
 #[derive(Debug, Clone)]
 pub struct PyDegreeType {
 	inner: sealy::DegreeType,
@@ -363,7 +363,7 @@ impl PyDegreeType {
 	}
 }
 
-#[pyclass(name = "SecurityLevel")]
+#[pyclass(module = "sealy", name = "SecurityLevel")]
 #[derive(Debug, Clone)]
 pub struct PySecurityLevel {
 	pub(crate) inner: sealy::SecurityLevel,
