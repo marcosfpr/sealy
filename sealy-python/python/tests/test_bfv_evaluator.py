@@ -20,7 +20,7 @@ def run_bfv_test() -> (
         .build()
     )
 
-    ctx = Context.build(params, False, SecurityLevel(128))
+    ctx = Context(params, False, SecurityLevel(128))
     gen = KeyGenerator(ctx)
 
     encoder = BFVEncoder(ctx)
@@ -57,7 +57,7 @@ def test_can_create_and_destroy_evaluator():
         .build()
     )
 
-    ctx = Context.build(params, False, SecurityLevel(128))
+    ctx = Context(params, False, SecurityLevel(128))
     evaluator = BFVEvaluator(ctx)
     del evaluator
 

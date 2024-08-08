@@ -58,7 +58,10 @@ impl AsRef<Plaintext> for Plaintext {
 }
 
 impl PartialEq for Plaintext {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		if self.len() == other.len() {
 			for i in 0..self.len() {
 				if self.get_coefficient(i) != other.get_coefficient(i) {
@@ -74,7 +77,10 @@ impl PartialEq for Plaintext {
 }
 
 impl Hash for Plaintext {
-	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+	fn hash<H: std::hash::Hasher>(
+		&self,
+		state: &mut H,
+	) {
 		for i in 0..self.len() {
 			let c = self.get_coefficient(i);
 			state.write_u64(c);
@@ -83,7 +89,10 @@ impl Hash for Plaintext {
 }
 
 impl Serialize for Plaintext {
-	fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+	fn serialize<S>(
+		&self,
+		serializer: S,
+	) -> std::result::Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 	{
@@ -105,9 +114,13 @@ impl Serialize for Plaintext {
 }
 
 impl FromBytes for Plaintext {
+	type State = Context;
 	/// Deserializes a byte stream into a plaintext. This requires a context, which is why
 	/// Plaintext doesn't `impl Deserialize`.
-	fn from_bytes(context: &Context, data: &[u8]) -> Result<Self> {
+	fn from_bytes(
+		context: &Context,
+		data: &[u8],
+	) -> Result<Self> {
 		let mut bytes_read = 0;
 
 		let plaintext = Plaintext::new()?;
@@ -231,7 +244,10 @@ impl Plaintext {
 	///
 	/// # Panics
 	/// Panics if index is greater than len().
-	pub fn get_coefficient(&self, index: usize) -> u64 {
+	pub fn get_coefficient(
+		&self,
+		index: usize,
+	) -> u64 {
 		let mut coeff: u64 = 0;
 
 		if index > self.len() {
@@ -252,7 +268,11 @@ impl Plaintext {
 	///
 	/// # Panics
 	/// Panics if index is greater than len().
-	pub fn set_coefficient(&mut self, index: usize, value: u64) {
+	pub fn set_coefficient(
+		&mut self,
+		index: usize,
+		value: u64,
+	) {
 		if index > self.len() {
 			panic!("Index {} out of bounds {}", index, self.len());
 		}
@@ -264,7 +284,10 @@ impl Plaintext {
 	}
 
 	/// Sets the number of coefficients this plaintext can hold.
-	pub fn resize(&mut self, count: usize) {
+	pub fn resize(
+		&mut self,
+		count: usize,
+	) {
 		convert_seal_error(unsafe { bindgen::Plaintext_Resize(self.handle, count as u64) })
 			.expect("Fatal error in Plaintext::resize().");
 	}

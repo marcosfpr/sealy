@@ -22,7 +22,10 @@ pub trait ToBatchedBytes {
 pub trait FromBatchedBytes {
 	/// Deserialize an object from the given bytes using the given
 	/// context.
-	fn from_batched_bytes(context: &Context, batched: &[Vec<u8>]) -> Result<Self>
+	fn from_batched_bytes(
+		context: &Context,
+		batched: &[Vec<u8>],
+	) -> Result<Self>
 	where
 		Self: Sized;
 }
@@ -52,7 +55,10 @@ impl<T> Batch<T> {
 	}
 
 	/// Returns the element given by the index.
-	pub fn get(&self, index: usize) -> Option<&T> {
+	pub fn get(
+		&self,
+		index: usize,
+	) -> Option<&T> {
 		self.0.get(index)
 	}
 
@@ -77,7 +83,10 @@ impl<T> Batch<T> {
 	}
 
 	/// Applies the given function to each element in this batch, returning a new batch with the results.
-	pub fn map<U, F>(&self, f: F) -> Batch<U>
+	pub fn map<U, F>(
+		&self,
+		f: F,
+	) -> Batch<U>
 	where
 		F: FnMut(&T) -> U,
 	{
@@ -85,7 +94,11 @@ impl<T> Batch<T> {
 	}
 
 	/// zips two batches together, applying the given function to each pair of elements.
-	pub fn zip<U, V, F>(&self, other: &Batch<U>, mut f: F) -> Batch<V>
+	pub fn zip<U, V, F>(
+		&self,
+		other: &Batch<U>,
+		mut f: F,
+	) -> Batch<V>
 	where
 		F: FnMut(&T, &U) -> V,
 	{
@@ -101,9 +114,12 @@ impl<T> Batch<T> {
 
 impl<T> FromBatchedBytes for Batch<T>
 where
-	T: FromBytes,
+	T: FromBytes<State = Context>,
 {
-	fn from_batched_bytes(context: &Context, batched: &[Vec<u8>]) -> Result<Self> {
+	fn from_batched_bytes(
+		context: &Context,
+		batched: &[Vec<u8>],
+	) -> Result<Self> {
 		let values = batched
 			.iter()
 			.map(|bytes| T::from_bytes(context, bytes))
@@ -126,7 +142,10 @@ where
 	T: Clone,
 {
 	/// Returns a cloned copy of the element given by the index.
-	pub fn get_cloned(&self, index: usize) -> Option<T> {
+	pub fn get_cloned(
+		&self,
+		index: usize,
+	) -> Option<T> {
 		self.get(index).cloned()
 	}
 }

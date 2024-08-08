@@ -38,7 +38,10 @@ impl PyPublicKey {
 
 	/// Creates a new public key from a byte array.
 	#[staticmethod]
-	pub fn from_bytes(context: &PyContext, bytes: Vec<u8>) -> PyResult<Self> {
+	pub fn from_bytes(
+		context: &PyContext,
+		bytes: Vec<u8>,
+	) -> PyResult<Self> {
 		let pk = sealy::PublicKey::from_bytes(&context.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create public key from bytes: {:?}",
@@ -50,7 +53,10 @@ impl PyPublicKey {
 		})
 	}
 
-	fn __eq__(&self, other: &PyPublicKey) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyPublicKey,
+	) -> bool {
 		self.inner == other.inner
 	}
 }
@@ -90,7 +96,10 @@ impl PySecretKey {
 
 	/// Creates a new secret key from a byte array.
 	#[staticmethod]
-	pub fn from_bytes(context: &PyContext, bytes: Vec<u8>) -> PyResult<Self> {
+	pub fn from_bytes(
+		context: &PyContext,
+		bytes: Vec<u8>,
+	) -> PyResult<Self> {
 		let sk = sealy::SecretKey::from_bytes(&context.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create secret key from bytes: {:?}",
@@ -110,7 +119,10 @@ impl PySecretKey {
 		format!("{:?}", self.inner)
 	}
 
-	fn __eq__(&self, other: &PySecretKey) -> bool {
+	fn __eq__(
+		&self,
+		other: &PySecretKey,
+	) -> bool {
 		self.inner == other.inner
 	}
 }
@@ -149,7 +161,10 @@ impl PyRelinearizationKey {
 
 	/// Creates a new relinearization keys from a byte array.
 	#[staticmethod]
-	pub fn from_bytes(context: &PyContext, bytes: Vec<u8>) -> PyResult<Self> {
+	pub fn from_bytes(
+		context: &PyContext,
+		bytes: Vec<u8>,
+	) -> PyResult<Self> {
 		let rk = sealy::RelinearizationKey::from_bytes(&context.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create relinearization keys from bytes: {:?}",
@@ -161,7 +176,10 @@ impl PyRelinearizationKey {
 		})
 	}
 
-	fn __eq__(&self, other: &PyRelinearizationKey) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyRelinearizationKey,
+	) -> bool {
 		self.inner == other.inner
 	}
 }
@@ -200,7 +218,10 @@ impl PyGaloisKey {
 
 	/// Creates a new Galois keys from a byte array.
 	#[staticmethod]
-	pub fn from_bytes(context: &PyContext, bytes: Vec<u8>) -> PyResult<Self> {
+	pub fn from_bytes(
+		context: &PyContext,
+		bytes: Vec<u8>,
+	) -> PyResult<Self> {
 		let gk = sealy::GaloisKey::from_bytes(&context.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create Galois keys from bytes: {:?}",
@@ -212,7 +233,10 @@ impl PyGaloisKey {
 		})
 	}
 
-	fn __eq__(&self, other: &PyGaloisKey) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyGaloisKey,
+	) -> bool {
 		self.inner == other.inner
 	}
 }
@@ -243,7 +267,10 @@ impl PyKeyGenerator {
 	/// Creates an KeyGenerator instance initialized with the specified
 	/// SEALContext and specified previously secret key.
 	#[staticmethod]
-	pub fn from_secret_key(ctx: &PyContext, secret_key: &PySecretKey) -> PyResult<Self> {
+	pub fn from_secret_key(
+		ctx: &PyContext,
+		secret_key: &PySecretKey,
+	) -> PyResult<Self> {
 		let gen = sealy::KeyGenerator::new_from_secret_key(&ctx.inner, &secret_key.inner).map_err(
 			|e| {
 				PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(

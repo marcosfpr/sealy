@@ -29,110 +29,195 @@ impl Evaluator for BFVEvaluator {
 	type Plaintext = Plaintext;
 	type Ciphertext = Ciphertext;
 
-	fn negate_inplace(&self, a: &mut Ciphertext) -> Result<()> {
+	fn negate_inplace(
+		&self,
+		a: &mut Ciphertext,
+	) -> Result<()> {
 		self.0.negate_inplace(a)
 	}
 
-	fn negate(&self, a: &Ciphertext) -> Result<Ciphertext> {
+	fn negate(
+		&self,
+		a: &Ciphertext,
+	) -> Result<Ciphertext> {
 		self.0.negate(a)
 	}
 
-	fn add_inplace(&self, a: &mut Ciphertext, b: &Ciphertext) -> Result<()> {
+	fn add_inplace(
+		&self,
+		a: &mut Ciphertext,
+		b: &Ciphertext,
+	) -> Result<()> {
 		self.0.add_inplace(a, b)
 	}
 
-	fn add(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+	fn add(
+		&self,
+		a: &Ciphertext,
+		b: &Ciphertext,
+	) -> Result<Ciphertext> {
 		self.0.add(a, b)
 	}
 
-	fn add_many(&self, a: &[Ciphertext]) -> Result<Ciphertext> {
+	fn add_many(
+		&self,
+		a: &[Ciphertext],
+	) -> Result<Ciphertext> {
 		self.0.add_many(a)
 	}
 
 	fn multiply_many(
-		&self, a: &[Ciphertext], relin_keys: &RelinearizationKey,
+		&self,
+		a: &[Ciphertext],
+		relin_keys: &RelinearizationKey,
 	) -> Result<Ciphertext> {
 		self.0.multiply_many(a, relin_keys)
 	}
 
-	fn sub_inplace(&self, a: &mut Ciphertext, b: &Ciphertext) -> Result<()> {
+	fn sub_inplace(
+		&self,
+		a: &mut Ciphertext,
+		b: &Ciphertext,
+	) -> Result<()> {
 		self.0.sub_inplace(a, b)
 	}
 
-	fn sub(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+	fn sub(
+		&self,
+		a: &Ciphertext,
+		b: &Ciphertext,
+	) -> Result<Ciphertext> {
 		self.0.sub(a, b)
 	}
 
-	fn multiply_inplace(&self, a: &mut Ciphertext, b: &Ciphertext) -> Result<()> {
+	fn multiply_inplace(
+		&self,
+		a: &mut Ciphertext,
+		b: &Ciphertext,
+	) -> Result<()> {
 		self.0.multiply_inplace(a, b)
 	}
 
-	fn multiply(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+	fn multiply(
+		&self,
+		a: &Ciphertext,
+		b: &Ciphertext,
+	) -> Result<Ciphertext> {
 		self.0.multiply(a, b)
 	}
 
-	fn square_inplace(&self, a: &mut Ciphertext) -> Result<()> {
+	fn square_inplace(
+		&self,
+		a: &mut Ciphertext,
+	) -> Result<()> {
 		self.0.square_inplace(a)
 	}
 
-	fn square(&self, a: &Ciphertext) -> Result<Ciphertext> {
+	fn square(
+		&self,
+		a: &Ciphertext,
+	) -> Result<Ciphertext> {
 		self.0.square(a)
 	}
 
-	fn mod_switch_to_next(&self, a: &Ciphertext) -> Result<Ciphertext> {
+	fn mod_switch_to_next(
+		&self,
+		a: &Ciphertext,
+	) -> Result<Ciphertext> {
 		self.0.mod_switch_to_next(a)
 	}
 
-	fn mod_switch_to_next_inplace(&self, a: &Ciphertext) -> Result<()> {
+	fn mod_switch_to_next_inplace(
+		&self,
+		a: &Ciphertext,
+	) -> Result<()> {
 		self.0.mod_switch_to_next_inplace(a)
 	}
 
-	fn mod_switch_to_next_plaintext(&self, a: &Plaintext) -> Result<Plaintext> {
+	fn mod_switch_to_next_plaintext(
+		&self,
+		a: &Plaintext,
+	) -> Result<Plaintext> {
 		self.0.mod_switch_to_next_plaintext(a)
 	}
 
-	fn mod_switch_to_next_inplace_plaintext(&self, a: &Plaintext) -> Result<()> {
+	fn mod_switch_to_next_inplace_plaintext(
+		&self,
+		a: &Plaintext,
+	) -> Result<()> {
 		self.0.mod_switch_to_next_inplace_plaintext(a)
 	}
 
 	fn exponentiate(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
+		&self,
+		a: &Ciphertext,
+		exponent: u64,
+		relin_keys: &RelinearizationKey,
 	) -> Result<Ciphertext> {
 		self.0.exponentiate(a, exponent, relin_keys)
 	}
 
 	fn exponentiate_inplace(
-		&self, a: &Ciphertext, exponent: u64, relin_keys: &RelinearizationKey,
+		&self,
+		a: &Ciphertext,
+		exponent: u64,
+		relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		self.0.exponentiate_inplace(a, exponent, relin_keys)
 	}
 
-	fn add_plain(&self, a: &Ciphertext, b: &Plaintext) -> Result<Ciphertext> {
+	fn add_plain(
+		&self,
+		a: &Ciphertext,
+		b: &Plaintext,
+	) -> Result<Ciphertext> {
 		self.0.add_plain(a, b)
 	}
 
-	fn add_plain_inplace(&self, a: &mut Ciphertext, b: &Plaintext) -> Result<()> {
+	fn add_plain_inplace(
+		&self,
+		a: &mut Ciphertext,
+		b: &Plaintext,
+	) -> Result<()> {
 		self.0.add_plain_inplace(a, b)
 	}
 
-	fn sub_plain(&self, a: &Ciphertext, b: &Plaintext) -> Result<Ciphertext> {
+	fn sub_plain(
+		&self,
+		a: &Ciphertext,
+		b: &Plaintext,
+	) -> Result<Ciphertext> {
 		self.0.sub_plain(a, b)
 	}
 
-	fn sub_plain_inplace(&self, a: &mut Ciphertext, b: &Plaintext) -> Result<()> {
+	fn sub_plain_inplace(
+		&self,
+		a: &mut Ciphertext,
+		b: &Plaintext,
+	) -> Result<()> {
 		self.0.sub_plain_inplace(a, b)
 	}
 
-	fn multiply_plain(&self, a: &Ciphertext, b: &Plaintext) -> Result<Ciphertext> {
+	fn multiply_plain(
+		&self,
+		a: &Ciphertext,
+		b: &Plaintext,
+	) -> Result<Ciphertext> {
 		self.0.multiply_plain(a, b)
 	}
 
-	fn multiply_plain_inplace(&self, a: &mut Ciphertext, b: &Plaintext) -> Result<()> {
+	fn multiply_plain_inplace(
+		&self,
+		a: &mut Ciphertext,
+		b: &Plaintext,
+	) -> Result<()> {
 		self.0.multiply_plain_inplace(a, b)
 	}
 
 	fn relinearize_inplace(
-		&self, a: &mut Ciphertext, relin_keys: &RelinearizationKey,
+		&self,
+		a: &mut Ciphertext,
+		relin_keys: &RelinearizationKey,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_Relinearize(
@@ -147,7 +232,11 @@ impl Evaluator for BFVEvaluator {
 		Ok(())
 	}
 
-	fn relinearize(&self, a: &Ciphertext, relin_keys: &RelinearizationKey) -> Result<Ciphertext> {
+	fn relinearize(
+		&self,
+		a: &Ciphertext,
+		relin_keys: &RelinearizationKey,
+	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
 		convert_seal_error(unsafe {
@@ -164,7 +253,10 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn rotate_rows(
-		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKey,
+		&self,
+		a: &Ciphertext,
+		steps: i32,
+		galois_keys: &GaloisKey,
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
@@ -183,7 +275,10 @@ impl Evaluator for BFVEvaluator {
 	}
 
 	fn rotate_rows_inplace(
-		&self, a: &Ciphertext, steps: i32, galois_keys: &GaloisKey,
+		&self,
+		a: &Ciphertext,
+		steps: i32,
+		galois_keys: &GaloisKey,
 	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_RotateRows(
@@ -199,7 +294,11 @@ impl Evaluator for BFVEvaluator {
 		Ok(())
 	}
 
-	fn rotate_columns(&self, a: &Ciphertext, galois_keys: &GaloisKey) -> Result<Ciphertext> {
+	fn rotate_columns(
+		&self,
+		a: &Ciphertext,
+		galois_keys: &GaloisKey,
+	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
 		convert_seal_error(unsafe {
@@ -215,7 +314,11 @@ impl Evaluator for BFVEvaluator {
 		Ok(out)
 	}
 
-	fn rotate_columns_inplace(&self, a: &Ciphertext, galois_keys: &GaloisKey) -> Result<()> {
+	fn rotate_columns_inplace(
+		&self,
+		a: &Ciphertext,
+		galois_keys: &GaloisKey,
+	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::Evaluator_RotateColumns(
 				self.get_handle(),

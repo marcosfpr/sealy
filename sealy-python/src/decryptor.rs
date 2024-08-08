@@ -15,7 +15,10 @@ impl PyDecryptor {
 	/// Creates a Decryptor instance initialized with the specified SEALContext
 	/// and secret key.
 	#[new]
-	pub fn new(ctx: &PyContext, secret_key: &PySecretKey) -> PyResult<Self> {
+	pub fn new(
+		ctx: &PyContext,
+		secret_key: &PySecretKey,
+	) -> PyResult<Self> {
 		let decryptor = sealy::Decryptor::new(&ctx.inner, &secret_key.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create Decryptor: {:?}",
@@ -30,7 +33,10 @@ impl PyDecryptor {
 	/// Decrypts a Ciphertext and stores the result in the destination parameter.
 	///
 	///  * `encrypted` - The ciphertext to decrypt.
-	pub fn decrypt(&self, ciphertext: &PyCiphertext) -> PyResult<PyPlaintext> {
+	pub fn decrypt(
+		&self,
+		ciphertext: &PyCiphertext,
+	) -> PyResult<PyPlaintext> {
 		let decrypted = self.inner.decrypt(&ciphertext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decrypt ciphertext: {:?}",
@@ -47,7 +53,10 @@ impl PyDecryptor {
 	/// correct decryptions. Dynamic memory allocations in the process are allocated from
 	/// the memory pool pointed to by the given MemoryPoolHandle. This function works only
 	/// with the BFV scheme.
-	pub fn invariant_noise_budget(&self, ciphertext: &PyCiphertext) -> PyResult<u32> {
+	pub fn invariant_noise_budget(
+		&self,
+		ciphertext: &PyCiphertext,
+	) -> PyResult<u32> {
 		let budget = self
 			.inner
 			.invariant_noise_budget(&ciphertext.inner)
@@ -63,7 +72,10 @@ impl PyDecryptor {
 	/// Computes the invariant noise of a ciphertext. The invariant noise is
 	/// a value that increases with FHE operations. This function only works
 	/// with the BFV scheme.
-	pub fn invariant_noise(&self, ciphertext: &PyCiphertext) -> PyResult<f64> {
+	pub fn invariant_noise(
+		&self,
+		ciphertext: &PyCiphertext,
+	) -> PyResult<f64> {
 		let noise = self.inner.invariant_noise(&ciphertext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to compute invariant noise: {:?}",

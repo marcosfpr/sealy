@@ -311,22 +311,10 @@ class Context:
 
     def __init__(
         self,
-    ) -> None:
-        """
-        Initialize a new dangling context.
-
-        That's used mainly for serialization and deserialization purposes.
-        Please refer to the `Context::build` method for creating a new context.
-        """
-        ...
-
-    @classmethod
-    def build(
-        cls,
         params: "EncryptionParameters",
         expand_mod_chain: bool,
         security_level: "SecurityLevel",
-    ) -> "Context":
+    ) -> None:
         """
         Initialize a new context with given parameters.
 
@@ -344,7 +332,7 @@ class Context:
         """
         ...
 
-    def get_last_parms_id(self) -> List[int]:
+    def get_last_parms_id(self) -> int:
         """
         Get the last parameters ID from the context.
 
@@ -352,7 +340,7 @@ class Context:
         """
         ...
 
-    def get_first_parms_id(self) -> List[int]:
+    def get_first_parms_id(self) -> int:
         """
         Get the first parameters ID from the context.
 
@@ -360,13 +348,27 @@ class Context:
         """
         ...
 
-    def get_context_data(self, parms_id: List[int]) -> "ContextData":
+    def get_context_data(self) -> "ContextData":
         """
         Get the context data from the context.
 
-        :param parms_id: The parameters ID.
-
         :return: The context data.
+        """
+        ...
+
+    def get_first_context_data(self) -> "ContextData":
+        """
+        Get the first context data from the context.
+
+        :return: The first context data.
+        """
+        ...
+
+    def get_last_context_data(self) -> "ContextData":
+        """
+        Get the last context data from the context.
+
+        :return: The last context data.
         """
         ...
 

@@ -25,7 +25,10 @@ impl BfvEncryptionParametersBuilder {
 	/// Set the degree of the polynomial used in the BFV scheme. Genrally,
 	/// larger values provide more security and noise margin at the expense
 	/// of performance.
-	pub fn set_poly_modulus_degree(mut self, degree: DegreeType) -> Self {
+	pub fn set_poly_modulus_degree(
+		mut self,
+		degree: DegreeType,
+	) -> Self {
 		self.poly_modulus_degree = ModulusDegreeType::Constant(degree);
 		self
 	}
@@ -37,7 +40,10 @@ impl BfvEncryptionParametersBuilder {
 	/// perform (bigger is better), and the security level (bigger is worse). In
 	/// Microsoft SEAL each of the prime numbers in the coefficient modulus must
 	/// be at most 60 bits, and must be congruent to 1 modulo 2*poly_modulus_degree.
-	pub fn set_coefficient_modulus(mut self, modulus: Vec<Modulus>) -> Self {
+	pub fn set_coefficient_modulus(
+		mut self,
+		modulus: Vec<Modulus>,
+	) -> Self {
 		self.coefficient_modulus = CoefficientModulusType::Modulus(modulus);
 		self
 	}
@@ -45,14 +51,20 @@ impl BfvEncryptionParametersBuilder {
 	/// Set the plaintext modulus to a fixed size. Not recommended.
 	/// Ideally, create a PlainModulus to set up batching and call
 	/// set_plain_modulus.
-	pub fn set_plain_modulus_u64(mut self, modulus: u64) -> Self {
+	pub fn set_plain_modulus_u64(
+		mut self,
+		modulus: u64,
+	) -> Self {
 		self.plain_modulus = PlainModulusType::Constant(modulus);
 		self
 	}
 
 	/// Set the plaintext modulus. This method enables batching, use
 	/// `PlainModulus::batching()` to create a suitable modulus chain.
-	pub fn set_plain_modulus(mut self, modulus: Modulus) -> Self {
+	pub fn set_plain_modulus(
+		mut self,
+		modulus: Modulus,
+	) -> Self {
 		self.plain_modulus = PlainModulusType::Modulus(modulus);
 		self
 	}

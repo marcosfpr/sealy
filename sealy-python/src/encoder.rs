@@ -32,7 +32,10 @@ impl PyBFVEncoder {
 	}
 
 	/// Encodes the given data into a plaintext.
-	pub fn encode(&self, data: Vec<i64>) -> PyResult<PyPlaintext> {
+	pub fn encode(
+		&self,
+		data: Vec<i64>,
+	) -> PyResult<PyPlaintext> {
 		let encoded = self.inner.encode(&data).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encode data: {:?}",
@@ -45,7 +48,10 @@ impl PyBFVEncoder {
 	}
 
 	/// Decodes the given plaintext into data.
-	pub fn decode(&self, plaintext: &PyPlaintext) -> PyResult<Vec<i64>> {
+	pub fn decode(
+		&self,
+		plaintext: &PyPlaintext,
+	) -> PyResult<Vec<i64>> {
 		let encoded = self.inner.decode(&plaintext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decode data: {:?}",
@@ -67,7 +73,10 @@ pub struct PyBFVDecimalEncoder {
 impl PyBFVDecimalEncoder {
 	/// Creates a new instance of BFVFloatEncoder.
 	#[new]
-	pub fn new(ctx: &PyContext, base: u64) -> PyResult<Self> {
+	pub fn new(
+		ctx: &PyContext,
+		base: u64,
+	) -> PyResult<Self> {
 		let encoder = sealy::BFVDecimalEncoder::new(&ctx.inner, base).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create BFVDecimalEncoder: {:?}",
@@ -85,7 +94,10 @@ impl PyBFVDecimalEncoder {
 	}
 
 	/// Encodes the given data into a plaintext.
-	pub fn encode(&self, data: Vec<f64>) -> PyResult<PyPlaintext> {
+	pub fn encode(
+		&self,
+		data: Vec<f64>,
+	) -> PyResult<PyPlaintext> {
 		let encoded = self.inner.encode(&data).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encode data: {:?}",
@@ -98,7 +110,10 @@ impl PyBFVDecimalEncoder {
 	}
 
 	/// Decodes the given plaintext into data.
-	pub fn decode(&self, plaintext: &PyPlaintext) -> PyResult<Vec<f64>> {
+	pub fn decode(
+		&self,
+		plaintext: &PyPlaintext,
+	) -> PyResult<Vec<f64>> {
 		let decoded = self.inner.decode(&plaintext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decode data: {:?}",
@@ -126,7 +141,10 @@ impl PyCKKSEncoder {
 	/// Creates a CKKSEncoder. It is necessary that the encryption parameters
 	/// given through the SEALContext object support it.
 	#[new]
-	pub fn new(ctx: &PyContext, scale: f64) -> PyResult<Self> {
+	pub fn new(
+		ctx: &PyContext,
+		scale: f64,
+	) -> PyResult<Self> {
 		let encoder = sealy::CKKSEncoder::new(&ctx.inner, scale).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create CKKSEncoder: {:?}",
@@ -144,7 +162,10 @@ impl PyCKKSEncoder {
 	}
 
 	/// Encodes the given data into a plaintext.
-	pub fn encode(&self, data: Vec<f64>) -> PyResult<PyPlaintext> {
+	pub fn encode(
+		&self,
+		data: Vec<f64>,
+	) -> PyResult<PyPlaintext> {
 		let encoded = self.inner.encode(&data).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encode data: {:?}",
@@ -157,7 +178,10 @@ impl PyCKKSEncoder {
 	}
 
 	/// Decodes the given plaintext into data.
-	pub fn decode(&self, plaintext: &PyPlaintext) -> PyResult<Vec<f64>> {
+	pub fn decode(
+		&self,
+		plaintext: &PyPlaintext,
+	) -> PyResult<Vec<f64>> {
 		let decoded = self.inner.decode(&plaintext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decode data: {:?}",

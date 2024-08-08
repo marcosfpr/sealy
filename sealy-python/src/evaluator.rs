@@ -30,7 +30,10 @@ impl PyBFVEvaluator {
 	}
 
 	/// Negates a ciphertext.
-	pub fn negate(&self, a: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn negate(
+		&self,
+		a: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let negated = self.inner.negate(&a.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to negate ciphertext: {:?}",
@@ -43,7 +46,11 @@ impl PyBFVEvaluator {
 	}
 
 	/// Adds two ciphertexts.
-	pub fn add(&self, a: &PyCiphertext, b: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn add(
+		&self,
+		a: &PyCiphertext,
+		b: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let sum = self.inner.add(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to add ciphertexts: {:?}",
@@ -56,7 +63,10 @@ impl PyBFVEvaluator {
 	}
 
 	/// Adds many ciphertexts.
-	pub fn add_many(&self, a: Vec<PyCiphertext>) -> PyResult<PyCiphertext> {
+	pub fn add_many(
+		&self,
+		a: Vec<PyCiphertext>,
+	) -> PyResult<PyCiphertext> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
 			ciphertexts.push(c.inner);
@@ -73,7 +83,11 @@ impl PyBFVEvaluator {
 	}
 
 	/// Multiplies two ciphertexts.
-	pub fn multiply(&self, a: &PyCiphertext, b: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn multiply(
+		&self,
+		a: &PyCiphertext,
+		b: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let product = self.inner.multiply(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to multiply ciphertexts: {:?}",
@@ -87,7 +101,9 @@ impl PyBFVEvaluator {
 
 	/// Multiplies many ciphertexts.
 	pub fn multiply_many(
-		&self, a: Vec<PyCiphertext>, relin_keys: &PyRelinearizationKey,
+		&self,
+		a: Vec<PyCiphertext>,
+		relin_keys: &PyRelinearizationKey,
 	) -> PyResult<PyCiphertext> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
@@ -108,7 +124,11 @@ impl PyBFVEvaluator {
 	}
 
 	/// Subtracts two ciphertexts.
-	pub fn sub(&self, a: &PyCiphertext, b: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn sub(
+		&self,
+		a: &PyCiphertext,
+		b: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let difference = self.inner.sub(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to subtract ciphertexts: {:?}",
@@ -121,7 +141,11 @@ impl PyBFVEvaluator {
 	}
 
 	/// Adds a ciphertext and a plaintext.
-	pub fn add_plain(&self, a: &PyCiphertext, b: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn add_plain(
+		&self,
+		a: &PyCiphertext,
+		b: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let sum = self.inner.add_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to add ciphertext and plaintext: {:?}",
@@ -134,7 +158,11 @@ impl PyBFVEvaluator {
 	}
 
 	/// Subtracts a plaintext from a ciphertext.
-	pub fn sub_plain(&self, a: &PyCiphertext, b: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn sub_plain(
+		&self,
+		a: &PyCiphertext,
+		b: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let difference = self.inner.sub_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to subtract plaintext from ciphertext: {:?}",
@@ -147,7 +175,11 @@ impl PyBFVEvaluator {
 	}
 
 	/// Multiplies a ciphertext by a plaintext.
-	pub fn multiply_plain(&self, a: &PyCiphertext, b: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn multiply_plain(
+		&self,
+		a: &PyCiphertext,
+		b: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let product = self.inner.multiply_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to multiply ciphertext by plaintext: {:?}",
@@ -161,7 +193,9 @@ impl PyBFVEvaluator {
 
 	/// Relinearizes a ciphertext.
 	pub fn relinearize(
-		&self, a: &PyCiphertext, relin_keys: &PyRelinearizationKey,
+		&self,
+		a: &PyCiphertext,
+		relin_keys: &PyRelinearizationKey,
 	) -> PyResult<PyCiphertext> {
 		let relinearized = self
 			.inner
@@ -201,7 +235,10 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Negates a ciphertext.
-	pub fn negate(&self, a: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn negate(
+		&self,
+		a: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let negated = self.inner.negate(&a.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to negate ciphertext: {:?}",
@@ -214,7 +251,11 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Adds two ciphertexts.
-	pub fn add(&self, a: &PyCiphertext, b: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn add(
+		&self,
+		a: &PyCiphertext,
+		b: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let sum = self.inner.add(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to add ciphertexts: {:?}",
@@ -227,7 +268,10 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Adds many ciphertexts.
-	pub fn add_many(&self, a: Vec<PyCiphertext>) -> PyResult<PyCiphertext> {
+	pub fn add_many(
+		&self,
+		a: Vec<PyCiphertext>,
+	) -> PyResult<PyCiphertext> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
 			ciphertexts.push(c.inner);
@@ -244,7 +288,11 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Multiplies two ciphertexts.
-	pub fn multiply(&self, a: &PyCiphertext, b: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn multiply(
+		&self,
+		a: &PyCiphertext,
+		b: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let product = self.inner.multiply(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to multiply ciphertexts: {:?}",
@@ -258,7 +306,9 @@ impl PyCKKSEvaluator {
 
 	/// Multiplies many ciphertexts.
 	pub fn multiply_many(
-		&self, a: Vec<PyCiphertext>, relin_keys: &PyRelinearizationKey,
+		&self,
+		a: Vec<PyCiphertext>,
+		relin_keys: &PyRelinearizationKey,
 	) -> PyResult<PyCiphertext> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
@@ -279,7 +329,11 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Subtracts two ciphertexts.
-	pub fn sub(&self, a: &PyCiphertext, b: &PyCiphertext) -> PyResult<PyCiphertext> {
+	pub fn sub(
+		&self,
+		a: &PyCiphertext,
+		b: &PyCiphertext,
+	) -> PyResult<PyCiphertext> {
 		let difference = self.inner.sub(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to subtract ciphertexts: {:?}",
@@ -292,7 +346,11 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Adds a ciphertext and a plaintext.
-	pub fn add_plain(&self, a: &PyCiphertext, b: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn add_plain(
+		&self,
+		a: &PyCiphertext,
+		b: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let sum = self.inner.add_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to add ciphertext and plaintext: {:?}",
@@ -305,7 +363,11 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Subtracts a plaintext from a ciphertext.
-	pub fn sub_plain(&self, a: &PyCiphertext, b: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn sub_plain(
+		&self,
+		a: &PyCiphertext,
+		b: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let difference = self.inner.sub_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to subtract plaintext from ciphertext: {:?}",
@@ -318,7 +380,11 @@ impl PyCKKSEvaluator {
 	}
 
 	/// Multiplies a ciphertext by a plaintext.
-	pub fn multiply_plain(&self, a: &PyCiphertext, b: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn multiply_plain(
+		&self,
+		a: &PyCiphertext,
+		b: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let product = self.inner.multiply_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to multiply ciphertext by plaintext: {:?}",
@@ -332,7 +398,9 @@ impl PyCKKSEvaluator {
 
 	/// Relinearizes a ciphertext.
 	pub fn relinearize(
-		&self, a: &PyCiphertext, relin_keys: &PyRelinearizationKey,
+		&self,
+		a: &PyCiphertext,
+		relin_keys: &PyRelinearizationKey,
 	) -> PyResult<PyCiphertext> {
 		let relinearized = self
 			.inner

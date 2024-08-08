@@ -91,7 +91,10 @@ impl Ciphertext {
 	/// Returns the value at a specific point in the coefficient array. This is
 	/// not publically exported as it leaks the encoding of the array.
 	#[allow(dead_code)]
-	pub(crate) fn get_data(&self, index: usize) -> Result<u64> {
+	pub(crate) fn get_data(
+		&self,
+		index: usize,
+	) -> Result<u64> {
 		let mut value: u64 = 0;
 
 		convert_seal_error(unsafe {
@@ -104,7 +107,11 @@ impl Ciphertext {
 	/// Returns the coefficient in the form the ciphertext is currently in (NTT
 	/// form or not). For BFV, this will be the coefficient in the residual
 	/// number system (RNS) format.
-	pub fn get_coefficient(&self, poly_index: usize, coeff_index: usize) -> Result<Vec<u64>> {
+	pub fn get_coefficient(
+		&self,
+		poly_index: usize,
+		coeff_index: usize,
+	) -> Result<Vec<u64>> {
 		let size = self.coeff_modulus_size();
 		let mut data: Vec<u64> = Vec::with_capacity(size as usize);
 
@@ -136,7 +143,10 @@ impl Ciphertext {
 }
 
 impl PartialEq for Ciphertext {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.as_bytes() == other.as_bytes()
 	}
 }
@@ -171,7 +181,11 @@ impl ToBytes for Ciphertext {
 }
 
 impl FromBytes for Ciphertext {
-	fn from_bytes(context: &Context, bytes: &[u8]) -> Result<Self> {
+	type State = Context;
+	fn from_bytes(
+		context: &Context,
+		bytes: &[u8],
+	) -> Result<Self> {
 		let ciphertext = Self::new()?;
 		let mut bytes_read = 0i64;
 

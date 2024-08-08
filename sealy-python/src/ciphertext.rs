@@ -27,7 +27,10 @@ impl PyCiphertext {
 
 	/// Creates a new ciphertext from a byte array.
 	#[staticmethod]
-	pub fn from_bytes(context: &PyContext, bytes: Vec<u8>) -> PyResult<Self> {
+	pub fn from_bytes(
+		context: &PyContext,
+		bytes: Vec<u8>,
+	) -> PyResult<Self> {
 		let ciphertext = sealy::Ciphertext::from_bytes(&context.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create ciphertext from bytes: {:?}",
@@ -63,7 +66,11 @@ impl PyCiphertext {
 	/// Returns the coefficient in the form the ciphertext is currently in (NTT
 	/// form or not). For BFV, this will be the coefficient in the residual
 	/// number system (RNS) format.
-	pub fn get_coefficient(&self, poly_index: usize, coeff_index: usize) -> PyResult<Vec<u64>> {
+	pub fn get_coefficient(
+		&self,
+		poly_index: usize,
+		coeff_index: usize,
+	) -> PyResult<Vec<u64>> {
 		let data = self
 			.inner
 			.get_coefficient(poly_index, coeff_index)
@@ -81,7 +88,10 @@ impl PyCiphertext {
 		self.inner.is_ntt_form()
 	}
 
-	fn __eq__(&self, other: &PyCiphertext) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyCiphertext,
+	) -> bool {
 		self.inner == other.inner
 	}
 }

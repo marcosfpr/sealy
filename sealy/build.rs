@@ -26,7 +26,10 @@ fn setup_macos_cross_compile(config: &mut Config) {
 	}
 }
 
-fn compile_native(profile: &str, out_path: &Path) {
+fn compile_native(
+	profile: &str,
+	out_path: &Path,
+) {
 	let hexl = if std::env::var("CARGO_FEATURE_HEXL").is_ok() {
 		"ON"
 	} else {

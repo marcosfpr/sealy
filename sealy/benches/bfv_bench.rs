@@ -7,7 +7,10 @@ use sealy::{
 	Evaluator, KeyGenerator, PlainModulus, SecurityLevel,
 };
 
-fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
+fn generate_clients_gradients(
+	num_clients: usize,
+	tensor_dim: usize,
+) -> Vec<Vec<f64>> {
 	let mut clients = Vec::with_capacity(num_clients);
 	for _ in 0..num_clients {
 		let mut tensor = Vec::with_capacity(tensor_dim);
@@ -19,7 +22,10 @@ fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<
 	clients
 }
 
-fn create_bfv_context(degree: DegreeType, bit_size: u32) -> Result<Context, Error> {
+fn create_bfv_context(
+	degree: DegreeType,
+	bit_size: u32,
+) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::bfv_default(degree, security_level)?;
@@ -35,7 +41,10 @@ fn create_bfv_context(degree: DegreeType, bit_size: u32) -> Result<Context, Erro
 }
 
 fn aggregate(
-	ctx: &Context, encoder: &BFVDecimalEncoder, ciphertexts: &[Ciphertext], dimension: usize,
+	ctx: &Context,
+	encoder: &BFVDecimalEncoder,
+	ciphertexts: &[Ciphertext],
+	dimension: usize,
 ) -> Result<Ciphertext, Error> {
 	let evaluator = BFVEvaluator::new(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;

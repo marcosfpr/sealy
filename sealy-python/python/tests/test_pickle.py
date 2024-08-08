@@ -3,7 +3,7 @@ import pickle
 import tempfile
 
 from sealy import (BfvEncryptionParametersBuilder, CoefficientModulus, Context,
-                   DegreeType, SecurityLevel)
+                   DegreeType, SchemeType, SecurityLevel)
 
 
 def test_pickle_context():
@@ -19,7 +19,7 @@ def test_pickle_context():
     )
 
     # Create context
-    ctx = Context.build(params, False, SecurityLevel(128))
+    ctx = Context(params, False, SecurityLevel(128))
 
     # create a temporary file
     temp_file = tempfile.mktemp()
@@ -34,4 +34,11 @@ def test_pickle_context():
 
     assert len(ctx_2.get_key_parms_id()) > 0
     assert len(ctx_2.get_last_parms_id()) > 0
-    assert len(ctx_2.get_last_parms_id()) > 0
+
+    ctx_data = ctx_2.get_last_context_data()
+    enc_parms = ctx_data.get_encryption_parameters()
+
+    assert enc_parms.get_poly_modulus_degree() == 1024
+    assert enc_parms.get_scheme() == SchemeType.bfv()
+    assert len(enc_parms.get_coefficient_modulus()) == 4
+    assert enc_parms.get_plain_modulus().get_value() == 1234

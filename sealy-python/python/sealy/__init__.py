@@ -8,9 +8,10 @@ from sealy.sealy import (AsymmetricComponents, BatchDecryptor, BatchEncryptor,
                          CKKSBatchEvaluator, CKKSEncoder, CKKSEvaluator,
                          CoefficientModulus, Context, ContextData, Decryptor,
                          DegreeType, EncryptionParameters, Encryptor,
-                         KeyGenerator, MemoryPool, Modulus, PlainModulus,
-                         Plaintext, PlaintextBatchArray, PolynomialArray,
-                         SchemeType, SecurityLevel)
+                         GaloisKey, KeyGenerator, MemoryPool, Modulus,
+                         PlainModulus, Plaintext, PlaintextBatchArray,
+                         PolynomialArray, PublicKey, RelinearizationKey,
+                         SchemeType, SecretKey, SecurityLevel)
 
 __all__ = [
     "BfvEncryptionParametersBuilder",
@@ -43,4 +44,8 @@ __all__ = [
     "PlaintextBatchArray",
     "CKKSBatchEncoder",
     "CKKSBatchEvaluator",
+    "PublicKey",
+    "SecretKey",
+    "GaloisKey",
+    "RelinearizationKey",
 ]

@@ -56,7 +56,10 @@ impl PyCiphertextBatchArray {
 
 	/// Creates a new ciphertext batch array from a list of byte arrays.
 	#[staticmethod]
-	pub fn from_batched_bytes(ctx: &PyContext, bytes: Vec<Vec<u8>>) -> PyResult<Self> {
+	pub fn from_batched_bytes(
+		ctx: &PyContext,
+		bytes: Vec<Vec<u8>>,
+	) -> PyResult<Self> {
 		let batch = sealy::Batch::from_batched_bytes(&ctx.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create ciphertext batch from bytes: {:?}",
@@ -79,7 +82,10 @@ pub struct PyBatchEncryptor {
 impl PyBatchEncryptor {
 	/// Creates a new BatchEncryptor instance with a public key.
 	#[new]
-	fn new(ctx: &PyContext, pk: &PyPublicKey) -> PyResult<Self> {
+	fn new(
+		ctx: &PyContext,
+		pk: &PyPublicKey,
+	) -> PyResult<Self> {
 		let ctx = &ctx.inner;
 		let pk = &pk.inner;
 		let inner = sealy::BatchEncryptor::with_public_key(ctx, pk).map_err(|e| {
@@ -95,7 +101,10 @@ impl PyBatchEncryptor {
 
 	/// Encrypts a plaintext with the public key and returns the ciphertext as
 	/// a serializable object.
-	pub fn encrypt(&self, plaintext: PyPlaintextBatchArray) -> PyResult<PyCiphertextBatchArray> {
+	pub fn encrypt(
+		&self,
+		plaintext: PyPlaintextBatchArray,
+	) -> PyResult<PyCiphertextBatchArray> {
 		let ciphertext = self.inner.encrypt(&plaintext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encrypt batch: {:?}",
@@ -118,7 +127,10 @@ pub struct PyBatchDecryptor {
 impl PyBatchDecryptor {
 	/// Creates a new batch decryptor.
 	#[new]
-	pub fn new(ctx: &PyContext, secret_key: &PySecretKey) -> PyResult<Self> {
+	pub fn new(
+		ctx: &PyContext,
+		secret_key: &PySecretKey,
+	) -> PyResult<Self> {
 		let inner = sealy::BatchDecryptor::new(&ctx.inner, &secret_key.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create BatchDecryptor: {:?}",
@@ -132,7 +144,8 @@ impl PyBatchDecryptor {
 
 	/// Decrypts a ciphertext and returns the plaintext.
 	pub fn decrypt(
-		&self, ciphertext_batch: &PyCiphertextBatchArray,
+		&self,
+		ciphertext_batch: &PyCiphertextBatchArray,
 	) -> PyResult<PyPlaintextBatchArray> {
 		let plaintext = self.inner.decrypt(&ciphertext_batch.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -157,7 +170,10 @@ pub struct PyCKKSBatchEncoder {
 impl PyCKKSBatchEncoder {
 	/// Creates a new BatchEncoder.
 	#[new]
-	fn new(ctx: &PyContext, scale: f64) -> PyResult<Self> {
+	fn new(
+		ctx: &PyContext,
+		scale: f64,
+	) -> PyResult<Self> {
 		let encoder = sealy::CKKSEncoder::new(&ctx.inner, scale).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create CKKSEncoder: {:?}",
@@ -182,7 +198,10 @@ impl PyCKKSBatchEncoder {
 	///
 	/// # Returns
 	/// The encoded plaintext.
-	fn encode(&self, data: Vec<f64>) -> PyResult<PyPlaintextBatchArray> {
+	fn encode(
+		&self,
+		data: Vec<f64>,
+	) -> PyResult<PyPlaintextBatchArray> {
 		let batch = self.inner.encode(&data).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encode batch: {:?}",
@@ -201,7 +220,10 @@ impl PyCKKSBatchEncoder {
 	///
 	/// # Returns
 	/// The decoded data.
-	fn decode(&self, batch: PyPlaintextBatchArray) -> PyResult<Vec<f64>> {
+	fn decode(
+		&self,
+		batch: PyPlaintextBatchArray,
+	) -> PyResult<Vec<f64>> {
 		let data = self.inner.decode(&batch.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decode batch: {:?}",
@@ -234,7 +256,10 @@ impl PyCKKSBatchEvaluator {
 	}
 
 	/// Negates a batch of ciphertexts.
-	pub fn negate(&self, a: &PyCiphertextBatchArray) -> PyResult<PyCiphertextBatchArray> {
+	pub fn negate(
+		&self,
+		a: &PyCiphertextBatchArray,
+	) -> PyResult<PyCiphertextBatchArray> {
 		let negated = self.inner.negate(&a.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to negate batch: {:?}",
@@ -248,7 +273,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Adds two ciphertexts.
 	pub fn add(
-		&self, a: &PyCiphertextBatchArray, b: &PyCiphertextBatchArray,
+		&self,
+		a: &PyCiphertextBatchArray,
+		b: &PyCiphertextBatchArray,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let sum = self.inner.add(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -262,7 +289,10 @@ impl PyCKKSBatchEvaluator {
 	}
 
 	/// Adds many ciphertexts.
-	pub fn add_many(&self, a: Vec<PyCiphertextBatchArray>) -> PyResult<PyCiphertextBatchArray> {
+	pub fn add_many(
+		&self,
+		a: Vec<PyCiphertextBatchArray>,
+	) -> PyResult<PyCiphertextBatchArray> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
 			ciphertexts.push(c.inner);
@@ -280,7 +310,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Multiplies two ciphertexts.
 	pub fn multiply(
-		&self, a: &PyCiphertextBatchArray, b: &PyCiphertextBatchArray,
+		&self,
+		a: &PyCiphertextBatchArray,
+		b: &PyCiphertextBatchArray,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let product = self.inner.multiply(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -295,7 +327,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Multiplies many ciphertexts.
 	pub fn multiply_many(
-		&self, a: Vec<PyCiphertextBatchArray>, relin_keys: &PyRelinearizationKey,
+		&self,
+		a: Vec<PyCiphertextBatchArray>,
+		relin_keys: &PyRelinearizationKey,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
@@ -317,7 +351,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Subtracts two ciphertexts.
 	pub fn sub(
-		&self, a: &PyCiphertextBatchArray, b: &PyCiphertextBatchArray,
+		&self,
+		a: &PyCiphertextBatchArray,
+		b: &PyCiphertextBatchArray,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let difference = self.inner.sub(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -332,7 +368,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Adds a ciphertext and a plaintext.
 	pub fn add_plain(
-		&self, a: &PyCiphertextBatchArray, b: &PyPlaintextBatchArray,
+		&self,
+		a: &PyCiphertextBatchArray,
+		b: &PyPlaintextBatchArray,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let sum = self.inner.add_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -347,7 +385,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Subtracts a plaintext from a ciphertext.
 	pub fn sub_plain(
-		&self, a: &PyCiphertextBatchArray, b: &PyPlaintextBatchArray,
+		&self,
+		a: &PyCiphertextBatchArray,
+		b: &PyPlaintextBatchArray,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let difference = self.inner.sub_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -362,7 +402,9 @@ impl PyCKKSBatchEvaluator {
 
 	/// Multiplies a ciphertext by a plaintext.
 	pub fn multiply_plain(
-		&self, a: &PyCiphertextBatchArray, b: &PyPlaintextBatchArray,
+		&self,
+		a: &PyCiphertextBatchArray,
+		b: &PyPlaintextBatchArray,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let product = self.inner.multiply_plain(&a.inner, &b.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -376,7 +418,9 @@ impl PyCKKSBatchEvaluator {
 	}
 
 	pub fn relinearize(
-		&self, a: &PyCiphertextBatchArray, relin_keys: &PyRelinearizationKey,
+		&self,
+		a: &PyCiphertextBatchArray,
+		relin_keys: &PyRelinearizationKey,
 	) -> PyResult<PyCiphertextBatchArray> {
 		let relinearized = self
 			.inner
