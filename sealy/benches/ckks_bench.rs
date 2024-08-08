@@ -7,7 +7,10 @@ use sealy::{
 	SecurityLevel,
 };
 
-fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
+fn generate_clients_gradients(
+	num_clients: usize,
+	tensor_dim: usize,
+) -> Vec<Vec<f64>> {
 	let mut clients = Vec::with_capacity(num_clients);
 	for _ in 0..num_clients {
 		let mut tensor = Vec::with_capacity(tensor_dim);
@@ -19,7 +22,10 @@ fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<
 	clients
 }
 
-fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context, Error> {
+fn create_ckks_context(
+	degree: DegreeType,
+	bit_sizes: &[i32],
+) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
@@ -34,7 +40,10 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn aggregate(
-	ctx: &Context, encoder: &CKKSEncoder, ciphertexts: &[Ciphertext], dimension: usize,
+	ctx: &Context,
+	encoder: &CKKSEncoder,
+	ciphertexts: &[Ciphertext],
+	dimension: usize,
 ) -> Result<Ciphertext, Error> {
 	let evaluator = CKKSEvaluator::new(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;

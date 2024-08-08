@@ -53,12 +53,12 @@ impl Context {
 	/// on the given EncryptionParameters.
 	///
 	/// * `params` - The encryption parameters.
-	/// * `expand_mod_chain` - Determines whether the modulus switching chain
-	/// should be created.
-	/// * `security_level` - Determines whether a specific security level should be
-	/// enforced according to HomomorphicEncryption.org security standard.
+	/// * `expand_mod_chain` - Determines whether the modulus switching chain should be created.
+	/// * `security_level` - Determines whether a specific security level should be enforced according to HomomorphicEncryption.org security standard.
 	pub fn new(
-		params: &EncryptionParameters, expand_mod_chain: bool, security_level: SecurityLevel,
+		params: &EncryptionParameters,
+		expand_mod_chain: bool,
+		security_level: SecurityLevel,
 	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
@@ -81,10 +81,12 @@ impl Context {
 	/// and is only for testing!
 	///
 	/// * `params` - The encryption parameters.
-	/// * `expand_mod_chain` - Determines whether the modulus switching chain
-	/// should be created.
+	/// * `expand_mod_chain` - Determines whether the modulus switching chain should be created.
 	#[cfg(feature = "insecure-params")]
-	pub fn new_insecure(params: &EncryptionParameters, expand_mod_chain: bool) -> Result<Self> {
+	pub fn new_insecure(
+		params: &EncryptionParameters,
+		expand_mod_chain: bool,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -149,7 +151,10 @@ impl Context {
 	}
 
 	/// Returns the ContextData given a parms_id.
-	pub fn get_context_data(&self, parms_id: &[u64]) -> Result<ContextData> {
+	pub fn get_context_data(
+		&self,
+		parms_id: &[u64],
+	) -> Result<ContextData> {
 		let mut context_data: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {

@@ -97,7 +97,10 @@ pub trait FromBytes {
 	type State;
 	/// Deserialize an object from the given bytes using the given
 	/// state.
-	fn from_bytes(state: &Self::State, bytes: &[u8]) -> Result<Self>
+	fn from_bytes(
+		state: &Self::State,
+		bytes: &[u8],
+	) -> Result<Self>
 	where
 		Self: Sized;
 }

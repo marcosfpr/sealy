@@ -29,7 +29,9 @@ impl BatchEncryptor {
 	/// * `publicKey` - The public key
 	/// * `secretKey` - The secret key
 	pub fn with_public_and_secret_key(
-		ctx: &Context, public_key: &PublicKey, secret_key: &SecretKey,
+		ctx: &Context,
+		public_key: &PublicKey,
+		secret_key: &SecretKey,
 	) -> Result<BatchEncryptor<SymAsym>> {
 		Ok(BatchEncryptor::new(Encryptor::with_public_and_secret_key(
 			ctx, public_key, secret_key,
@@ -38,7 +40,10 @@ impl BatchEncryptor {
 
 	/// Creates an Encryptor instance initialized with the specified SEALContext,
 	/// public key.
-	pub fn with_public_key(ctx: &Context, public_key: &PublicKey) -> Result<BatchEncryptor<Asym>> {
+	pub fn with_public_key(
+		ctx: &Context,
+		public_key: &PublicKey,
+	) -> Result<BatchEncryptor<Asym>> {
 		Ok(BatchEncryptor::new(Encryptor::with_public_key(
 			ctx, public_key,
 		)?))
@@ -46,7 +51,10 @@ impl BatchEncryptor {
 
 	/// Creates an Encryptor instance initialized with the specified SEALContext and
 	/// secret key.
-	pub fn with_secret_key(ctx: &Context, secret_key: &SecretKey) -> Result<BatchEncryptor<Sym>> {
+	pub fn with_secret_key(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<BatchEncryptor<Sym>> {
 		Ok(BatchEncryptor::new(Encryptor::with_secret_key(
 			ctx, secret_key,
 		)?))
@@ -64,7 +72,10 @@ impl<T: enc_marker::Asym> BatchEncryptor<T> {
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plaintext_batch` - The plaintext to encrypt.
-	pub fn encrypt(&self, plaintext_batch: &Batch<Plaintext>) -> Result<Batch<Ciphertext>> {
+	pub fn encrypt(
+		&self,
+		plaintext_batch: &Batch<Plaintext>,
+	) -> Result<Batch<Ciphertext>> {
 		plaintext_batch
 			.map(|plaintext| self.encryptor.encrypt(plaintext))
 			.collect()
@@ -82,7 +93,8 @@ impl<T: enc_marker::Asym> BatchEncryptor<T> {
 	///
 	/// * `plaintext_batch` - The plaintext to encrypt.
 	pub fn encrypt_return_components(
-		&self, plaintext_batch: &Batch<Plaintext>,
+		&self,
+		plaintext_batch: &Batch<Plaintext>,
 	) -> Result<Batch<(Ciphertext, AsymmetricComponents)>> {
 		plaintext_batch
 			.map(|plaintext| self.encryptor.encrypt_return_components(plaintext))
@@ -102,7 +114,8 @@ impl<T: enc_marker::Sym> BatchEncryptor<T> {
 	///
 	/// * `plaintext_batch` - The plaintext to encrypt.
 	pub fn encrypt_symmetric(
-		&self, plaintext_batch: &Batch<Plaintext>,
+		&self,
+		plaintext_batch: &Batch<Plaintext>,
 	) -> Result<Batch<Ciphertext>> {
 		plaintext_batch
 			.map(|plaintext| self.encryptor.encrypt_symmetric(plaintext))
@@ -120,7 +133,8 @@ impl<T: enc_marker::Sym> BatchEncryptor<T> {
 	///
 	/// * `plaintext_batch` - The plaintext to encrypt.
 	pub fn encrypt_symmetric_return_components(
-		&self, plaintext_batch: &Batch<Plaintext>,
+		&self,
+		plaintext_batch: &Batch<Plaintext>,
 	) -> Result<Batch<(Ciphertext, SymmetricComponents)>> {
 		plaintext_batch
 			.map(|plaintext| {

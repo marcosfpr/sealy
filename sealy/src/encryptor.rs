@@ -25,7 +25,11 @@ pub struct AsymmetricComponents {
 
 impl AsymmetricComponents {
 	/// Create a new AsymmetricComponents instance.
-	pub fn new(u: PolynomialArray, e: PolynomialArray, r: Plaintext) -> Self {
+	pub fn new(
+		u: PolynomialArray,
+		e: PolynomialArray,
+		r: Plaintext,
+	) -> Self {
 		Self {
 			u,
 			e,
@@ -47,7 +51,10 @@ pub struct SymmetricComponents {
 
 impl SymmetricComponents {
 	/// Create a new SymmetricComponents instance.
-	pub fn new(e: PolynomialArray, r: Plaintext) -> Self {
+	pub fn new(
+		e: PolynomialArray,
+		r: Plaintext,
+	) -> Self {
 		Self {
 			e,
 			r,
@@ -56,7 +63,10 @@ impl SymmetricComponents {
 }
 
 impl core::fmt::Debug for AsymmetricComponents {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+	fn fmt(
+		&self,
+		f: &mut core::fmt::Formatter,
+	) -> core::fmt::Result {
 		f.debug_struct("AsymmetricComponents")
 			.field("u", &"<ELIDED>")
 			.field("e", &"<ELIDED>")
@@ -66,7 +76,10 @@ impl core::fmt::Debug for AsymmetricComponents {
 }
 
 impl core::fmt::Debug for SymmetricComponents {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+	fn fmt(
+		&self,
+		f: &mut core::fmt::Formatter,
+	) -> core::fmt::Result {
 		f.debug_struct("SymmetricComponents")
 			.field("e", &"<ELIDED>")
 			.field("r", &"<ELIDED>")
@@ -154,7 +167,9 @@ impl Encryptor {
 	/// * `publicKey` - The public key
 	/// * `secretKey` - The secret key
 	pub fn with_public_and_secret_key(
-		ctx: &Context, public_key: &PublicKey, secret_key: &SecretKey,
+		ctx: &Context,
+		public_key: &PublicKey,
+		secret_key: &SecretKey,
 	) -> Result<Encryptor<SymAsym>> {
 		let mut handle: *mut c_void = null_mut();
 
@@ -175,7 +190,10 @@ impl Encryptor {
 
 	/// Creates an Encryptor instance initialized with the specified SEALContext,
 	/// public key.
-	pub fn with_public_key(ctx: &Context, public_key: &PublicKey) -> Result<AsymmetricEncryptor> {
+	pub fn with_public_key(
+		ctx: &Context,
+		public_key: &PublicKey,
+	) -> Result<AsymmetricEncryptor> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -195,7 +213,10 @@ impl Encryptor {
 
 	/// Creates an Encryptor instance initialized with the specified SEALContext and
 	/// secret key.
-	pub fn with_secret_key(ctx: &Context, secret_key: &SecretKey) -> Result<SymmetricEncryptor> {
+	pub fn with_secret_key(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<SymmetricEncryptor> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -216,21 +237,31 @@ impl Encryptor {
 
 impl AsymmetricEncryptor {
 	/// Create a new asymmetric encryptor.
-	pub fn new(ctx: &Context, public_key: &PublicKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		public_key: &PublicKey,
+	) -> Result<Self> {
 		Encryptor::with_public_key(ctx, public_key)
 	}
 }
 
 impl SymmetricEncryptor {
 	/// Create a new symmetric encryptor.
-	pub fn new(ctx: &Context, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		Encryptor::with_secret_key(ctx, secret_key)
 	}
 }
 
 impl SymAsymEncryptor {
 	/// Create a new encryptor capable of both symmetric and asymmetric encryption.
-	pub fn new(ctx: &Context, public_key: &PublicKey, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		public_key: &PublicKey,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		Encryptor::with_public_and_secret_key(ctx, public_key, secret_key)
 	}
 }
@@ -246,7 +277,10 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
-	pub fn encrypt(&self, plaintext: &Plaintext) -> Result<Ciphertext> {
+	pub fn encrypt(
+		&self,
+		plaintext: &Plaintext,
+	) -> Result<Ciphertext> {
 		// We don't call the encrypt_return_components because the return
 		// components are allocated on the SEAL global memory pool. By calling
 		// the regular encrypt function, we skip that allocation.
@@ -276,7 +310,8 @@ impl<T: marker::Asym> Encryptor<T> {
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt_return_components(
-		&self, plaintext: &Plaintext,
+		&self,
+		plaintext: &Plaintext,
 	) -> Result<(Ciphertext, AsymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -319,7 +354,9 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<Ciphertext> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -362,7 +399,9 @@ impl<T: marker::Asym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_return_components_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<(Ciphertext, AsymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let u_destination = PolynomialArray::new()?;
@@ -402,7 +441,10 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
-	pub fn encrypt_symmetric(&self, plaintext: &Plaintext) -> Result<Ciphertext> {
+	pub fn encrypt_symmetric(
+		&self,
+		plaintext: &Plaintext,
+	) -> Result<Ciphertext> {
 		// We don't call the encrypt_return_components because the return
 		// components are allocated on the SEAL global memory pool. By calling
 		// the regular encrypt function, we skip that allocation.
@@ -438,7 +480,9 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_symmetric_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<Ciphertext> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -472,7 +516,8 @@ impl<T: marker::Sym> Encryptor<T> {
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt_symmetric_return_components(
-		&self, plaintext: &Plaintext,
+		&self,
+		plaintext: &Plaintext,
 	) -> Result<(Ciphertext, SymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;
@@ -513,7 +558,9 @@ impl<T: marker::Sym> Encryptor<T> {
 	/// * `seed` - The seed to use for encryption.
 	#[cfg(feature = "deterministic")]
 	pub fn encrypt_symmetric_return_components_deterministic(
-		&self, plaintext: &Plaintext, seed: &[u64; 8],
+		&self,
+		plaintext: &Plaintext,
+		seed: &[u64; 8],
 	) -> Result<(Ciphertext, SymmetricComponents)> {
 		let ciphertext = Ciphertext::new()?;
 		let e_destination = PolynomialArray::new()?;

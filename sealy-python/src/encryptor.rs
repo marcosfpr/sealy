@@ -16,7 +16,11 @@ pub struct PyAsymmetricComponents {
 impl PyAsymmetricComponents {
 	/// Creates a new AsymmetricComponents object.
 	#[new]
-	pub fn new(u: PyPolynomialArray, e: PyPolynomialArray, r: PyPlaintext) -> Self {
+	pub fn new(
+		u: PyPolynomialArray,
+		e: PyPolynomialArray,
+		r: PyPlaintext,
+	) -> Self {
 		Self {
 			inner: sealy::AsymmetricComponents::new(u.inner, e.inner, r.inner),
 		}
@@ -59,7 +63,10 @@ impl PyEncryptor {
 	/// * `publicKey` - The public key
 	/// * `secretKey` - The secret key
 	#[new]
-	pub fn new(ctx: &PyContext, public_key: &PyPublicKey) -> PyResult<Self> {
+	pub fn new(
+		ctx: &PyContext,
+		public_key: &PyPublicKey,
+	) -> PyResult<Self> {
 		let encryptor =
 			sealy::Encryptor::with_public_key(&ctx.inner, &public_key.inner).map_err(|e| {
 				PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
@@ -74,7 +81,10 @@ impl PyEncryptor {
 
 	/// Encrypts a plaintext with the public key and returns the ciphertext as
 	/// a serializable object.
-	pub fn encrypt(&self, plaintext: &PyPlaintext) -> PyResult<PyCiphertext> {
+	pub fn encrypt(
+		&self,
+		plaintext: &PyPlaintext,
+	) -> PyResult<PyCiphertext> {
 		let ciphertext = self.inner.encrypt(&plaintext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encrypt plaintext: {:?}",
@@ -89,7 +99,8 @@ impl PyEncryptor {
 	/// Encrypts a plaintext with the public key and returns the ciphertext
 	/// and the components used in the encryption.
 	pub fn encrypt_return_components(
-		&self, plaintext: &PyPlaintext,
+		&self,
+		plaintext: &PyPlaintext,
 	) -> PyResult<(PyCiphertext, PyAsymmetricComponents)> {
 		let (ciphertext, components) = self
 			.inner

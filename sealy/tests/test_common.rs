@@ -1,7 +1,10 @@
 use sealy::*;
 
-pub fn run_bfv_test<T, F>(lane_bits: u32, degree: DegreeType, test: F)
-where
+pub fn run_bfv_test<T, F>(
+	lane_bits: u32,
+	degree: DegreeType,
+	test: F,
+) where
 	F: FnOnce(Decryptor, BFVEncoder<T>, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 {
 	let params = BfvEncryptionParametersBuilder::new()

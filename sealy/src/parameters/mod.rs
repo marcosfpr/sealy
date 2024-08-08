@@ -209,7 +209,10 @@ impl EncryptionParameters {
 	}
 
 	/// Sets the polynomial modulus degree.
-	pub fn set_coefficient_modulus(&mut self, modulus: Vec<Modulus>) -> Result<()> {
+	pub fn set_coefficient_modulus(
+		&mut self,
+		modulus: Vec<Modulus>,
+	) -> Result<()> {
 		let modulus_ref = modulus
 			.iter()
 			.map(|m| m.get_handle())
@@ -222,19 +225,28 @@ impl EncryptionParameters {
 	}
 
 	/// Sets the polynomial modulus degree.
-	pub fn set_poly_modulus_degree(&mut self, degree: u64) -> Result<()> {
+	pub fn set_poly_modulus_degree(
+		&mut self,
+		degree: u64,
+	) -> Result<()> {
 		convert_seal_error(unsafe { bindgen::EncParams_SetPolyModulusDegree(self.handle, degree) })
 	}
 
 	/// Sets the plain modulus as a [`Modulus`] instance.
-	pub fn set_plain_modulus(&mut self, modulus: Modulus) -> Result<()> {
+	pub fn set_plain_modulus(
+		&mut self,
+		modulus: Modulus,
+	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::EncParams_SetPlainModulus1(self.handle, modulus.get_handle())
 		})
 	}
 
 	/// Sets the plain modulus as a constant.
-	pub fn set_plain_modulus_u64(&mut self, modulus: u64) -> Result<()> {
+	pub fn set_plain_modulus_u64(
+		&mut self,
+		modulus: u64,
+	) -> Result<()> {
 		convert_seal_error(unsafe { bindgen::EncParams_SetPlainModulus2(self.handle, modulus) })
 	}
 }
@@ -364,7 +376,10 @@ impl ToBytes for EncryptionParameters {
 
 impl FromBytes for EncryptionParameters {
 	type State = SchemeType;
-	fn from_bytes(scheme: &SchemeType, bytes: &[u8]) -> Result<Self> {
+	fn from_bytes(
+		scheme: &SchemeType,
+		bytes: &[u8],
+	) -> Result<Self> {
 		let key = Self::new(*scheme)?;
 		let mut bytes_read = 0;
 

@@ -46,7 +46,10 @@ where
 	///
 	/// # Returns
 	/// The encoded plaintext.
-	fn encode(&self, data: &[T]) -> Result<Self::Encoded> {
+	fn encode(
+		&self,
+		data: &[T],
+	) -> Result<Self::Encoded> {
 		let mut plaintexts = Vec::new();
 
 		let batch_size = self.get_slot_count();
@@ -66,7 +69,10 @@ where
 	///
 	/// # Returns
 	/// The decoded data.
-	fn decode(&self, batch: &Self::Encoded) -> Result<Vec<T>> {
+	fn decode(
+		&self,
+		batch: &Self::Encoded,
+	) -> Result<Vec<T>> {
 		let mut data = Vec::new();
 
 		for plaintext in batch {

@@ -34,7 +34,10 @@ impl Clone for PolynomialArray {
 }
 
 impl PartialEq for PolynomialArray {
-	fn eq(&self, other: &Self) -> bool {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
 		self.as_rns_u64s() == other.as_rns_u64s()
 	}
 }
@@ -58,7 +61,10 @@ impl PolynomialArray {
 	}
 
 	/// Creates a polynomial array from a reference to a ciphertext.
-	pub fn new_from_ciphertext(context: &Context, ciphertext: &Ciphertext) -> Result<Self> {
+	pub fn new_from_ciphertext(
+		context: &Context,
+		ciphertext: &Ciphertext,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).
@@ -77,7 +83,10 @@ impl PolynomialArray {
 	}
 
 	/// Creates a polynomial array from a reference to a public key.
-	pub fn new_from_public_key(context: &Context, public_key: &PublicKey) -> Result<Self> {
+	pub fn new_from_public_key(
+		context: &Context,
+		public_key: &PublicKey,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).
@@ -96,7 +105,10 @@ impl PolynomialArray {
 	}
 
 	/// Creates a polynomial array from a reference to a secret key.
-	pub fn new_from_secret_key(context: &Context, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new_from_secret_key(
+		context: &Context,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).

@@ -14,7 +14,10 @@ fn generate_random_tensor(size: usize) -> Vec<f64> {
 	tensor
 }
 
-fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context, Error> {
+fn create_ckks_context(
+	degree: DegreeType,
+	bit_sizes: &[i32],
+) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
@@ -29,7 +32,10 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn average_ciphertexts(
-	ctx: &Context, encoder: &CKKSEncoder, ciphertexts: &[Ciphertext], size: usize,
+	ctx: &Context,
+	encoder: &CKKSEncoder,
+	ciphertexts: &[Ciphertext],
+	size: usize,
 ) -> Result<Ciphertext, Error> {
 	let evaluator = CKKSEvaluator::new(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;

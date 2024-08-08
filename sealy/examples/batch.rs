@@ -15,7 +15,9 @@ fn generate_random_tensor(size: usize) -> Vec<f64> {
 }
 
 fn average_ciphertexts(
-	ctx: &Context, encoder: &BatchEncoder<f64, CKKSEncoder>, ciphertexts: &[Batch<Ciphertext>],
+	ctx: &Context,
+	encoder: &BatchEncoder<f64, CKKSEncoder>,
+	ciphertexts: &[Batch<Ciphertext>],
 	size: usize,
 ) -> Result<Batch<Ciphertext>, Error> {
 	let evaluator = BatchEvaluator::ckks(ctx)?;
