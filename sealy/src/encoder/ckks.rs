@@ -27,7 +27,10 @@ impl CKKSEncoder {
 	/// given through the SEALContext object support it.
 	///
 	/// * `ctx` - The Context
-	pub fn new(ctx: &Context, scale: f64) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		scale: f64,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		let parms_id = ctx.get_first_parms_id()?;
@@ -73,7 +76,10 @@ impl Encoder<f64> for CKKSEncoder {
 	///  * `data` - The `2xN` matrix of integers modulo plaintext modulus to batch
 	///  * `scale` - The scaling factor
 	///  * `context` - The context
-	fn encode(&self, data: &[f64]) -> Result<Self::Encoded> {
+	fn encode(
+		&self,
+		data: &[f64],
+	) -> Result<Self::Encoded> {
 		let mem = MemoryPool::new()?;
 
 		let plaintext = Plaintext::new()?;
@@ -97,7 +103,10 @@ impl Encoder<f64> for CKKSEncoder {
 		Ok(plaintext)
 	}
 
-	fn decode(&self, plaintext: &Self::Encoded) -> Result<Vec<f64>> {
+	fn decode(
+		&self,
+		plaintext: &Self::Encoded,
+	) -> Result<Vec<f64>> {
 		let mut data = Vec::with_capacity(self.get_slot_count());
 		let data_ptr = data.as_mut_ptr();
 		let mut size: u64 = 0;

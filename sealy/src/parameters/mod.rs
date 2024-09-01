@@ -4,9 +4,11 @@ use std::os::raw::c_ulong;
 use std::ptr::null_mut;
 
 use crate::bindgen::{self};
+use crate::error::Result;
 use crate::error::{convert_seal_error, Error};
 use crate::modulus::unchecked_from_handle;
-use crate::Modulus;
+use crate::serialization::CompressionType;
+use crate::{FromBytes, Modulus, ToBytes};
 
 use serde::{Deserialize, Serialize};
 
@@ -38,6 +40,11 @@ impl SchemeType {
 			0x2 => SchemeType::Ckks,
 			_ => panic!("Illegal scheme type"),
 		}
+	}
+
+	/// Converts a SchemeType to a u8.
+	pub fn to_u8(&self) -> u8 {
+		*self as u8
 	}
 }
 
@@ -78,7 +85,7 @@ unsafe impl Send for EncryptionParameters {}
 
 impl EncryptionParameters {
 	/// Creates a new `EncryptionParameters` instance given a scheme type.
-	pub fn new(scheme: SchemeType) -> Result<Self, Error> {
+	pub fn new(scheme: SchemeType) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe { bindgen::EncParams_Create1(scheme as u8, &mut handle) })?;
@@ -161,6 +168,7 @@ impl EncryptionParameters {
 			))
 			.expect("Internal error")
 		};
+
 		let mut borrowed_modulus = Vec::with_capacity(len as usize);
 		let borrowed_modulus_ptr = borrowed_modulus.as_mut_ptr();
 
@@ -201,7 +209,10 @@ impl EncryptionParameters {
 	}
 
 	/// Sets the polynomial modulus degree.
-	pub fn set_coefficient_modulus(&mut self, modulus: Vec<Modulus>) -> Result<(), Error> {
+	pub fn set_coefficient_modulus(
+		&mut self,
+		modulus: Vec<Modulus>,
+	) -> Result<()> {
 		let modulus_ref = modulus
 			.iter()
 			.map(|m| m.get_handle())
@@ -214,19 +225,28 @@ impl EncryptionParameters {
 	}
 
 	/// Sets the polynomial modulus degree.
-	pub fn set_poly_modulus_degree(&mut self, degree: u64) -> Result<(), Error> {
+	pub fn set_poly_modulus_degree(
+		&mut self,
+		degree: u64,
+	) -> Result<()> {
 		convert_seal_error(unsafe { bindgen::EncParams_SetPolyModulusDegree(self.handle, degree) })
 	}
 
 	/// Sets the plain modulus as a [`Modulus`] instance.
-	pub fn set_plain_modulus(&mut self, modulus: Modulus) -> Result<(), Error> {
+	pub fn set_plain_modulus(
+		&mut self,
+		modulus: Modulus,
+	) -> Result<()> {
 		convert_seal_error(unsafe {
 			bindgen::EncParams_SetPlainModulus1(self.handle, modulus.get_handle())
 		})
 	}
 
 	/// Sets the plain modulus as a constant.
-	pub fn set_plain_modulus_u64(&mut self, modulus: u64) -> Result<(), Error> {
+	pub fn set_plain_modulus_u64(
+		&mut self,
+		modulus: u64,
+	) -> Result<()> {
 		convert_seal_error(unsafe { bindgen::EncParams_SetPlainModulus2(self.handle, modulus) })
 	}
 }
@@ -292,7 +312,7 @@ impl From<DegreeType> for u64 {
 impl TryFrom<u64> for DegreeType {
 	type Error = Error;
 
-	fn try_from(value: u64) -> Result<Self, Self::Error> {
+	fn try_from(value: u64) -> std::result::Result<Self, Self::Error> {
 		match value {
 			256 => Ok(DegreeType::D256),
 			512 => Ok(DegreeType::D512),
@@ -310,7 +330,7 @@ impl TryFrom<u64> for DegreeType {
 impl TryFrom<ModulusDegreeType> for u64 {
 	type Error = Error;
 
-	fn try_from(value: ModulusDegreeType) -> Result<Self, Self::Error> {
+	fn try_from(value: ModulusDegreeType) -> std::result::Result<Self, Self::Error> {
 		match value {
 			ModulusDegreeType::NotSet => Err(Error::DegreeNotSet),
 			ModulusDegreeType::Constant(degree) => Ok(degree.into()),
@@ -322,5 +342,56 @@ impl Drop for EncryptionParameters {
 	fn drop(&mut self) {
 		convert_seal_error(unsafe { bindgen::EncParams_Destroy(self.handle) })
 			.expect("Internal error in EncryptionParameters::drop().");
+	}
+}
+
+impl ToBytes for EncryptionParameters {
+	fn as_bytes(&self) -> Result<Vec<u8>> {
+		let mut num_bytes: i64 = 0;
+
+		convert_seal_error(unsafe {
+			bindgen::EncParams_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
+		})?;
+
+		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
+		let mut bytes_written: i64 = 0;
+
+		convert_seal_error(unsafe {
+			let data_ptr = data.as_mut_ptr();
+
+			bindgen::EncParams_Save(
+				self.handle,
+				data_ptr,
+				num_bytes as u64,
+				CompressionType::ZStd as u8,
+				&mut bytes_written,
+			)
+		})?;
+
+		unsafe { data.set_len(bytes_written as usize) };
+
+		Ok(data)
+	}
+}
+
+impl FromBytes for EncryptionParameters {
+	type State = SchemeType;
+	fn from_bytes(
+		scheme: &SchemeType,
+		bytes: &[u8],
+	) -> Result<Self> {
+		let key = Self::new(*scheme)?;
+		let mut bytes_read = 0;
+
+		convert_seal_error(unsafe {
+			bindgen::EncParams_Load(
+				key.handle,
+				bytes.as_ptr() as *mut u8,
+				bytes.len() as u64,
+				&mut bytes_read,
+			)
+		})?;
+
+		Ok(key)
 	}
 }

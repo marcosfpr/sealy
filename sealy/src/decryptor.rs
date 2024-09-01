@@ -30,7 +30,10 @@ impl Decryptor {
 	///
 	/// The SEALContext
 	/// The secret key
-	pub fn new(ctx: &Context, secret_key: &SecretKey) -> Result<Self> {
+	pub fn new(
+		ctx: &Context,
+		secret_key: &SecretKey,
+	) -> Result<Self> {
 		let mut handle = null_mut();
 
 		convert_seal_error(unsafe {
@@ -45,7 +48,10 @@ impl Decryptor {
 	/// Decrypts a Ciphertext and stores the result in the destination parameter.
 	///
 	///  * `encrypted` - The ciphertext to decrypt.
-	pub fn decrypt(&self, ciphertext: &Ciphertext) -> Result<Plaintext> {
+	pub fn decrypt(
+		&self,
+		ciphertext: &Ciphertext,
+	) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
 
 		convert_seal_error(unsafe {
@@ -72,7 +78,10 @@ impl Decryptor {
 	/// When the budget reaches zero, the ciphertext becomes too noisy to decrypt correctly.
 	///
 	/// * `ciphertext` - The ciphertext for which to measure noise.
-	pub fn invariant_noise_budget(&self, ciphertext: &Ciphertext) -> Result<u32> {
+	pub fn invariant_noise_budget(
+		&self,
+		ciphertext: &Ciphertext,
+	) -> Result<u32> {
 		let mut noise: i32 = 0;
 
 		convert_seal_error(unsafe {
@@ -97,7 +106,10 @@ impl Decryptor {
 	/// than 1/2. Thus, we call the infinity-norm of the invariant noise polynomial
 	/// the invariant noise, and for correct decryption require it to be less than
 	/// 1/2.
-	pub fn invariant_noise(&self, ciphertext: &Ciphertext) -> Result<f64> {
+	pub fn invariant_noise(
+		&self,
+		ciphertext: &Ciphertext,
+	) -> Result<f64> {
 		let mut noise: f64 = 0f64;
 
 		convert_seal_error(unsafe {

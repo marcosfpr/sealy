@@ -45,7 +45,10 @@ impl PyPlaintext {
 
 	/// Constructs a plaintext from a byte array.
 	#[staticmethod]
-	pub fn from_bytes(context: &PyContext, data: Vec<u8>) -> PyResult<Self> {
+	pub fn from_bytes(
+		context: &PyContext,
+		data: Vec<u8>,
+	) -> PyResult<Self> {
 		let plaintext = sealy::Plaintext::from_bytes(&context.inner, &data).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create plaintext from bytes: {:?}",
@@ -85,19 +88,29 @@ impl PyPlaintext {
 	/// Gets the coefficient at the given location. Coefficients are ordered
 	/// from lowest to highest degree, with the first value being the constant
 	/// coefficient.
-	pub fn get_coefficient(&self, index: usize) -> u64 {
+	pub fn get_coefficient(
+		&self,
+		index: usize,
+	) -> u64 {
 		self.inner.get_coefficient(index)
 	}
 
 	/// Sets the coefficient at the given location. Coefficients are ordered
 	/// from lowest to highest degree, with the first value being the constant
 	/// coefficient.
-	pub fn set_coefficient(&mut self, index: usize, value: u64) {
+	pub fn set_coefficient(
+		&mut self,
+		index: usize,
+		value: u64,
+	) {
 		self.inner.set_coefficient(index, value);
 	}
 
 	/// Sets the number of coefficients this plaintext can hold.
-	pub fn resize(&mut self, count: usize) {
+	pub fn resize(
+		&mut self,
+		count: usize,
+	) {
 		self.inner.resize(count);
 	}
 
@@ -115,7 +128,10 @@ impl PyPlaintext {
 		self.size()
 	}
 
-	fn __eq__(&self, other: &PyPlaintext) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyPlaintext,
+	) -> bool {
 		self.inner == other.inner
 	}
 

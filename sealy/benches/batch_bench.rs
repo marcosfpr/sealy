@@ -7,7 +7,10 @@ use sealy::{
 	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
-fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<f64>> {
+fn generate_clients_gradients(
+	num_clients: usize,
+	tensor_dim: usize,
+) -> Vec<Vec<f64>> {
 	let mut clients = Vec::with_capacity(num_clients);
 	for _ in 0..num_clients {
 		let mut tensor = Vec::with_capacity(tensor_dim);
@@ -19,7 +22,10 @@ fn generate_clients_gradients(num_clients: usize, tensor_dim: usize) -> Vec<Vec<
 	clients
 }
 
-fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context, Error> {
+fn create_ckks_context(
+	degree: DegreeType,
+	bit_sizes: &[i32],
+) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
 	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
@@ -34,7 +40,9 @@ fn create_ckks_context(degree: DegreeType, bit_sizes: &[i32]) -> Result<Context,
 }
 
 fn aggregate(
-	ctx: &Context, encoder: &BatchEncoder<f64, CKKSEncoder>, ciphertexts: &[Batch<Ciphertext>],
+	ctx: &Context,
+	encoder: &BatchEncoder<f64, CKKSEncoder>,
+	ciphertexts: &[Batch<Ciphertext>],
 	dimension: usize,
 ) -> Result<Batch<Ciphertext>, Error> {
 	let batch_evaluator = BatchEvaluator::ckks(ctx)?;
@@ -48,7 +56,11 @@ fn aggregate(
 	batch_evaluator.multiply_plain(&cipher, &fraction)
 }
 
-fn run_benchmark(c: &mut Criterion, dimension: usize, num_clients: usize) {
+fn run_benchmark(
+	c: &mut Criterion,
+	dimension: usize,
+	num_clients: usize,
+) {
 	println!("dimension: {}", dimension);
 	println!("num_clients: {}", num_clients);
 

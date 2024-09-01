@@ -2,40 +2,11 @@ use std::ffi::c_int;
 use std::ffi::c_void;
 use std::ptr::null_mut;
 
-use serde::Deserialize;
-use serde::Serialize;
-
 use crate::bindgen;
 use crate::error::*;
 use crate::ContextData;
 use crate::EncryptionParameters;
-use crate::SchemeType;
 use crate::SecurityLevel;
-
-/// Saves the state used by SEAL to create a Context.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ContextParams {
-	pub(crate) scheme_type: SchemeType,
-	pub(crate) expand_mod_chain: bool,
-	pub(crate) security_level: SecurityLevel,
-}
-
-impl ContextParams {
-	/// Returns the scheme type used by the context.
-	pub fn scheme_type(&self) -> SchemeType {
-		self.scheme_type
-	}
-
-	/// Returns whether the modulus switching chain should be created.
-	pub fn expand_mod_chain(&self) -> bool {
-		self.expand_mod_chain
-	}
-
-	/// Returns the security level enforced by the context.
-	pub fn security_level(&self) -> SecurityLevel {
-		self.security_level
-	}
-}
 
 /// Performs sanity checks (validation) and pre-computations for a given set of encryption
 /// parameters. While the EncryptionParameters class is intended to be a light-weight class
@@ -72,31 +43,22 @@ impl ContextParams {
 /// The chain is a doubly linked list and is referred to as the modulus switching chain.
 pub struct Context {
 	pub(crate) handle: *mut c_void,
-	pub(crate) params: Option<ContextParams>,
 }
 
 unsafe impl Sync for Context {}
 unsafe impl Send for Context {}
 
 impl Context {
-	/// Creates an empty instance of SEALContext.
-	pub fn new_dangling() -> Self {
-		Context {
-			handle: null_mut(),
-			params: None,
-		}
-	}
-
 	/// Creates an instance of SEALContext and performs several pre-computations
 	/// on the given EncryptionParameters.
 	///
 	/// * `params` - The encryption parameters.
-	/// * `expand_mod_chain` - Determines whether the modulus switching chain
-	/// should be created.
-	/// * `security_level` - Determines whether a specific security level should be
-	/// enforced according to HomomorphicEncryption.org security standard.
+	/// * `expand_mod_chain` - Determines whether the modulus switching chain should be created.
+	/// * `security_level` - Determines whether a specific security level should be enforced according to HomomorphicEncryption.org security standard.
 	pub fn new(
-		params: &EncryptionParameters, expand_mod_chain: bool, security_level: SecurityLevel,
+		params: &EncryptionParameters,
+		expand_mod_chain: bool,
+		security_level: SecurityLevel,
 	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
@@ -111,17 +73,7 @@ impl Context {
 
 		Ok(Context {
 			handle,
-			params: Some(ContextParams {
-				scheme_type: params.get_scheme(),
-				expand_mod_chain,
-				security_level,
-			}),
 		})
-	}
-
-	/// Returns the parameters used to create the context.
-	pub fn get_params(&self) -> Option<&ContextParams> {
-		self.params.as_ref()
 	}
 
 	/// Creates an instance of SEALContext and performs several pre-computations
@@ -129,10 +81,12 @@ impl Context {
 	/// and is only for testing!
 	///
 	/// * `params` - The encryption parameters.
-	/// * `expand_mod_chain` - Determines whether the modulus switching chain
-	/// should be created.
+	/// * `expand_mod_chain` - Determines whether the modulus switching chain should be created.
 	#[cfg(feature = "insecure-params")]
-	pub fn new_insecure(params: &EncryptionParameters, expand_mod_chain: bool) -> Result<Self> {
+	pub fn new_insecure(
+		params: &EncryptionParameters,
+		expand_mod_chain: bool,
+	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -147,6 +101,17 @@ impl Context {
 	/// Returns handle to the underlying SEAL object.
 	pub fn get_handle(&self) -> *mut c_void {
 		self.handle
+	}
+
+	/// Returns the security level of the encryption parameters.
+	pub fn get_security_level(&self) -> Result<SecurityLevel> {
+		let mut security_level: c_int = 0;
+
+		convert_seal_error(unsafe {
+			bindgen::SEALContext_GetSecurityLevel(self.handle, &mut security_level)
+		})?;
+
+		security_level.try_into()
 	}
 
 	/// Returns the key ContextData in the modulus switching chain.
@@ -186,7 +151,10 @@ impl Context {
 	}
 
 	/// Returns the ContextData given a parms_id.
-	pub fn get_context_data(&self, parms_id: &[u64]) -> Result<ContextData> {
+	pub fn get_context_data(
+		&self,
+		parms_id: &[u64],
+	) -> Result<ContextData> {
 		let mut context_data: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
@@ -235,10 +203,6 @@ impl Context {
 
 impl Drop for Context {
 	fn drop(&mut self) {
-		if self.handle.is_null() {
-			return;
-		}
-
 		convert_seal_error(unsafe { bindgen::SEALContext_Destroy(self.handle) })
 			.expect("Internal error in Context::drop().");
 	}

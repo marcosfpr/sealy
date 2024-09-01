@@ -1,4 +1,4 @@
-name: Tests
+name: Rust Tests
 
 on:
   push:
@@ -11,14 +11,24 @@ env:
 # important to note that the group is the current ref, typically the current branch, and as a result, different branches
 # won't affect each other.
 concurrency:
-  group: ${{ github.ref }}-core-test
+  group: ${{ github.ref }}-rust-test
   cancel-in-progress: true
 
 jobs:
-  linux_tests:
+  rust_tests:
+    name: Rust Tests for ${{ matrix.os }}
+
     timeout-minutes: 20
-    name: Rust project
-    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: "x86_64-unknown-linux-gnu"
+            toolchain_components: "clippy, rustfmt"
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v3
@@ -27,11 +37,20 @@ jobs:
           submodules: recursive
           fetch-depth: 1
 
-      # Install Rust
-      - uses: dtolnay/rust-toolchain@master
+      - name: Extract Rust Toolchain
+        shell: bash
+        id: toolchain
+        run: |
+          version=$(grep -Eo 'channel = \"[0-9\.]+\"' rust-toolchain.toml | grep -Eo '[0-9\.]+')
+          echo "version=$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          components: clippy, rustfmt
+          components: ${{ matrix.toolchain_components }}
+          toolchain: ${{ steps.toolchain.outputs.version }}
+          targets: ${{ matrix.target }}
 
       - name: clippy
         run: cargo clippy --all-targets --all-features -- -D warnings

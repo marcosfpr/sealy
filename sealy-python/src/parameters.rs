@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use sealy::{FromBytes, ToBytes};
 
 #[pyclass(module = "sealy", name = "SchemeType")]
 #[derive(Debug, Clone)]
@@ -37,8 +38,15 @@ impl PySchemeType {
 		format!("{:?}", self.inner)
 	}
 
-	fn __eq__(&self, other: &PySchemeType) -> bool {
+	fn __eq__(
+		&self,
+		other: &PySchemeType,
+	) -> bool {
 		self.inner == other.inner
+	}
+
+	fn __getnewargs__(&self) -> PyResult<(u8,)> {
+		Ok((self.inner.to_u8(),))
 	}
 }
 
@@ -99,7 +107,10 @@ impl PyEncryptionParameters {
 		self.inner.get_parms_id()
 	}
 
-	pub fn set_coefficient_modulus(&mut self, modulus: Vec<PyModulus>) -> PyResult<()> {
+	pub fn set_coefficient_modulus(
+		&mut self,
+		modulus: Vec<PyModulus>,
+	) -> PyResult<()> {
 		self.inner
 			.set_coefficient_modulus(modulus.into_iter().map(|m| m.inner).collect())
 			.map_err(|e| {
@@ -110,7 +121,10 @@ impl PyEncryptionParameters {
 			})
 	}
 
-	pub fn set_poly_modulus_degree(&mut self, degree: PyDegreeType) -> PyResult<()> {
+	pub fn set_poly_modulus_degree(
+		&mut self,
+		degree: PyDegreeType,
+	) -> PyResult<()> {
 		self.inner
 			.set_poly_modulus_degree(degree.inner.into())
 			.map_err(|e| {
@@ -121,7 +135,10 @@ impl PyEncryptionParameters {
 			})
 	}
 
-	pub fn set_plain_modulus(&mut self, modulus: PyModulus) -> PyResult<()> {
+	pub fn set_plain_modulus(
+		&mut self,
+		modulus: PyModulus,
+	) -> PyResult<()> {
 		self.inner.set_plain_modulus(modulus.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyException, _>(format!(
 				"Error setting plain modulus: {}",
@@ -130,7 +147,10 @@ impl PyEncryptionParameters {
 		})
 	}
 
-	pub fn set_plain_modulus_constant(&mut self, modulus: u64) -> PyResult<()> {
+	pub fn set_plain_modulus_constant(
+		&mut self,
+		modulus: u64,
+	) -> PyResult<()> {
 		self.inner.set_plain_modulus_u64(modulus).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyException, _>(format!(
 				"Error setting plain modulus: {}",
@@ -146,6 +166,33 @@ impl PyEncryptionParameters {
 	fn __repr__(&self) -> String {
 		format!("{:?}", self.inner)
 	}
+
+	fn __getnewargs__(&self) -> PyResult<(PySchemeType,)> {
+		Ok((self.get_scheme(),))
+	}
+
+	pub fn __setstate__(
+		&mut self,
+		state: Vec<u8>,
+	) -> PyResult<()> {
+		self.inner = sealy::EncryptionParameters::from_bytes(&self.get_scheme().inner, &state)
+			.map_err(|e| {
+				PyErr::new::<pyo3::exceptions::PyException, _>(format!(
+					"Error deserializing EncryptionParameters: {}",
+					e
+				))
+			})?;
+		Ok(())
+	}
+
+	pub fn __getstate__(&self) -> PyResult<Vec<u8>> {
+		self.inner.as_bytes().map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyException, _>(format!(
+				"Error serializing EncryptionParameters: {}",
+				e
+			))
+		})
+	}
 }
 
 #[pyclass(module = "sealy", name = "CoefficientModulus")]
@@ -155,7 +202,10 @@ pub struct PyCoefficientModulus;
 #[pymethods]
 impl PyCoefficientModulus {
 	#[staticmethod]
-	pub fn create(degree: PyDegreeType, bit_sizes: Vec<i32>) -> PyResult<Vec<PyModulus>> {
+	pub fn create(
+		degree: PyDegreeType,
+		bit_sizes: Vec<i32>,
+	) -> PyResult<Vec<PyModulus>> {
 		let modulus = sealy::CoefficientModulus::create(degree.inner, &bit_sizes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyException, _>(format!(
 				"Error creating CoefficientModulus: {}",
@@ -171,12 +221,18 @@ impl PyCoefficientModulus {
 	}
 
 	#[staticmethod]
-	pub fn ckks(degree: PyDegreeType, bit_sizes: Vec<i32>) -> PyResult<Vec<PyModulus>> {
+	pub fn ckks(
+		degree: PyDegreeType,
+		bit_sizes: Vec<i32>,
+	) -> PyResult<Vec<PyModulus>> {
 		Self::create(degree, bit_sizes)
 	}
 
 	#[staticmethod]
-	pub fn bfv(degree: PyDegreeType, security_level: PySecurityLevel) -> PyResult<Vec<PyModulus>> {
+	pub fn bfv(
+		degree: PyDegreeType,
+		security_level: PySecurityLevel,
+	) -> PyResult<Vec<PyModulus>> {
 		let modulus = sealy::CoefficientModulus::bfv_default(degree.inner, security_level.inner)
 			.map_err(|e| {
 				PyErr::new::<pyo3::exceptions::PyException, _>(format!(
@@ -193,7 +249,10 @@ impl PyCoefficientModulus {
 	}
 
 	#[staticmethod]
-	pub fn max_bit_count(degree: PyDegreeType, security_level: PySecurityLevel) -> u32 {
+	pub fn max_bit_count(
+		degree: PyDegreeType,
+		security_level: PySecurityLevel,
+	) -> u32 {
 		sealy::CoefficientModulus::max_bit_count(degree.inner.into(), security_level.inner)
 	}
 }
@@ -204,7 +263,10 @@ pub struct PyPlainModulus;
 #[pymethods]
 impl PyPlainModulus {
 	#[staticmethod]
-	pub fn batching(degree: PyDegreeType, bit_size: u32) -> PyResult<PyModulus> {
+	pub fn batching(
+		degree: PyDegreeType,
+		bit_size: u32,
+	) -> PyResult<PyModulus> {
 		let modulus = sealy::PlainModulus::batching(degree.inner, bit_size).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyException, _>(format!("Error creating Modulus: {}", e))
 		})?;
@@ -254,7 +316,10 @@ impl PyModulus {
 		format!("{:?}", self.inner)
 	}
 
-	fn __eq__(&self, other: &PyModulus) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyModulus,
+	) -> bool {
 		self.inner == other.inner
 	}
 }
@@ -290,7 +355,10 @@ impl PyDegreeType {
 		format!("{:?}", self.inner)
 	}
 
-	fn __eq__(&self, other: &PyDegreeType) -> bool {
+	fn __eq__(
+		&self,
+		other: &PyDegreeType,
+	) -> bool {
 		self.inner == other.inner
 	}
 }
@@ -336,7 +404,14 @@ impl PySecurityLevel {
 		format!("{:?}", self.inner)
 	}
 
-	fn __eq__(&self, other: &PySecurityLevel) -> bool {
+	fn __eq__(
+		&self,
+		other: &PySecurityLevel,
+	) -> bool {
 		self.inner == other.inner
+	}
+
+	fn __getnewargs__(&self) -> PyResult<(i32,)> {
+		Ok((self.get_value(),))
 	}
 }

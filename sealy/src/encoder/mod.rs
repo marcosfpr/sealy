@@ -18,7 +18,10 @@ pub trait Encoder<T>: SlotCount {
 	///
 	/// # Returns
 	/// The encoded plaintext.
-	fn encode(&self, data: &[T]) -> Result<Self::Encoded, Error>;
+	fn encode(
+		&self,
+		data: &[T],
+	) -> Result<Self::Encoded, Error>;
 
 	/// Decodes the given plaintext into data.
 	///
@@ -27,7 +30,10 @@ pub trait Encoder<T>: SlotCount {
 	///
 	/// # Returns
 	/// The decoded data.
-	fn decode(&self, encoded: &Self::Encoded) -> Result<Vec<T>, Error>;
+	fn decode(
+		&self,
+		encoded: &Self::Encoded,
+	) -> Result<Vec<T>, Error>;
 }
 
 /// A trait for objects that have a slot count.

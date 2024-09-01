@@ -31,7 +31,10 @@ impl PyPolynomialArray {
 
 	/// Creates a polynomial array from a reference to a ciphertext.
 	#[staticmethod]
-	pub fn from_ciphertext(context: &PyContext, ciphertext: &PyCiphertext) -> PyResult<Self> {
+	pub fn from_ciphertext(
+		context: &PyContext,
+		ciphertext: &PyCiphertext,
+	) -> PyResult<Self> {
 		let poly_array =
 			sealy::PolynomialArray::new_from_ciphertext(&context.inner, &ciphertext.inner)
 				.map_err(|e| {
@@ -47,7 +50,10 @@ impl PyPolynomialArray {
 
 	/// Creates a polynomial array from a reference to a public key.
 	#[staticmethod]
-	pub fn from_public_key(context: &PyContext, public_key: &PyPublicKey) -> PyResult<Self> {
+	pub fn from_public_key(
+		context: &PyContext,
+		public_key: &PyPublicKey,
+	) -> PyResult<Self> {
 		let poly_array =
 			sealy::PolynomialArray::new_from_public_key(&context.inner, &public_key.inner)
 				.map_err(|e| {
@@ -63,7 +69,10 @@ impl PyPolynomialArray {
 
 	/// Creates a polynomial array from a reference to a secret key.
 	#[staticmethod]
-	pub fn from_secret_key(context: &PyContext, secret_key: &PySecretKey) -> PyResult<Self> {
+	pub fn from_secret_key(
+		context: &PyContext,
+		secret_key: &PySecretKey,
+	) -> PyResult<Self> {
 		let poly_array =
 			sealy::PolynomialArray::new_from_secret_key(&context.inner, &secret_key.inner)
 				.map_err(|e| {
