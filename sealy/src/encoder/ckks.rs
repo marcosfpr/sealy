@@ -96,7 +96,7 @@ impl Encoder<f64> for CKKSEncoder {
 				parms_id_ptr,
 				self.scale,
 				plaintext.get_handle(),
-				mem.get_handle(),
+				mem.get_handle(std::sync::atomic::Ordering::SeqCst),
 			)
 		})?;
 

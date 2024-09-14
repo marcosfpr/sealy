@@ -3,16 +3,12 @@ use std::os::raw::c_long;
 use static_assertions::const_assert;
 
 use crate::bindgen::{
-	COR_E_INVALIDOPERATION, COR_E_IO, E_INVALIDARG, E_OK, E_OUTOFMEMORY, E_POINTER, E_UNEXPECTED,
+	COR_E_INVALIDOPERATION, COR_E_IO, E_INVALIDARG, E_OUTOFMEMORY, E_POINTER, E_UNEXPECTED,
 };
 
 /// A type representing all errors that can occur in SEAL.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
-	/// No error
-	#[error("The operation completed successfully")]
-	Ok,
-
 	/// An argument is invalid
 	#[error("The argument is not valid")]
 	InvalidArgument,
@@ -67,7 +63,6 @@ const_assert!(std::mem::size_of::<Error>() <= 16);
 impl From<c_long> for Error {
 	fn from(err: c_long) -> Self {
 		match err {
-			E_OK => Error::Ok,
 			E_POINTER => Error::InvalidPointer,
 			E_INVALIDARG => Error::InvalidArgument,
 			E_OUTOFMEMORY => Error::OutOfMemory,
@@ -79,15 +74,24 @@ impl From<c_long> for Error {
 	}
 }
 
-/**
- * `type Result<T> = std::result::Result<T, Error>;`.
- */
+/// The result type for SEAL operations.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// A macro that receives a c_long error code and returns a [`Result`] error.
+/// If the c_long corresponds to E_OK, it returns `Ok(())`, otherwise it returns
+/// `Err(Error::from(err))`.
+#[macro_export]
+macro_rules! try_seal {
+	($err:expr) => {
+		if $err == $crate::bindgen::S_OK {
+			Ok(())
+		} else {
+			Err($crate::Error::from($err))
+		}
+	};
+}
+
+/// Converts a SEAL error code into a Rust [`Result`] error.
 pub fn convert_seal_error(err: c_long) -> Result<()> {
-	if err == E_OK {
-		Ok(())
-	} else {
-		Err(Error::from(err))
-	}
+	try_seal!(err)
 }

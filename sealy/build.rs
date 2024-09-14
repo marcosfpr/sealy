@@ -77,12 +77,14 @@ fn compile_native(
 		""
 	};
 
+	// Tell cargo to look for shared libraries in the specified directory
 	println!(
 		"cargo:rustc-link-search=native={}/build/lib/{}",
 		dst.display(),
 		out_path_suffix
 	);
 
+	// Tell cargo to tell rustc to link the static library seal.
 	println!("cargo:rustc-link-lib=static=sealc-4.0");
 	println!("cargo:rustc-link-lib=static=seal-4.0");
 
@@ -151,7 +153,7 @@ fn main() {
 		.allowlist_function("PolynomialArray_.*")
 		.allowlist_function("ValCheck_.*");
 
-	let bindings = builder.generate().unwrap();
+	let bindings = builder.generate().expect("Failed to generate bindings");
 
 	bindings
 		.write_to_file(out_path.join("bindings.rs"))

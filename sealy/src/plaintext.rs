@@ -191,7 +191,10 @@ impl Plaintext {
 		let mut handle: *mut c_void = null_mut();
 
 		convert_seal_error(unsafe {
-			bindgen::Plaintext_Create1(memory.get_handle(), &mut handle)
+			bindgen::Plaintext_Create1(
+				memory.get_handle(std::sync::atomic::Ordering::SeqCst),
+				&mut handle,
+			)
 		})?;
 
 		Ok(Self {

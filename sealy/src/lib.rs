@@ -1,18 +1,55 @@
+#![doc = r#"
+This crate provides wrappers for Microsoft's SEAL Homomorphic encryption library.
+
+# Example
+
+```rust
+use sealy::{
+	BFVEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
+	Decryptor, DegreeType, Encoder, Encryptor, Evaluator, KeyGenerator, PlainModulus,
+	SecurityLevel,
+};
+
+fn main() -> anyhow::Result<()> {
+	let params = BfvEncryptionParametersBuilder::new()
+		.set_poly_modulus_degree(DegreeType::D8192)
+		.set_coefficient_modulus(
+			CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+		)
+		.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 32)?)
+		.build()?;
+
+	let ctx = Context::new(&params, false, SecurityLevel::TC128)?;
+	let gen = KeyGenerator::new(&ctx)?;
+
+	let encoder = BFVEncoder::new(&ctx)?;
+
+	let public_key = gen.create_public_key();
+	let secret_key = gen.secret_key();
+
+	let encryptor = Encryptor::with_public_key(&ctx, &public_key)?;
+	let decryptor = Decryptor::new(&ctx, &secret_key)?;
+	let evaluator = BFVEvaluator::new(&ctx)?;
+
+	let plaintext: Vec<i64> = vec![1, 2, 3];
+	let factor = vec![2, 2, 2];
+
+	let encoded_plaintext = encoder.encode(&plaintext)?;
+	let encoded_factor = encoder.encode(&factor)?;
+
+	let ciphertext = encryptor.encrypt(&encoded_plaintext)?;
+	let ciphertext_result = evaluator.multiply_plain(&ciphertext, &encoded_factor)?;
+
+	let decrypted = decryptor.decrypt(&ciphertext_result)?;
+	let decoded = encoder.decode(&decrypted);
+
+	println!("{:?}", &decoded.into_iter().take(3).collect::<Vec<_>>()); // [2, 4, 6]
+
+	Ok(())
+}
+```"#]
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
-
-//! This crate provides wrappers for Micorosft's SEAL Homomorphic encryption library.
-//!
-//! # Notes
-//! All types in this crate implement Sync/Send. So long as you never dereference the
-//! internal handle on any type after it has been dropped, these traits
-//! should safely hold. The internal handles should be of little use to you anyways.
-//!
-//! This crate intentionally omits more esoteric use cases to streamline the API and
-//! is currently incomplete (e.g. CKKS is not currently supported). If any underlying
-//! SEAL API you care about is missing, please add it in a pull request or file
-//! an [issue](https://github.com/Sunscreen-tech/Sunscreen/issues).
-
 #![warn(missing_docs)]
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -25,22 +62,13 @@ mod bindgen {
 
 	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-	pub const E_OK: c_long = 0x0;
+	pub const S_OK: c_long = 0x0;
 	pub const E_POINTER: c_long = 0x80004003u32 as c_long;
 	pub const E_INVALIDARG: c_long = 0x80070057u32 as c_long;
 	pub const E_OUTOFMEMORY: c_long = 0x8007000Eu32 as c_long;
 	pub const E_UNEXPECTED: c_long = 0x8000FFFFu32 as c_long;
 	pub const COR_E_IO: c_long = 0x80131620u32 as c_long;
 	pub const COR_E_INVALIDOPERATION: c_long = 0x80131509u32 as c_long;
-}
-
-mod serialization {
-	#[repr(u8)]
-	pub enum CompressionType {
-		// None = 0,
-		// ZLib = 1,
-		ZStd = 2,
-	}
 }
 
 mod ciphertext;
@@ -58,6 +86,7 @@ mod modulus;
 mod parameters;
 mod plaintext;
 mod poly_array;
+mod serialization;
 
 pub use ciphertext::Ciphertext;
 pub use context::Context;
@@ -84,23 +113,4 @@ pub use modulus::{CoefficientModulus, Modulus, PlainModulus, SecurityLevel};
 pub use parameters::*;
 pub use plaintext::Plaintext;
 pub use poly_array::PolynomialArray;
-
-/// A trait for converting objects into byte arrays.
-pub trait ToBytes {
-	/// Returns the object as a byte array.
-	fn as_bytes(&self) -> Result<Vec<u8>>;
-}
-
-/// A trait for converting data from a byte slice under a given SEAL context.
-pub trait FromBytes {
-	/// State used to deserialize an object from bytes.
-	type State;
-	/// Deserialize an object from the given bytes using the given
-	/// state.
-	fn from_bytes(
-		state: &Self::State,
-		bytes: &[u8],
-	) -> Result<Self>
-	where
-		Self: Sized;
-}
+pub use serialization::{FromBytes, ToBytes};
