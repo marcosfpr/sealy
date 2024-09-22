@@ -782,10 +782,10 @@ mod tests {
 
 	#[test]
 	fn can_create_secret_key() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -809,10 +809,10 @@ mod tests {
 
 	#[test]
 	fn can_create_public_key() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -826,10 +826,10 @@ mod tests {
 
 	#[test]
 	fn can_create_relin_key() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -843,12 +843,12 @@ mod tests {
 
 	#[test]
 	fn can_create_galois_key() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::bfv_default(DegreeType::D8192, SecurityLevel::TC128).unwrap(),
+				CoefficientModulusFactory::bfv(DegreeType::D8192, SecurityLevel::TC128).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 32).unwrap())
+			.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 32).unwrap())
 			.build()
 			.unwrap();
 
@@ -860,10 +860,10 @@ mod tests {
 
 	#[test]
 	fn can_init_from_existing_secret_key() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()

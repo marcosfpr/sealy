@@ -214,10 +214,10 @@ mod tests {
 
 	#[test]
 	fn can_create_and_drop_context() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()

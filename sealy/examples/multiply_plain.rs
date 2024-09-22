@@ -1,16 +1,15 @@
 use sealy::{
-	BFVEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
-	Decryptor, DegreeType, Encoder, Encryptor, Evaluator, KeyGenerator, PlainModulus,
-	SecurityLevel,
+	BFVEncoder, BFVEncryptionParametersBuilder, BFVEvaluator, CoefficientModulusFactory, Context,
+	Decryptor, DegreeType, Encryptor, Evaluator, KeyGenerator, PlainModulusFactory, SecurityLevel,
 };
 
 fn main() -> anyhow::Result<()> {
-	let params = BfvEncryptionParametersBuilder::new()
+	let params = BFVEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(DegreeType::D8192)
 		.set_coefficient_modulus(
-			CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+			CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 		)
-		.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 32)?)
+		.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 32)?)
 		.build()?;
 
 	let ctx = Context::new(&params, false, SecurityLevel::TC128)?;
@@ -28,14 +27,14 @@ fn main() -> anyhow::Result<()> {
 	let plaintext: Vec<i64> = vec![1, 2, 3];
 	let factor = vec![2, 2, 2];
 
-	let encoded_plaintext = encoder.encode(&plaintext)?;
-	let encoded_factor = encoder.encode(&factor)?;
+	let encoded_plaintext = encoder.encode_i64(&plaintext)?;
+	let encoded_factor = encoder.encode_i64(&factor)?;
 
 	let ciphertext = encryptor.encrypt(&encoded_plaintext)?;
 	let ciphertext_result = evaluator.multiply_plain(&ciphertext, &encoded_factor)?;
 
 	let decrypted = decryptor.decrypt(&ciphertext_result)?;
-	let decoded = encoder.decode(&decrypted);
+	let decoded = encoder.decode_i64(&decrypted);
 
 	println!("{:?}", &decoded.into_iter().take(3).collect::<Vec<_>>()); // [2, 4, 6]
 

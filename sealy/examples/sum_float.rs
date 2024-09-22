@@ -1,6 +1,6 @@
 use sealy::{
-	CKKSEncoder, CKKSEvaluator, CkksEncryptionParametersBuilder, CoefficientModulus, Context,
-	Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator,
+	CKKSEncoder, CKKSEncryptionParametersBuilder, CKKSEvaluator, CoefficientModulusFactory,
+	Context, Decryptor, DegreeType, EncryptionParameters, Encryptor, Error, Evaluator,
 	KeyGenerator, SecurityLevel,
 };
 
@@ -11,8 +11,8 @@ fn main() -> Result<(), Error> {
 	let bit_sizes = [60, 40, 40, 60];
 
 	let expand_mod_chain = false;
-	let modulus_chain = CoefficientModulus::create(degree, bit_sizes.as_slice())?;
-	let encryption_parameters: EncryptionParameters = CkksEncryptionParametersBuilder::new()
+	let modulus_chain = CoefficientModulusFactory::build(degree, bit_sizes.as_slice())?;
+	let encryption_parameters: EncryptionParameters = CKKSEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(modulus_chain.clone())
 		.build()?;
@@ -33,15 +33,15 @@ fn main() -> Result<(), Error> {
 	let x = 5.2;
 	let y = 3.3;
 
-	let x_encoded = encoder.encode(&[x])?;
-	let y_encoded = encoder.encode(&[y])?;
+	let x_encoded = encoder.encode_f64(&[x])?;
+	let y_encoded = encoder.encode_f64(&[y])?;
 
 	let x_enc = encryptor.encrypt(&x_encoded)?;
 	let y_enc = encryptor.encrypt(&y_encoded)?;
 
 	let sum = evaluator.add(&x_enc, &y_enc)?;
 	let sum_dec = decryptor.decrypt(&sum)?;
-	let sum_dec = encoder.decode(&sum_dec)?;
+	let sum_dec = encoder.decode_f64(&sum_dec)?;
 
 	let truth = x + y;
 

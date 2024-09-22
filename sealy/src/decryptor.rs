@@ -129,21 +129,18 @@ impl Drop for Decryptor {
 
 #[cfg(test)]
 mod tests {
-	use crate::{
-		encoder::{Encoder, SlotCount},
-		*,
-	};
+	use crate::*;
 
 	use super::Decryptor;
 
 	fn mk_ctx<F>(enc_modifier: F) -> Context
 	where
-		F: FnOnce(BfvEncryptionParametersBuilder) -> BfvEncryptionParametersBuilder,
+		F: FnOnce(BFVEncryptionParametersBuilder) -> BFVEncryptionParametersBuilder,
 	{
-		let builder = BfvEncryptionParametersBuilder::new()
+		let builder = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234);
 		let params = enc_modifier(builder).build().unwrap();
@@ -153,10 +150,10 @@ mod tests {
 
 	#[test]
 	fn can_create_and_destroy_decryptor() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -173,8 +170,9 @@ mod tests {
 
 	#[test]
 	fn can_encrypt_and_decrypt_unsigned() {
-		let ctx =
-			mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap()));
+		let ctx = mk_ctx(|b| {
+			b.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 20).unwrap())
+		});
 		let gen = KeyGenerator::new(&ctx).unwrap();
 
 		let encoder = BFVEncoder::new(&ctx).unwrap();
@@ -185,7 +183,7 @@ mod tests {
 			data.push(i as u64)
 		}
 
-		let plaintext = encoder.encode(&data).unwrap();
+		let plaintext = encoder.encode_u64(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -197,20 +195,21 @@ mod tests {
 		// asymmetric test
 		let ciphertext = encryptor.encrypt(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode_u64(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 
 		// symmetric test
 		let ciphertext = encryptor.encrypt_symmetric(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode_u64(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 	}
 
 	#[test]
 	fn can_encrypt_and_decrypt_signed() {
-		let ctx =
-			mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap()));
+		let ctx = mk_ctx(|b| {
+			b.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 20).unwrap())
+		});
 		let gen = KeyGenerator::new(&ctx).unwrap();
 
 		let encoder = BFVEncoder::new(&ctx).unwrap();
@@ -221,7 +220,7 @@ mod tests {
 			data.push(encoder.get_slot_count() as i64 / 2i64 - i as i64)
 		}
 
-		let plaintext = encoder.encode(&data).unwrap();
+		let plaintext = encoder.encode_i64(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -233,20 +232,21 @@ mod tests {
 		// asymmetric test
 		let ciphertext = encryptor.encrypt(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2: Vec<i64> = encoder.decode(&decrypted).unwrap();
+		let data_2: Vec<i64> = encoder.decode_i64(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 
 		// asymmetric test
 		let ciphertext = encryptor.encrypt_symmetric(&plaintext).unwrap();
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2: Vec<i64> = encoder.decode(&decrypted).unwrap();
+		let data_2: Vec<i64> = encoder.decode_i64(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 	}
 
 	#[test]
 	fn can_encrypt_and_decrypt_from_return_components() {
-		let ctx =
-			mk_ctx(|b| b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap()));
+		let ctx = mk_ctx(|b| {
+			b.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 20).unwrap())
+		});
 		let gen = KeyGenerator::new(&ctx).unwrap();
 
 		let encoder = BFVEncoder::new(&ctx).unwrap();
@@ -257,7 +257,7 @@ mod tests {
 			data.push(i as u64);
 		}
 
-		let plaintext = encoder.encode(&data).unwrap();
+		let plaintext = encoder.encode_u64(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -269,7 +269,7 @@ mod tests {
 		// asymmetric test
 		let ciphertext = encryptor.encrypt_return_components(&plaintext).unwrap().0;
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode_u64(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 
 		// asymmetric test
@@ -278,7 +278,7 @@ mod tests {
 			.unwrap()
 			.0;
 		let decrypted = decryptor.decrypt(&ciphertext).unwrap();
-		let data_2: Vec<u64> = encoder.decode(&decrypted).unwrap();
+		let data_2: Vec<u64> = encoder.decode_u64(&decrypted).unwrap();
 		assert_eq!(data, data_2);
 	}
 
@@ -292,7 +292,7 @@ mod tests {
 		#[test]
 		fn encrypt_deterministic() {
 			let ctx = mk_ctx(|b| {
-				b.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
+				b.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 20).unwrap())
 			});
 
 			let encoder = BFVEncoder::new(&ctx).unwrap();

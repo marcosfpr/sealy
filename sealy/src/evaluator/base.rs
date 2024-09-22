@@ -1,8 +1,11 @@
 use std::ffi::c_void;
 use std::ptr::null_mut;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 
 use crate::bindgen;
 use crate::error::*;
+use crate::try_seal;
 use crate::{Ciphertext, Context, Plaintext, RelinearizationKey};
 
 /// Provides operations on ciphertexts. Due to the properties of the encryption scheme, the arithmetic operations
@@ -51,17 +54,7 @@ use crate::{Ciphertext, Context, Plaintext, RelinearizationKey};
 /// input(s), with the exception of the TransformToNTT and TransformFromNTT functions, which change the state.
 /// Ideally, unless these two functions are called, all other functions should "just work".
 pub struct EvaluatorBase {
-	handle: *mut c_void,
-}
-
-unsafe impl Sync for EvaluatorBase {}
-unsafe impl Send for EvaluatorBase {}
-
-impl Drop for EvaluatorBase {
-	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::Evaluator_Destroy(self.handle) })
-			.expect("Internal error in Evaluator::drop()");
-	}
+	handle: AtomicPtr<c_void>,
 }
 
 impl EvaluatorBase {
@@ -70,24 +63,25 @@ impl EvaluatorBase {
 	pub(crate) fn new(ctx: &Context) -> Result<Self> {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe { bindgen::Evaluator_Create(ctx.get_handle(), &mut handle) })?;
+		try_seal!(unsafe { bindgen::Evaluator_Create(ctx.get_handle(), &mut handle) })?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
 	/// Gets the handle to the internal SEAL object.
-	pub fn get_handle(&self) -> *mut c_void {
-		self.handle
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 
+	/// Negates a ciphertext and stores the result inplace.
 	pub(crate) fn negate_inplace(
 		&self,
 		a: &Ciphertext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Negate(self.handle, a.get_handle(), a.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Negate(self.get_handle(), a.get_handle(), a.get_handle())
 		})?;
 
 		Ok(())
@@ -99,8 +93,8 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Negate(self.handle, a.get_handle(), out.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Negate(self.get_handle(), a.get_handle(), out.get_handle())
 		})?;
 
 		Ok(out)
@@ -111,8 +105,13 @@ impl EvaluatorBase {
 		a: &Ciphertext,
 		b: &Ciphertext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Add(self.handle, a.get_handle(), b.get_handle(), a.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Add(
+				self.get_handle(),
+				a.get_handle(),
+				b.get_handle(),
+				a.get_handle(),
+			)
 		})?;
 
 		Ok(())
@@ -125,8 +124,13 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Add(self.handle, a.get_handle(), b.get_handle(), c.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Add(
+				self.get_handle(),
+				a.get_handle(),
+				b.get_handle(),
+				c.get_handle(),
+			)
 		})?;
 
 		Ok(c)
@@ -138,13 +142,19 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		let mut a = a
-			.iter()
-			.map(|x| x.get_handle())
-			.collect::<Vec<*mut c_void>>();
+		let mut a_ptr = unsafe {
+			a.iter()
+				.map(|x| x.get_handle())
+				.collect::<Vec<*mut c_void>>()
+		};
 
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_AddMany(self.handle, a.len() as u64, a.as_mut_ptr(), c.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_AddMany(
+				self.get_handle(),
+				a_ptr.len() as u64,
+				a_ptr.as_mut_ptr(),
+				c.get_handle(),
+			)
 		})?;
 
 		Ok(c)
@@ -157,16 +167,17 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		let mut a = a
-			.iter()
-			.map(|x| x.get_handle())
-			.collect::<Vec<*mut c_void>>();
+		let mut a_ptr = unsafe {
+			a.iter()
+				.map(|x| x.get_handle())
+				.collect::<Vec<*mut c_void>>()
+		};
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_MultiplyMany(
-				self.handle,
-				a.len() as u64,
-				a.as_mut_ptr(),
+				self.get_handle(),
+				a_ptr.len() as u64,
+				a_ptr.as_mut_ptr(),
 				relin_keys.get_handle(),
 				c.get_handle(),
 				null_mut(),
@@ -181,8 +192,13 @@ impl EvaluatorBase {
 		a: &Ciphertext,
 		b: &Ciphertext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Sub(self.handle, a.get_handle(), b.get_handle(), a.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Sub(
+				self.get_handle(),
+				a.get_handle(),
+				b.get_handle(),
+				a.get_handle(),
+			)
 		})?;
 
 		Ok(())
@@ -195,8 +211,13 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Sub(self.handle, a.get_handle(), b.get_handle(), c.get_handle())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Sub(
+				self.get_handle(),
+				a.get_handle(),
+				b.get_handle(),
+				c.get_handle(),
+			)
 		})?;
 
 		Ok(c)
@@ -207,9 +228,9 @@ impl EvaluatorBase {
 		a: &Ciphertext,
 		b: &Ciphertext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_Multiply(
-				self.handle,
+				self.get_handle(),
 				a.get_handle(),
 				b.get_handle(),
 				a.get_handle(),
@@ -227,9 +248,9 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_Multiply(
-				self.handle,
+				self.get_handle(),
 				a.get_handle(),
 				b.get_handle(),
 				c.get_handle(),
@@ -244,8 +265,13 @@ impl EvaluatorBase {
 		&self,
 		a: &Ciphertext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Square(self.handle, a.get_handle(), a.get_handle(), null_mut())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Square(
+				self.get_handle(),
+				a.get_handle(),
+				a.get_handle(),
+				null_mut(),
+			)
 		})?;
 
 		Ok(())
@@ -257,8 +283,13 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
-			bindgen::Evaluator_Square(self.handle, a.get_handle(), c.get_handle(), null_mut())
+		try_seal!(unsafe {
+			bindgen::Evaluator_Square(
+				self.get_handle(),
+				a.get_handle(),
+				c.get_handle(),
+				null_mut(),
+			)
 		})?;
 
 		Ok(c)
@@ -270,7 +301,7 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_ModSwitchToNext1(
 				self.get_handle(),
 				a.get_handle(),
@@ -286,7 +317,7 @@ impl EvaluatorBase {
 		&self,
 		a: &Ciphertext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_ModSwitchToNext1(
 				self.get_handle(),
 				a.get_handle(),
@@ -304,7 +335,7 @@ impl EvaluatorBase {
 	) -> Result<Plaintext> {
 		let p = Plaintext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_ModSwitchToNext2(self.get_handle(), a.get_handle(), p.get_handle())
 		})?;
 
@@ -315,7 +346,7 @@ impl EvaluatorBase {
 		&self,
 		a: &Plaintext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_ModSwitchToNext2(self.get_handle(), a.get_handle(), a.get_handle())
 		})?;
 
@@ -330,7 +361,7 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_Exponentiate(
 				self.get_handle(),
 				a.get_handle(),
@@ -350,7 +381,7 @@ impl EvaluatorBase {
 		exponent: u64,
 		relin_keys: &RelinearizationKey,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_Exponentiate(
 				self.get_handle(),
 				a.get_handle(),
@@ -371,7 +402,7 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_AddPlain(
 				self.get_handle(),
 				a.get_handle(),
@@ -388,7 +419,7 @@ impl EvaluatorBase {
 		a: &Ciphertext,
 		b: &Plaintext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_AddPlain(
 				self.get_handle(),
 				a.get_handle(),
@@ -407,7 +438,7 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_SubPlain(
 				self.get_handle(),
 				a.get_handle(),
@@ -424,7 +455,7 @@ impl EvaluatorBase {
 		a: &Ciphertext,
 		b: &Plaintext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_SubPlain(
 				self.get_handle(),
 				a.get_handle(),
@@ -443,7 +474,7 @@ impl EvaluatorBase {
 	) -> Result<Ciphertext> {
 		let c = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_MultiplyPlain(
 				self.get_handle(),
 				a.get_handle(),
@@ -461,7 +492,7 @@ impl EvaluatorBase {
 		a: &Ciphertext,
 		b: &Plaintext,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_MultiplyPlain(
 				self.get_handle(),
 				a.get_handle(),
@@ -475,4 +506,11 @@ impl EvaluatorBase {
 	}
 
 	// TODO: NTT transform.
+}
+
+impl Drop for EvaluatorBase {
+	fn drop(&mut self) {
+		try_seal!(unsafe { bindgen::Evaluator_Destroy(self.get_handle()) })
+			.expect("Internal error in Evaluator::drop()");
+	}
 }

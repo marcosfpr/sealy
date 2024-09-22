@@ -4,18 +4,20 @@ use std::os::raw::c_ulong;
 use std::ptr::null_mut;
 
 use crate::bindgen::{self};
+use crate::error::convert_seal_error;
 use crate::error::Result;
-use crate::error::{convert_seal_error, Error};
-use crate::modulus::unchecked_from_handle;
 use crate::serialization::CompressionType;
-use crate::{FromBytes, Modulus, ToBytes};
+use crate::{try_seal, FromBytes, Modulus, ToBytes};
 
 use serde::{Deserialize, Serialize};
 
+/// BFV encryption parameters.
 mod bfv;
-pub use bfv::BfvEncryptionParametersBuilder;
+pub use bfv::BFVEncryptionParametersBuilder;
+
+/// CKKS encryption parameters.
 mod ckks;
-pub use ckks::CkksEncryptionParametersBuilder;
+pub use ckks::CKKSEncryptionParametersBuilder;
 
 /// The FHE scheme supported by SEAL.
 #[repr(u8)]
@@ -146,7 +148,7 @@ impl EncryptionParameters {
 			.expect("Internal error")
 		};
 
-		let borrowed_modulus = unsafe { unchecked_from_handle(borrowed_modulus) };
+		let borrowed_modulus = unsafe { Modulus::new_unchecked_from_handle(borrowed_modulus) };
 
 		// We don't own the modulus we were given, so copy one we do own
 		// and don't drop the old one.
@@ -186,7 +188,7 @@ impl EncryptionParameters {
 		borrowed_modulus
 			.iter()
 			.map(|h| {
-				let modulus = unsafe { unchecked_from_handle(*h) };
+				let modulus = unsafe { Modulus::new_unchecked_from_handle(*h) };
 				let ret = modulus.clone();
 
 				forget(modulus);
@@ -213,15 +215,20 @@ impl EncryptionParameters {
 		&mut self,
 		modulus: Vec<Modulus>,
 	) -> Result<()> {
-		let modulus_ref = modulus
-			.iter()
-			.map(|m| m.get_handle())
-			.collect::<Vec<*mut c_void>>();
-		let modulus_ptr = modulus_ref.as_ptr() as *mut *mut c_void;
+		unsafe {
+			let modulus_ref = modulus
+				.iter()
+				.map(|m| m.get_handle())
+				.collect::<Vec<*mut c_void>>();
 
-		convert_seal_error(unsafe {
-			bindgen::EncParams_SetCoeffModulus(self.handle, modulus.len() as u64, modulus_ptr)
-		})
+			let modulus_ptr = modulus_ref.as_ptr() as *mut *mut c_void;
+
+			try_seal!(bindgen::EncParams_SetCoeffModulus(
+				self.handle,
+				modulus.len() as u64,
+				modulus_ptr
+			))
+		}
 	}
 
 	/// Sets the polynomial modulus degree.
@@ -269,73 +276,6 @@ pub enum PlainModulusType {
 	Constant(u64),
 	/// The plain modulus is defined as a [`Modulus`] instance.
 	Modulus(Modulus),
-}
-
-/// The modulus degree is either a constant or a [`DegreeType`] instance.    
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ModulusDegreeType {
-	/// The modulus degree is not set.
-	NotSet,
-	/// The modulus degree is defined as a constant.
-	Constant(DegreeType),
-}
-
-/// The available degree sizes for the polynomial modulus.
-#[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum DegreeType {
-	D256,
-	D512,
-	D1024,
-	D2048,
-	D4096,
-	D8192,
-	D16384,
-	D32768,
-}
-
-impl From<DegreeType> for u64 {
-	fn from(value: DegreeType) -> Self {
-		match value {
-			DegreeType::D256 => 256,
-			DegreeType::D512 => 512,
-			DegreeType::D1024 => 1024,
-			DegreeType::D2048 => 2048,
-			DegreeType::D4096 => 4096,
-			DegreeType::D8192 => 8192,
-			DegreeType::D16384 => 16384,
-			DegreeType::D32768 => 32768,
-		}
-	}
-}
-
-impl TryFrom<u64> for DegreeType {
-	type Error = Error;
-
-	fn try_from(value: u64) -> std::result::Result<Self, Self::Error> {
-		match value {
-			256 => Ok(DegreeType::D256),
-			512 => Ok(DegreeType::D512),
-			1024 => Ok(DegreeType::D1024),
-			2048 => Ok(DegreeType::D2048),
-			4096 => Ok(DegreeType::D4096),
-			8192 => Ok(DegreeType::D8192),
-			16384 => Ok(DegreeType::D16384),
-			32768 => Ok(DegreeType::D32768),
-			_ => Err(Error::DegreeNotSet),
-		}
-	}
-}
-
-impl TryFrom<ModulusDegreeType> for u64 {
-	type Error = Error;
-
-	fn try_from(value: ModulusDegreeType) -> std::result::Result<Self, Self::Error> {
-		match value {
-			ModulusDegreeType::NotSet => Err(Error::DegreeNotSet),
-			ModulusDegreeType::Constant(degree) => Ok(degree.into()),
-		}
-	}
 }
 
 impl Drop for EncryptionParameters {

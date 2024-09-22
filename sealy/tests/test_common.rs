@@ -7,12 +7,12 @@ pub fn run_bfv_test<T, F>(
 ) where
 	F: FnOnce(Decryptor, BFVEncoder<T>, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 {
-	let params = BfvEncryptionParametersBuilder::new()
+	let params = BFVEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(
-			CoefficientModulus::bfv_default(degree, SecurityLevel::TC128).unwrap(),
+			CoefficientModulusFactory::bfv(degree, SecurityLevel::TC128).unwrap(),
 		)
-		.set_plain_modulus(PlainModulus::batching(degree, lane_bits).unwrap())
+		.set_plain_modulus(PlainModulusFactory::batching(degree, lane_bits).unwrap())
 		.build()
 		.unwrap();
 

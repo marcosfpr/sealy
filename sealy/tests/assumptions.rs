@@ -155,12 +155,12 @@ fn relinearization_consumes_no_noise_budget() {
 	let degree = DegreeType::D8192;
 	let lane_bits = 18;
 
-	let params = BfvEncryptionParametersBuilder::new()
+	let params = BFVEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(
-			CoefficientModulus::bfv_default(degree, SecurityLevel::TC128).unwrap(),
+			CoefficientModulusFactory::bfv(degree, SecurityLevel::TC128).unwrap(),
 		)
-		.set_plain_modulus(PlainModulus::batching(degree, lane_bits).unwrap())
+		.set_plain_modulus(PlainModulusFactory::batching(degree, lane_bits).unwrap())
 		.build()
 		.unwrap();
 
@@ -213,12 +213,12 @@ fn addition_noise_less_equal_operands() {
 	let degree = DegreeType::D8192;
 	let lane_bits = 18;
 
-	let params = BfvEncryptionParametersBuilder::new()
+	let params = BFVEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(
-			CoefficientModulus::bfv_default(degree, SecurityLevel::TC128).unwrap(),
+			CoefficientModulusFactory::bfv(degree, SecurityLevel::TC128).unwrap(),
 		)
-		.set_plain_modulus(PlainModulus::batching(degree, lane_bits).unwrap())
+		.set_plain_modulus(PlainModulusFactory::batching(degree, lane_bits).unwrap())
 		.build()
 		.unwrap();
 

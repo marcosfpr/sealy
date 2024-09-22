@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
 use sealy::{
-	Batch, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, Ciphertext,
-	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
-	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
+	Batch, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder,
+	CKKSEncryptionParametersBuilder, Ciphertext, CoefficientModulusFactory, Context, DegreeType,
+	Encoder, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn generate_clients_gradients(
@@ -28,8 +28,8 @@ fn create_ckks_context(
 ) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
-	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
-	let encryption_parameters: EncryptionParameters = CkksEncryptionParametersBuilder::new()
+	let modulus_chain = CoefficientModulusFactory::build(degree, bit_sizes)?;
+	let encryption_parameters: EncryptionParameters = CKKSEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(modulus_chain.clone())
 		.build()?;

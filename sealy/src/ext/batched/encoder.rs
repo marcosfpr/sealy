@@ -46,10 +46,7 @@ where
 	///
 	/// # Returns
 	/// The encoded plaintext.
-	fn encode(
-		&self,
-		data: &[T],
-	) -> Result<Self::Encoded> {
+	fn encode(&self, data: &[T]) -> Result<Self::Encoded> {
 		let mut plaintexts = Vec::new();
 
 		let batch_size = self.get_slot_count();
@@ -69,10 +66,7 @@ where
 	///
 	/// # Returns
 	/// The decoded data.
-	fn decode(
-		&self,
-		batch: &Self::Encoded,
-	) -> Result<Vec<T>> {
+	fn decode(&self, batch: &Self::Encoded) -> Result<Vec<T>> {
 		let mut data = Vec::new();
 
 		for plaintext in batch {
@@ -88,20 +82,20 @@ where
 mod tests {
 
 	use crate::{
-		BFVEncoder, BfvEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType,
-		Encoder, PlainModulus, SecurityLevel,
+		BFVEncoder, BFVEncryptionParametersBuilder, CoefficientModulusFactory, Context, DegreeType,
+		Encoder, PlainModulusFactory, SecurityLevel,
 	};
 
 	use crate::ext::batched::encoder::BatchEncoder;
 
 	#[test]
 	fn can_get_encode_and_decode_unsigned() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
-			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
+			.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 

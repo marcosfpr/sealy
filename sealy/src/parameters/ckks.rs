@@ -1,4 +1,4 @@
-use crate::{DegreeType, EncryptionParameters, Error, Modulus, ModulusDegreeType, SchemeType};
+use crate::{DegreeType, EncryptionParameters, Error, Modulus, SchemeType};
 
 use super::CoefficientModulusType;
 
@@ -6,16 +6,17 @@ use super::CoefficientModulusType;
 /// The parameters (most importantly PolyModulus, CoeffModulus)
 /// significantly affect the performance, capabilities, and security of the
 /// encryption scheme.
-pub struct CkksEncryptionParametersBuilder {
-	poly_modulus_degree: ModulusDegreeType,
+#[derive(Debug, PartialEq)]
+pub struct CKKSEncryptionParametersBuilder {
+	poly_modulus_degree: Option<DegreeType>,
 	coefficient_modulus: CoefficientModulusType,
 }
 
-impl CkksEncryptionParametersBuilder {
+impl CKKSEncryptionParametersBuilder {
 	/// Creates a new builder.
 	pub fn new() -> Self {
 		Self {
-			poly_modulus_degree: ModulusDegreeType::NotSet,
+			poly_modulus_degree: None,
 			coefficient_modulus: CoefficientModulusType::NotSet,
 		}
 	}
@@ -27,7 +28,7 @@ impl CkksEncryptionParametersBuilder {
 		mut self,
 		degree: DegreeType,
 	) -> Self {
-		self.poly_modulus_degree = ModulusDegreeType::Constant(degree);
+		self.poly_modulus_degree = Some(degree);
 		self
 	}
 
@@ -50,7 +51,10 @@ impl CkksEncryptionParametersBuilder {
 	pub fn build(self) -> Result<EncryptionParameters, Error> {
 		let mut params = EncryptionParameters::new(SchemeType::Ckks)?;
 
-		params.set_poly_modulus_degree(self.poly_modulus_degree.try_into()?)?;
+		match self.poly_modulus_degree {
+			Some(degree) => params.set_poly_modulus_degree(u64::from(degree))?,
+			None => return Err(Error::DegreeNotSet),
+		}
 
 		match self.coefficient_modulus {
 			CoefficientModulusType::NotSet => return Err(Error::CoefficientModulusNotSet),
@@ -63,7 +67,7 @@ impl CkksEncryptionParametersBuilder {
 	}
 }
 
-impl Default for CkksEncryptionParametersBuilder {
+impl Default for CKKSEncryptionParametersBuilder {
 	fn default() -> Self {
 		Self::new()
 	}
@@ -77,9 +81,9 @@ mod tests {
 	fn can_build_params() {
 		let bit_sizes = [60, 40, 40, 60];
 		let modulus_chain =
-			CoefficientModulus::create(DegreeType::D1024, bit_sizes.as_slice()).unwrap();
+			CoefficientModulusFactory::build(DegreeType::D1024, bit_sizes.as_slice()).unwrap();
 
-		let params = CkksEncryptionParametersBuilder::new()
+		let params = CKKSEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(modulus_chain)
 			.build()
@@ -89,10 +93,10 @@ mod tests {
 		assert_eq!(params.get_scheme(), SchemeType::Ckks);
 		assert_eq!(params.get_coefficient_modulus().len(), 4);
 
-		let params = CkksEncryptionParametersBuilder::new()
+		let params = CKKSEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.build()
 			.unwrap();

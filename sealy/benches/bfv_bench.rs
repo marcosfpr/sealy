@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
 use sealy::{
-	BFVDecimalEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, Ciphertext,
-	CoefficientModulus, Context, DegreeType, Encoder, EncryptionParameters, Encryptor, Error,
-	Evaluator, KeyGenerator, PlainModulus, SecurityLevel,
+	BFVEncoder, BFVEncryptionParametersBuilder, BFVEvaluator, Ciphertext,
+	CoefficientModulusFactory, Context, DegreeType, EncryptionParameters, Encryptor, Error,
+	Evaluator, KeyGenerator, PlainModulusFactory, SecurityLevel,
 };
 
 fn generate_clients_gradients(
@@ -28,10 +28,10 @@ fn create_bfv_context(
 ) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
-	let modulus_chain = CoefficientModulus::bfv_default(degree, security_level)?;
-	let encryption_parameters: EncryptionParameters = BfvEncryptionParametersBuilder::new()
+	let modulus_chain = CoefficientModulusFactory::bfv(degree, security_level)?;
+	let encryption_parameters: EncryptionParameters = BFVEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
-		.set_plain_modulus(PlainModulus::batching(degree, bit_size)?)
+		.set_plain_modulus(PlainModulusFactory::batching(degree, bit_size)?)
 		.set_coefficient_modulus(modulus_chain.clone())
 		.build()?;
 
@@ -42,7 +42,8 @@ fn create_bfv_context(
 
 fn aggregate(
 	ctx: &Context,
-	encoder: &BFVDecimalEncoder,
+	encoder: &BFVEncoder,
+	base: f64,
 	ciphertexts: &[Ciphertext],
 	dimension: usize,
 ) -> Result<Ciphertext, Error> {
@@ -51,7 +52,7 @@ fn aggregate(
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; dimension];
-	let fraction = encoder.encode(&fraction)?;
+	let fraction = encoder.encode_f64(&fraction, base)?;
 
 	evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -59,7 +60,7 @@ fn aggregate(
 fn criterion_benchmark(c: &mut Criterion) {
 	let dimension = 16_384;
 	let num_clients = 10;
-	let base: u64 = 1_000_000_000;
+	let base = 1_000_000_000f64;
 
 	println!("dimension: {}", dimension);
 	println!("num_clients: {}", num_clients);
@@ -73,7 +74,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 	println!("done");
 
 	let key_gen = KeyGenerator::new(&ctx).expect("Failed to create key generator");
-	let encoder = BFVDecimalEncoder::new(&ctx, base).expect("Failed to create encoder");
+	let encoder = BFVEncoder::new(&ctx).expect("Failed to create encoder");
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
@@ -82,7 +83,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 	let mut plaintexts = Vec::with_capacity(num_clients);
 	for client in clients.iter() {
 		let encoded = encoder
-			.encode(client)
+			.encode_f64(client, base)
 			.expect("Failed to encode client gradients");
 		plaintexts.push(encoded);
 	}
@@ -104,6 +105,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 			aggregate(
 				black_box(&ctx),
 				black_box(&encoder),
+				black_box(base),
 				black_box(&ciphertexts),
 				black_box(dimension),
 			)

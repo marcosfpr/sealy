@@ -40,9 +40,7 @@ impl MemoryPool {
 	pub fn pool_count(&self) -> Result<u64> {
 		let mut count: u64 = 0;
 
-		try_seal!(unsafe {
-			bindgen::MemoryPoolHandle_PoolCount(self.get_handle(Ordering::SeqCst), &mut count)
-		})?;
+		try_seal!(unsafe { bindgen::MemoryPoolHandle_PoolCount(self.get_handle(), &mut count) })?;
 
 		Ok(count)
 	}
@@ -52,7 +50,7 @@ impl MemoryPool {
 		let mut count: u64 = 0;
 
 		try_seal!(unsafe {
-			bindgen::MemoryPoolHandle_AllocByteCount(self.get_handle(Ordering::SeqCst), &mut count)
+			bindgen::MemoryPoolHandle_AllocByteCount(self.get_handle(), &mut count)
 		})?;
 
 		Ok(count)
@@ -62,9 +60,7 @@ impl MemoryPool {
 	pub fn pool_used_byte_count(&self) -> Result<i64> {
 		let mut count: i64 = 0;
 
-		try_seal!(unsafe {
-			bindgen::MemoryPoolHandle_UseCount(self.get_handle(Ordering::SeqCst), &mut count)
-		})?;
+		try_seal!(unsafe { bindgen::MemoryPoolHandle_UseCount(self.get_handle(), &mut count) })?;
 
 		Ok(count)
 	}
@@ -74,28 +70,22 @@ impl MemoryPool {
 		let mut result: bool = false;
 
 		try_seal!(unsafe {
-			bindgen::MemoryPoolHandle_IsInitialized(self.get_handle(Ordering::SeqCst), &mut result)
+			bindgen::MemoryPoolHandle_IsInitialized(self.get_handle(), &mut result)
 		})?;
 
 		Ok(result)
 	}
 
 	/// Returns handle to the underlying SEAL object.
-	///
-	/// Note: This function is unsafe because it returns a raw pointer.
-	pub(crate) unsafe fn get_handle(
-		&self,
-		ordering: Ordering,
-	) -> *mut c_void {
-		self.handle.load(ordering)
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 }
 
 impl Drop for MemoryPool {
 	fn drop(&mut self) {
-		if let Err(err) = try_seal!(unsafe {
-			bindgen::MemoryPoolHandle_Destroy(self.get_handle(Ordering::SeqCst))
-		}) {
+		if let Err(err) = try_seal!(unsafe { bindgen::MemoryPoolHandle_Destroy(self.get_handle()) })
+		{
 			panic!("Failed to destroy memory pool: {:?}", err);
 		}
 	}

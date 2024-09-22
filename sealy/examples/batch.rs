@@ -1,8 +1,8 @@
 use rand::Rng;
 use sealy::{
-	Batch, BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder, Ciphertext,
-	CkksEncryptionParametersBuilder, CoefficientModulus, Context, DegreeType, Encoder,
-	EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
+	Batch, BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder,
+	CKKSEncryptionParametersBuilder, Ciphertext, CoefficientModulusFactory, Context, DegreeType,
+	Encoder, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn generate_random_tensor(size: usize) -> Vec<f64> {
@@ -50,8 +50,8 @@ fn main() -> Result<(), Error> {
 	let bit_sizes = [60, 40, 40, 60];
 
 	let expand_mod_chain = false;
-	let modulus_chain = CoefficientModulus::create(degree, bit_sizes.as_slice())?;
-	let encryption_parameters: EncryptionParameters = CkksEncryptionParametersBuilder::new()
+	let modulus_chain = CoefficientModulusFactory::build(degree, bit_sizes.as_slice())?;
+	let encryption_parameters: EncryptionParameters = CKKSEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(modulus_chain.clone())
 		.build()?;

@@ -1,43 +1,13 @@
 use std::ffi::c_void;
 use std::ptr::null_mut;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 
 use crate::bindgen;
 use crate::error::*;
-use crate::DegreeType;
+use crate::try_seal;
 
 use serde::{Deserialize, Serialize};
-
-/// Represent an integer modulus of up to 61 bits. An instance of the Modulus
-/// struct represents a non-negative integer modulus up to 61 bits. In particular,
-/// the encryption parameter PlainModulus, and the primes in CoeffModulus, are
-/// represented by instances of Modulus. The purpose of this class is to
-/// perform and store the pre-computation required by Barrett reduction.
-///
-/// A Modulus is immutable from Rust once created.
-pub struct Modulus {
-	handle: *mut c_void,
-}
-
-unsafe impl Sync for Modulus {}
-unsafe impl Send for Modulus {}
-
-impl std::fmt::Debug for Modulus {
-	fn fmt(
-		&self,
-		f: &mut std::fmt::Formatter<'_>,
-	) -> std::result::Result<(), std::fmt::Error> {
-		write!(f, "{}", self.value())
-	}
-}
-
-impl PartialEq for Modulus {
-	fn eq(
-		&self,
-		other: &Self,
-	) -> bool {
-		self.value() == other.value()
-	}
-}
 
 /// Represents a standard security level according to the HomomorphicEncryption.org
 /// security standard. The value SecLevelType.None signals that no standard
@@ -90,14 +60,62 @@ impl Default for SecurityLevel {
 	}
 }
 
-/// Assume the given handle is a modulus and construct a modulus out of it.
-///
-/// If it isn't, using the returned modulus results in undefined
-/// behavior.
-pub unsafe fn unchecked_from_handle(handle: *mut c_void) -> Modulus {
-	Modulus {
-		handle,
+/// The available degree sizes for the polynomial modulus.
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DegreeType {
+	D256,
+	D512,
+	D1024,
+	D2048,
+	D4096,
+	D8192,
+	D16384,
+	D32768,
+}
+
+impl From<DegreeType> for u64 {
+	fn from(value: DegreeType) -> Self {
+		match value {
+			DegreeType::D256 => 256,
+			DegreeType::D512 => 512,
+			DegreeType::D1024 => 1024,
+			DegreeType::D2048 => 2048,
+			DegreeType::D4096 => 4096,
+			DegreeType::D8192 => 8192,
+			DegreeType::D16384 => 16384,
+			DegreeType::D32768 => 32768,
+		}
 	}
+}
+
+impl TryFrom<u64> for DegreeType {
+	type Error = Error;
+
+	fn try_from(value: u64) -> std::result::Result<Self, Self::Error> {
+		match value {
+			256 => Ok(DegreeType::D256),
+			512 => Ok(DegreeType::D512),
+			1024 => Ok(DegreeType::D1024),
+			2048 => Ok(DegreeType::D2048),
+			4096 => Ok(DegreeType::D4096),
+			8192 => Ok(DegreeType::D8192),
+			16384 => Ok(DegreeType::D16384),
+			32768 => Ok(DegreeType::D32768),
+			_ => Err(Error::DegreeNotSet),
+		}
+	}
+}
+
+/// Represent an integer modulus of up to 61 bits. An instance of the Modulus
+/// struct represents a non-negative integer modulus up to 61 bits. In particular,
+/// the encryption parameter PlainModulus, and the primes in CoeffModulus, are
+/// represented by instances of Modulus. The purpose of this class is to
+/// perform and store the pre-computation required by Barrett reduction.
+///
+/// A Modulus is immutable from Rust once created.
+pub struct Modulus {
+	handle: AtomicPtr<c_void>,
 }
 
 impl Modulus {
@@ -105,32 +123,67 @@ impl Modulus {
 	pub fn new(value: u64) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::Modulus_Create1(value, &mut handle) })?;
+		try_seal!(unsafe { bindgen::Modulus_Create1(value, &mut handle) })?;
 
 		Ok(Modulus {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
+	}
+
+	/// Assume the given handle is a modulus and construct a modulus out of it.
+	///
+	/// If it isn't, using the returned modulus results in undefined
+	/// behavior.
+	///
+	/// # Safety
+	/// The handle must be a valid modulus handle.
+	pub(crate) unsafe fn new_unchecked_from_handle(handle: *mut c_void) -> Self {
+		Modulus {
+			handle: AtomicPtr::new(handle),
+		}
 	}
 
 	/// The value of the modulus
 	pub fn value(&self) -> u64 {
 		let mut val: u64 = 0;
 
-		convert_seal_error(unsafe { bindgen::Modulus_Value(self.handle, &mut val) })
+		try_seal!(unsafe { bindgen::Modulus_Value(self.get_handle(), &mut val) })
 			.expect("Internal error. Could not get modulus value.");
 
 		val
 	}
 
 	/// The handle to the internal SEAL Modulus object.
-	pub fn get_handle(&self) -> *mut c_void {
-		self.handle
+	///
+	/// # Safety
+	/// This function is unsafe because it returns a raw pointer that is owned by the Modulus instance.
+	/// Handling the raw pointer incorrectly can cause memory unsafety.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
+	}
+}
+
+impl std::fmt::Debug for Modulus {
+	fn fmt(
+		&self,
+		f: &mut std::fmt::Formatter<'_>,
+	) -> std::result::Result<(), std::fmt::Error> {
+		write!(f, "{}", self.value())
+	}
+}
+
+impl PartialEq for Modulus {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
+		self.value() == other.value()
 	}
 }
 
 impl Drop for Modulus {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::Modulus_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::Modulus_Destroy(self.get_handle()) })
 			.expect("Internal error in Modulus::drop().");
 	}
 }
@@ -140,12 +193,12 @@ impl Clone for Modulus {
 		let mut copy = null_mut();
 
 		unsafe {
-			convert_seal_error(bindgen::Modulus_Create2(self.handle, &mut copy))
+			try_seal!(bindgen::Modulus_Create2(self.get_handle(), &mut copy))
 				.expect("Failed to clone modulus")
 		};
 
 		Self {
-			handle: copy,
+			handle: AtomicPtr::new(copy),
 		}
 	}
 }
@@ -160,15 +213,15 @@ impl Clone for Modulus {
 /// a SEALContext object. Normal users should not have to specify the security
 /// level explicitly anywhere.
 #[derive(Debug, Clone)]
-pub struct CoefficientModulus;
+pub struct CoefficientModulusFactory;
 
-impl CoefficientModulus {
+impl CoefficientModulusFactory {
 	/// Returns a custom coefficient modulus suitable for use with the specified
 	/// PolyModulusDegree.The return value will be a vector consisting of
 	/// Modulus elements representing distinct prime numbers of bit-lengths
 	/// as given in the bitSizes parameter. The bit sizes of the prime numbers
 	/// can be at most 60 bits.
-	pub fn create(
+	pub fn build(
 		degree: DegreeType,
 		bit_sizes: &[i32],
 	) -> Result<Vec<Modulus>> {
@@ -178,7 +231,7 @@ impl CoefficientModulus {
 		let mut coefficients: Vec<*mut c_void> = Vec::with_capacity(bit_sizes.len());
 		let coefficients_ptr = coefficients.as_mut_ptr();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::CoeffModulus_Create1(
 				degree.into(),
 				length,
@@ -189,12 +242,14 @@ impl CoefficientModulus {
 
 		unsafe { coefficients.set_len(length as usize) };
 
-		Ok(coefficients
-			.iter()
-			.map(|h| Modulus {
-				handle: *h,
-			})
-			.collect())
+		let coeff_mod = unsafe {
+			coefficients
+				.into_iter()
+				.map(|ptr| Modulus::new_unchecked_from_handle(ptr))
+				.collect()
+		};
+
+		Ok(coeff_mod)
 	}
 
 	/// Returns a default coefficient modulus for the BFV scheme that guarantees
@@ -205,13 +260,13 @@ impl CoefficientModulus {
 	///
 	/// The coefficient modulus returned by this function will not perform well
 	/// if used with the CKKS scheme.
-	pub fn bfv_default(
+	pub fn bfv(
 		degree: DegreeType,
 		security_level: SecurityLevel,
 	) -> Result<Vec<Modulus>> {
 		let mut len: u64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::CoeffModulus_BFVDefault(
 				degree.into(),
 				security_level as i32,
@@ -223,7 +278,7 @@ impl CoefficientModulus {
 		let mut coefficients: Vec<*mut c_void> = Vec::with_capacity(len as usize);
 		let coefficients_ptr = coefficients.as_mut_ptr();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::CoeffModulus_BFVDefault(
 				degree.into(),
 				security_level as i32,
@@ -234,12 +289,14 @@ impl CoefficientModulus {
 
 		unsafe { coefficients.set_len(len as usize) };
 
-		Ok(coefficients
-			.iter()
-			.map(|handle| Modulus {
-				handle: *handle,
-			})
-			.collect())
+		let coeff_mod = unsafe {
+			coefficients
+				.into_iter()
+				.map(|ptr| Modulus::new_unchecked_from_handle(ptr))
+				.collect()
+		};
+
+		Ok(coeff_mod)
 	}
 
 	/// Returns the largest bit-length of the coefficient modulus, i.e., bit-length
@@ -260,10 +317,18 @@ impl CoefficientModulus {
 	}
 }
 
-/// Methods for easily constructing plaintext modulus
-pub struct PlainModulus;
+/// Similar to [`CoefficientModulusFactory`], this struct contains static methods
+/// for building [`Modulus`] instances. In this case, the modulus is used as the
+/// plaintext modulus used in some FHE schemes.
+pub struct PlainModulusFactory;
 
-impl PlainModulus {
+impl PlainModulusFactory {
+	/// Creates a plain modulus with the given exact value. Batching will likely be
+	/// disabled.
+	pub fn raw(val: u64) -> Result<Modulus> {
+		Modulus::new(val)
+	}
+
 	/// Creates a prime number Modulus for use as PlainModulus encryption
 	/// parameter that supports batching with a given PolyModulusDegree.
 	pub fn batching(
@@ -272,15 +337,9 @@ impl PlainModulus {
 	) -> Result<Modulus> {
 		let bit_sizes = vec![bit_size as i32];
 
-		let modulus_chain = CoefficientModulus::create(degree, bit_sizes.as_slice())?;
+		let modulus_chain = CoefficientModulusFactory::build(degree, bit_sizes.as_slice())?;
 
 		Ok(modulus_chain.first().ok_or(Error::Unexpected)?.clone())
-	}
-
-	/// Creates a plain modulus with the given exact value. Batching will likely be
-	/// disabled.
-	pub fn raw(val: u64) -> Result<Modulus> {
-		Modulus::new(val)
 	}
 }
 
@@ -290,7 +349,7 @@ mod tests {
 
 	#[test]
 	fn can_create_plain_modulus() {
-		let modulus = PlainModulus::batching(DegreeType::D1024, 20).unwrap();
+		let modulus = PlainModulusFactory::batching(DegreeType::D1024, 20).unwrap();
 
 		assert_eq!(modulus.value(), 1038337);
 	}
@@ -298,19 +357,19 @@ mod tests {
 	#[test]
 	fn can_create_default_coefficient_modulus() {
 		let modulus =
-			CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::TC128).unwrap();
+			CoefficientModulusFactory::bfv(DegreeType::D1024, SecurityLevel::TC128).unwrap();
 
 		assert_eq!(modulus.len(), 1);
 		assert_eq!(modulus[0].value(), 132120577);
 
 		let modulus =
-			CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::TC192).unwrap();
+			CoefficientModulusFactory::bfv(DegreeType::D1024, SecurityLevel::TC192).unwrap();
 
 		assert_eq!(modulus.len(), 1);
 		assert_eq!(modulus[0].value(), 520193);
 
 		let modulus =
-			CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::TC256).unwrap();
+			CoefficientModulusFactory::bfv(DegreeType::D1024, SecurityLevel::TC256).unwrap();
 
 		assert_eq!(modulus.len(), 1);
 		assert_eq!(modulus[0].value(), 12289);
@@ -318,7 +377,8 @@ mod tests {
 
 	#[test]
 	fn can_create_custom_coefficient_modulus() {
-		let modulus = CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap();
+		let modulus =
+			CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap();
 
 		assert_eq!(modulus.len(), 5);
 		assert_eq!(modulus[0].value(), 1125899905744897);

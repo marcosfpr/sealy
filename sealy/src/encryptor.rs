@@ -599,12 +599,12 @@ mod tests {
 
 	fn mk_ctx<F>(enc_modifier: F) -> Context
 	where
-		F: FnOnce(BfvEncryptionParametersBuilder) -> BfvEncryptionParametersBuilder,
+		F: FnOnce(BFVEncryptionParametersBuilder) -> BFVEncryptionParametersBuilder,
 	{
-		let builder = BfvEncryptionParametersBuilder::new()
+		let builder = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234);
 		let params = enc_modifier(builder).build().unwrap();

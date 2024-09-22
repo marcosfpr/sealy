@@ -1,8 +1,8 @@
 use rand::Rng;
 use sealy::{
-	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
-	Context, Decryptor, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator,
-	KeyGenerator, SecurityLevel,
+	CKKSEncoder, CKKSEncryptionParametersBuilder, CKKSEvaluator, Ciphertext,
+	CoefficientModulusFactory, Context, Decryptor, DegreeType, EncryptionParameters, Encryptor,
+	Error, Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn generate_random_tensor(size: usize) -> Vec<f64> {
@@ -20,8 +20,8 @@ fn create_ckks_context(
 ) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
-	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
-	let encryption_parameters: EncryptionParameters = CkksEncryptionParametersBuilder::new()
+	let modulus_chain = CoefficientModulusFactory::build(degree, bit_sizes)?;
+	let encryption_parameters: EncryptionParameters = CKKSEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(modulus_chain.clone())
 		.build()?;
@@ -42,7 +42,7 @@ fn average_ciphertexts(
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; size];
-	let fraction = encoder.encode(&fraction)?;
+	let fraction = encoder.encode_f64(&fraction)?;
 
 	evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -75,9 +75,9 @@ fn main() -> Result<(), Error> {
 	let client_2_gradients = generate_random_tensor(10);
 	let client_3_gradients = generate_random_tensor(10);
 
-	let client_1_encoded_gradients = encoder.encode(&client_1_gradients)?;
-	let client_2_encoded_gradients = encoder.encode(&client_2_gradients)?;
-	let client_3_encoded_gradients = encoder.encode(&client_3_gradients)?;
+	let client_1_encoded_gradients = encoder.encode_f64(&client_1_gradients)?;
+	let client_2_encoded_gradients = encoder.encode_f64(&client_2_gradients)?;
+	let client_3_encoded_gradients = encoder.encode_f64(&client_3_gradients)?;
 
 	let encryptor = Encryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
 	let decryptor = Decryptor::new(&ctx, &private_key)?;
@@ -100,7 +100,7 @@ fn main() -> Result<(), Error> {
 	)?;
 
 	let avg_dec = decryptor.decrypt(&avg)?;
-	let avg_plain = encoder.decode(&avg_dec)?;
+	let avg_plain = encoder.decode_f64(&avg_dec)?;
 
 	// get the first 10
 	let avg_plain = avg_plain.iter().take(10).cloned().collect::<Vec<f64>>();

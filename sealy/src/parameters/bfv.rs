@@ -1,4 +1,4 @@
-use crate::{DegreeType, EncryptionParameters, Error, Modulus, ModulusDegreeType, SchemeType};
+use crate::{DegreeType, EncryptionParameters, Error, Modulus, SchemeType};
 
 use super::{CoefficientModulusType, PlainModulusType};
 
@@ -6,17 +6,18 @@ use super::{CoefficientModulusType, PlainModulusType};
 /// The parameters (most importantly PolyModulus, CoeffModulus, PlainModulus)
 /// significantly affect the performance, capabilities, and security of the
 /// encryption scheme.
-pub struct BfvEncryptionParametersBuilder {
-	poly_modulus_degree: ModulusDegreeType,
+#[derive(Debug, PartialEq)]
+pub struct BFVEncryptionParametersBuilder {
+	poly_modulus_degree: Option<DegreeType>,
 	coefficient_modulus: CoefficientModulusType,
 	plain_modulus: PlainModulusType,
 }
 
-impl BfvEncryptionParametersBuilder {
+impl BFVEncryptionParametersBuilder {
 	/// Creates a new builder.
 	pub fn new() -> Self {
 		Self {
-			poly_modulus_degree: ModulusDegreeType::NotSet,
+			poly_modulus_degree: None,
 			coefficient_modulus: CoefficientModulusType::NotSet,
 			plain_modulus: PlainModulusType::NotSet,
 		}
@@ -29,7 +30,7 @@ impl BfvEncryptionParametersBuilder {
 		mut self,
 		degree: DegreeType,
 	) -> Self {
-		self.poly_modulus_degree = ModulusDegreeType::Constant(degree);
+		self.poly_modulus_degree = Some(degree);
 		self
 	}
 
@@ -73,7 +74,10 @@ impl BfvEncryptionParametersBuilder {
 	pub fn build(self) -> Result<EncryptionParameters, Error> {
 		let mut params = EncryptionParameters::new(SchemeType::Bfv)?;
 
-		params.set_poly_modulus_degree(self.poly_modulus_degree.try_into()?)?;
+		match self.poly_modulus_degree {
+			Some(degree) => params.set_poly_modulus_degree(u64::from(degree))?,
+			None => return Err(Error::DegreeNotSet),
+		}
 
 		match self.coefficient_modulus {
 			CoefficientModulusType::NotSet => return Err(Error::CoefficientModulusNotSet),
@@ -94,7 +98,7 @@ impl BfvEncryptionParametersBuilder {
 	}
 }
 
-impl Default for BfvEncryptionParametersBuilder {
+impl Default for BFVEncryptionParametersBuilder {
 	fn default() -> Self {
 		Self::new()
 	}
@@ -106,10 +110,10 @@ mod tests {
 
 	#[test]
 	fn can_build_params() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(
-				CoefficientModulus::bfv_default(DegreeType::D1024, SecurityLevel::default())
+				CoefficientModulusFactory::bfv(DegreeType::D1024, SecurityLevel::default())
 					.unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
@@ -122,10 +126,10 @@ mod tests {
 		assert_eq!(params.get_coefficient_modulus().len(), 1);
 		assert_eq!(params.get_coefficient_modulus()[0].value(), 132120577);
 
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D1024)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()

@@ -1,8 +1,12 @@
 use std::ffi::c_void;
+use std::fmt::Debug;
 use std::ptr::null_mut;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 
 use crate::bindgen;
 use crate::error::*;
+use crate::try_seal;
 use crate::Ciphertext;
 use crate::Context;
 use crate::PublicKey;
@@ -12,51 +16,20 @@ use crate::SecretKey;
 /// methods that can convert from other types (like public keys) and converts
 /// them into the same non-NTT RNS format. Enables conversion of RNS format to
 /// multiprecision and back losslessly.
-#[derive(Debug, Eq)]
 pub struct PolynomialArray {
-	handle: *mut c_void,
-}
-
-unsafe impl Sync for PolynomialArray {}
-unsafe impl Send for PolynomialArray {}
-
-impl Clone for PolynomialArray {
-	fn clone(&self) -> Self {
-		let mut handle = null_mut();
-
-		convert_seal_error(unsafe { bindgen::PolynomialArray_Copy(self.handle, &mut handle) })
-			.expect("Fatal error: Failed to clone polynomial array");
-
-		Self {
-			handle,
-		}
-	}
-}
-
-impl PartialEq for PolynomialArray {
-	fn eq(
-		&self,
-		other: &Self,
-	) -> bool {
-		self.as_rns_u64s() == other.as_rns_u64s()
-	}
+	handle: AtomicPtr<c_void>,
 }
 
 impl PolynomialArray {
-	/// Returns the handle to the underlying SEAL object.
-	pub fn get_handle(&self) -> *mut c_void {
-		self.handle
-	}
-
 	/// Creates a new empty polynomial array. Use an encoder to populate with a value.
 	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).
-		convert_seal_error(unsafe { bindgen::PolynomialArray_Create(null_mut(), &mut handle) })?;
+		try_seal!(unsafe { bindgen::PolynomialArray_Create(null_mut(), &mut handle) })?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
@@ -68,7 +41,7 @@ impl PolynomialArray {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::PolynomialArray_CreateFromCiphertext(
 				null_mut(),
 				context.get_handle(),
@@ -78,7 +51,7 @@ impl PolynomialArray {
 		})?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
@@ -90,7 +63,7 @@ impl PolynomialArray {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::PolynomialArray_CreateFromPublicKey(
 				null_mut(),
 				context.get_handle(),
@@ -100,7 +73,7 @@ impl PolynomialArray {
 		})?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
@@ -112,7 +85,7 @@ impl PolynomialArray {
 		let mut handle: *mut c_void = null_mut();
 
 		// By giving an empty pool handle we acquire the global one (first argument to create).
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::PolynomialArray_CreateFromSecretKey(
 				null_mut(),
 				context.get_handle(),
@@ -122,8 +95,13 @@ impl PolynomialArray {
 		})?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
+	}
+
+	/// Returns the handle to the underlying SEAL object.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 
 	/// Has the array data been loaded? When an array is created, it initially
@@ -132,7 +110,7 @@ impl PolynomialArray {
 	pub fn is_reserved(&self) -> bool {
 		let mut is_reserved: bool = false;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::PolynomialArray_IsReserved(self.get_handle(), &mut is_reserved)
 		})
 		.expect("Fatal error in PolynomialArray::is_reserved()");
@@ -144,10 +122,8 @@ impl PolynomialArray {
 	pub fn is_rns(&self) -> bool {
 		let mut is_rns: bool = false;
 
-		convert_seal_error(unsafe {
-			bindgen::PolynomialArray_IsRns(self.get_handle(), &mut is_rns)
-		})
-		.expect("Fatal error in PolynomialArray::is_rns()");
+		try_seal!(unsafe { bindgen::PolynomialArray_IsRns(self.get_handle(), &mut is_rns) })
+			.expect("Fatal error in PolynomialArray::is_rns()");
 
 		is_rns
 	}
@@ -160,14 +136,14 @@ impl PolynomialArray {
 	/// Converts the polynomial array into the RNS format regardless of its
 	/// current format.
 	pub fn to_rns(&self) {
-		convert_seal_error(unsafe { bindgen::PolynomialArray_ToRns(self.handle) })
+		try_seal!(unsafe { bindgen::PolynomialArray_ToRns(self.get_handle()) })
 			.expect("Fatal error in PolynomialArray::to_rns()");
 	}
 
 	/// Converts the polynomial array into the multiprecision format regardless
 	/// of its current format.
 	pub fn to_multiprecision(&self) {
-		convert_seal_error(unsafe { bindgen::PolynomialArray_ToMultiprecision(self.handle) })
+		try_seal!(unsafe { bindgen::PolynomialArray_ToMultiprecision(self.get_handle()) })
 			.expect("Fatal error in PolynomialArray::to_multiprecision()");
 	}
 
@@ -177,16 +153,14 @@ impl PolynomialArray {
 	pub fn as_u64s(&self) -> Result<Vec<u64>> {
 		let mut num_u64: u64 = 0;
 
-		convert_seal_error(unsafe {
-			bindgen::PolynomialArray_ExportSize(self.handle, &mut num_u64)
-		})?;
+		try_seal!(unsafe { bindgen::PolynomialArray_ExportSize(self.get_handle(), &mut num_u64) })?;
 
 		let mut data: Vec<u64> = Vec::with_capacity(num_u64 as usize);
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
-			bindgen::PolynomialArray_PerformExport(self.handle, data_ptr)
+			bindgen::PolynomialArray_PerformExport(self.get_handle(), data_ptr)
 		})?;
 
 		unsafe { data.set_len(num_u64 as usize) };
@@ -244,7 +218,7 @@ impl PolynomialArray {
 	pub fn num_polynomials(&self) -> u64 {
 		let mut size: u64 = 0;
 
-		convert_seal_error(unsafe { bindgen::PolynomialArray_PolySize(self.handle, &mut size) })
+		try_seal!(unsafe { bindgen::PolynomialArray_PolySize(self.get_handle(), &mut size) })
 			.expect("Fatal error in PolynomialArray::num_polynomials");
 
 		size
@@ -254,8 +228,8 @@ impl PolynomialArray {
 	pub fn poly_modulus_degree(&self) -> u64 {
 		let mut size: u64 = 0;
 
-		convert_seal_error(unsafe {
-			bindgen::PolynomialArray_PolyModulusDegree(self.handle, &mut size)
+		try_seal!(unsafe {
+			bindgen::PolynomialArray_PolyModulusDegree(self.get_handle(), &mut size)
 		})
 		.expect("Fatal error in PolynomialArray::poly_modulus_degree");
 
@@ -266,8 +240,8 @@ impl PolynomialArray {
 	pub fn coeff_modulus_size(&self) -> u64 {
 		let mut size: u64 = 0;
 
-		convert_seal_error(unsafe {
-			bindgen::PolynomialArray_CoeffModulusSize(self.handle, &mut size)
+		try_seal!(unsafe {
+			bindgen::PolynomialArray_CoeffModulusSize(self.get_handle(), &mut size)
 		})
 		.expect("Fatal error in PolynomialArray::coeff_modulus_size");
 
@@ -283,28 +257,61 @@ impl PolynomialArray {
 
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::PolynomialArray_Drop(self.handle, &mut handle) })
+		try_seal!(unsafe { bindgen::PolynomialArray_Drop(self.get_handle(), &mut handle) })
 			.expect("Fatal error in PolynomialArray::coeff_modulus_size");
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
+	}
+}
+
+impl Clone for PolynomialArray {
+	fn clone(&self) -> Self {
+		let mut handle = null_mut();
+
+		try_seal!(unsafe { bindgen::PolynomialArray_Copy(self.get_handle(), &mut handle) })
+			.expect("Fatal error: Failed to clone polynomial array");
+
+		Self {
+			handle: AtomicPtr::new(handle),
+		}
+	}
+}
+
+impl PartialEq for PolynomialArray {
+	fn eq(
+		&self,
+		other: &Self,
+	) -> bool {
+		self.as_rns_u64s() == other.as_rns_u64s()
 	}
 }
 
 impl Drop for PolynomialArray {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::PolynomialArray_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::PolynomialArray_Destroy(self.get_handle()) })
 			.expect("Internal error in PolynomialArray::drop()");
+	}
+}
+
+impl Debug for PolynomialArray {
+	fn fmt(
+		&self,
+		f: &mut std::fmt::Formatter<'_>,
+	) -> std::fmt::Result {
+		f.debug_struct("PolynomialArray")
+			.field("handle", &self.handle)
+			.finish()
 	}
 }
 
 #[cfg(test)]
 mod tests {
 	use crate::{
-		encoder::{Encoder, SlotCount},
-		AsymmetricComponents, BFVEncoder, BfvEncryptionParametersBuilder, CoefficientModulus,
-		DegreeType, Encryptor, KeyGenerator, Modulus, PlainModulus, Plaintext, SecurityLevel,
+		AsymmetricComponents, BFVEncoder, BFVEncryptionParametersBuilder,
+		CoefficientModulusFactory, DegreeType, Encryptor, KeyGenerator, Modulus,
+		PlainModulusFactory, Plaintext, SecurityLevel,
 	};
 
 	use super::*;
@@ -318,10 +325,10 @@ mod tests {
 
 	#[test]
 	fn can_create_polynomial_from_ciphertext() {
-		let params = BfvEncryptionParametersBuilder::new()
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(
-				CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
 			)
 			.set_plain_modulus_u64(1234)
 			.build()
@@ -351,11 +358,11 @@ mod tests {
 		Plaintext,
 	) {
 		let coeff_modulus =
-			CoefficientModulus::create(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap();
-		let params = BfvEncryptionParametersBuilder::new()
+			CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap();
+		let params = BFVEncryptionParametersBuilder::new()
 			.set_poly_modulus_degree(DegreeType::D8192)
 			.set_coefficient_modulus(coeff_modulus.clone())
-			.set_plain_modulus(PlainModulus::batching(DegreeType::D8192, 20).unwrap())
+			.set_plain_modulus(PlainModulusFactory::batching(DegreeType::D8192, 20).unwrap())
 			.build()
 			.unwrap();
 
@@ -370,7 +377,7 @@ mod tests {
 			data.push(i as u64)
 		}
 
-		let plaintext = encoder.encode(&data).unwrap();
+		let plaintext = encoder.encode_u64(&data).unwrap();
 
 		let public_key = gen.create_public_key();
 		let secret_key = gen.secret_key();
@@ -499,12 +506,12 @@ mod tests {
 		let u_clone = u.clone();
 		assert_eq!(u, u_clone);
 		assert_eq!(u.as_rns_u64s(), u_clone.as_rns_u64s());
-		assert_ne!(u.get_handle(), u_clone.get_handle());
+		unsafe { assert_ne!(u.get_handle(), u_clone.get_handle()) };
 
 		let e_clone = e.clone();
 		assert_eq!(e, e_clone);
 		assert_eq!(e.as_rns_u64s(), e_clone.as_rns_u64s());
-		assert_ne!(e.get_handle(), e_clone.get_handle());
+		unsafe { assert_ne!(e.get_handle(), e_clone.get_handle()) };
 	}
 
 	#[test]

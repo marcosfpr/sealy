@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
 use sealy::{
-	CKKSEncoder, CKKSEvaluator, Ciphertext, CkksEncryptionParametersBuilder, CoefficientModulus,
-	Context, DegreeType, Encoder, EncryptionParameters, Encryptor, Error, Evaluator, KeyGenerator,
-	SecurityLevel,
+	CKKSEncoder, CKKSEncryptionParametersBuilder, CKKSEvaluator, Ciphertext,
+	CoefficientModulusFactory, Context, DegreeType, EncryptionParameters, Encryptor, Error,
+	Evaluator, KeyGenerator, SecurityLevel,
 };
 
 fn generate_clients_gradients(
@@ -28,8 +28,8 @@ fn create_ckks_context(
 ) -> Result<Context, Error> {
 	let security_level = SecurityLevel::TC128;
 	let expand_mod_chain = false;
-	let modulus_chain = CoefficientModulus::create(degree, bit_sizes)?;
-	let encryption_parameters: EncryptionParameters = CkksEncryptionParametersBuilder::new()
+	let modulus_chain = CoefficientModulusFactory::build(degree, bit_sizes)?;
+	let encryption_parameters: EncryptionParameters = CKKSEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)
 		.set_coefficient_modulus(modulus_chain.clone())
 		.build()?;
@@ -50,7 +50,7 @@ fn aggregate(
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; dimension];
-	let fraction = encoder.encode(&fraction)?;
+	let fraction = encoder.encode_f64(&fraction)?;
 
 	evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -82,7 +82,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 	let mut plaintexts = Vec::with_capacity(num_clients);
 	for client in clients.iter() {
 		let encoded = encoder
-			.encode(client)
+			.encode_f64(client)
 			.expect("Failed to encode client gradients");
 		plaintexts.push(encoded);
 	}

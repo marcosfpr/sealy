@@ -206,12 +206,13 @@ impl PyCoefficientModulus {
 		degree: PyDegreeType,
 		bit_sizes: Vec<i32>,
 	) -> PyResult<Vec<PyModulus>> {
-		let modulus = sealy::CoefficientModulus::create(degree.inner, &bit_sizes).map_err(|e| {
-			PyErr::new::<pyo3::exceptions::PyException, _>(format!(
-				"Error creating CoefficientModulus: {}",
-				e
-			))
-		})?;
+		let modulus =
+			sealy::CoefficientModulusFactory::build(degree.inner, &bit_sizes).map_err(|e| {
+				PyErr::new::<pyo3::exceptions::PyException, _>(format!(
+					"Error creating CoefficientModulus: {}",
+					e
+				))
+			})?;
 		Ok(modulus
 			.into_iter()
 			.map(|m| PyModulus {
@@ -233,7 +234,7 @@ impl PyCoefficientModulus {
 		degree: PyDegreeType,
 		security_level: PySecurityLevel,
 	) -> PyResult<Vec<PyModulus>> {
-		let modulus = sealy::CoefficientModulus::bfv_default(degree.inner, security_level.inner)
+		let modulus = sealy::CoefficientModulusFactory::bfv(degree.inner, security_level.inner)
 			.map_err(|e| {
 				PyErr::new::<pyo3::exceptions::PyException, _>(format!(
 					"Error creating CoefficientModulus: {}",
@@ -253,7 +254,7 @@ impl PyCoefficientModulus {
 		degree: PyDegreeType,
 		security_level: PySecurityLevel,
 	) -> u32 {
-		sealy::CoefficientModulus::max_bit_count(degree.inner.into(), security_level.inner)
+		sealy::CoefficientModulusFactory::max_bit_count(degree.inner.into(), security_level.inner)
 	}
 }
 
@@ -267,9 +268,13 @@ impl PyPlainModulus {
 		degree: PyDegreeType,
 		bit_size: u32,
 	) -> PyResult<PyModulus> {
-		let modulus = sealy::PlainModulus::batching(degree.inner, bit_size).map_err(|e| {
-			PyErr::new::<pyo3::exceptions::PyException, _>(format!("Error creating Modulus: {}", e))
-		})?;
+		let modulus =
+			sealy::PlainModulusFactory::batching(degree.inner, bit_size).map_err(|e| {
+				PyErr::new::<pyo3::exceptions::PyException, _>(format!(
+					"Error creating Modulus: {}",
+					e
+				))
+			})?;
 		Ok(PyModulus {
 			inner: modulus,
 		})
@@ -277,7 +282,7 @@ impl PyPlainModulus {
 
 	#[staticmethod]
 	pub fn raw(val: u64) -> PyResult<PyModulus> {
-		let modulus = sealy::PlainModulus::raw(val).map_err(|e| {
+		let modulus = sealy::PlainModulusFactory::raw(val).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyException, _>(format!("Error creating Modulus: {}", e))
 		})?;
 		Ok(PyModulus {

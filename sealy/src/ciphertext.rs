@@ -1,8 +1,10 @@
 use std::ffi::c_void;
+use std::fmt::Debug;
 use std::ptr::null_mut;
+use std::sync::atomic::{AtomicPtr, Ordering};
 
-use crate::error::*;
 use crate::{bindgen, serialization::CompressionType, Context, FromBytes, ToBytes};
+use crate::{error::*, try_seal};
 
 /// Class to store a ciphertext element. The data for a ciphertext consists
 /// of two or more polynomials, which are in Microsoft SEAL stored in a CRT
@@ -25,55 +27,32 @@ use crate::{bindgen, serialization::CompressionType, Context, FromBytes, ToBytes
 /// ciphertext to begin with either by providing the desired capacity to the
 /// constructor as an extra argument, or by calling the reserve function at
 /// any time.
-#[derive(Debug)]
 pub struct Ciphertext {
-	handle: *mut c_void,
-}
-
-unsafe impl Sync for Ciphertext {}
-unsafe impl Send for Ciphertext {}
-
-impl Clone for Ciphertext {
-	fn clone(&self) -> Self {
-		let mut handle = null_mut();
-
-		convert_seal_error(unsafe { bindgen::Ciphertext_Create2(self.handle, &mut handle) })
-			.expect("Fatal error: Failed to clone ciphertext");
-
-		Self {
-			handle,
-		}
-	}
-}
-
-impl AsRef<Ciphertext> for Ciphertext {
-	fn as_ref(&self) -> &Self {
-		self
-	}
+	handle: AtomicPtr<c_void>,
 }
 
 impl Ciphertext {
-	/// Returns the handle to the underlying SEAL object.
-	pub fn get_handle(&self) -> *mut c_void {
-		self.handle
-	}
-
 	/// Creates a new empty plaintext. Use an encoder to populate with a value.
 	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::Ciphertext_Create1(null_mut(), &mut handle) })?;
+		try_seal!(unsafe { bindgen::Ciphertext_Create1(null_mut(), &mut handle) })?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
+	}
+
+	/// Returns the handle to the underlying SEAL object.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 
 	/// Returns the number of polynomials in this ciphertext.
 	pub fn num_polynomials(&self) -> u64 {
 		let mut size: u64 = 0;
 
-		convert_seal_error(unsafe { bindgen::Ciphertext_Size(self.handle, &mut size) }).unwrap();
+		try_seal!(unsafe { bindgen::Ciphertext_Size(self.get_handle(), &mut size) }).unwrap();
 
 		size
 	}
@@ -82,7 +61,7 @@ impl Ciphertext {
 	pub fn coeff_modulus_size(&self) -> u64 {
 		let mut size: u64 = 0;
 
-		convert_seal_error(unsafe { bindgen::Ciphertext_CoeffModulusSize(self.handle, &mut size) })
+		try_seal!(unsafe { bindgen::Ciphertext_CoeffModulusSize(self.get_handle(), &mut size) })
 			.unwrap();
 
 		size
@@ -97,8 +76,8 @@ impl Ciphertext {
 	) -> Result<u64> {
 		let mut value: u64 = 0;
 
-		convert_seal_error(unsafe {
-			bindgen::Ciphertext_GetDataAt1(self.handle, index as u64, &mut value)
+		try_seal!(unsafe {
+			bindgen::Ciphertext_GetDataAt1(self.get_handle(), index as u64, &mut value)
 		})?;
 
 		Ok(value)
@@ -115,11 +94,11 @@ impl Ciphertext {
 		let size = self.coeff_modulus_size();
 		let mut data: Vec<u64> = Vec::with_capacity(size as usize);
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::Ciphertext_GetDataAt2(
-				self.handle,
+				self.get_handle(),
 				poly_index as u64,
 				coeff_index as u64,
 				data_ptr,
@@ -135,10 +114,40 @@ impl Ciphertext {
 	pub fn is_ntt_form(&self) -> bool {
 		let mut result = false;
 
-		convert_seal_error(unsafe { bindgen::Ciphertext_IsNTTForm(self.handle, &mut result) })
+		try_seal!(unsafe { bindgen::Ciphertext_IsNTTForm(self.get_handle(), &mut result) })
 			.expect("Fatal error in Plaintext::is_ntt_form().");
 
 		result
+	}
+}
+
+impl Debug for Ciphertext {
+	fn fmt(
+		&self,
+		f: &mut std::fmt::Formatter<'_>,
+	) -> std::fmt::Result {
+		f.debug_struct("Ciphertext")
+			.field("handle", &self.handle)
+			.finish()
+	}
+}
+
+impl Clone for Ciphertext {
+	fn clone(&self) -> Self {
+		let mut handle = null_mut();
+
+		try_seal!(unsafe { bindgen::Ciphertext_Create2(self.get_handle(), &mut handle) })
+			.expect("Fatal error: Failed to clone ciphertext");
+
+		Self {
+			handle: AtomicPtr::new(handle),
+		}
+	}
+}
+
+impl AsRef<Ciphertext> for Ciphertext {
+	fn as_ref(&self) -> &Self {
+		self
 	}
 }
 
@@ -155,18 +164,22 @@ impl ToBytes for Ciphertext {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
-			bindgen::Ciphertext_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
+		try_seal!(unsafe {
+			bindgen::Ciphertext_SaveSize(
+				self.get_handle(),
+				CompressionType::ZStd as u8,
+				&mut num_bytes,
+			)
 		})?;
 
 		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
 		let mut bytes_written: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::Ciphertext_Save(
-				self.handle,
+				self.get_handle(),
 				data_ptr,
 				num_bytes as u64,
 				CompressionType::ZStd as u8,
@@ -189,9 +202,9 @@ impl FromBytes for Ciphertext {
 		let ciphertext = Self::new()?;
 		let mut bytes_read = 0i64;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Ciphertext_Load(
-				ciphertext.handle,
+				ciphertext.get_handle(),
 				context.handle,
 				bytes.as_ptr() as *mut u8,
 				bytes.len() as u64,
@@ -205,7 +218,7 @@ impl FromBytes for Ciphertext {
 
 impl Drop for Ciphertext {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::Ciphertext_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::Ciphertext_Destroy(self.get_handle()) })
 			.expect("Internal error in Ciphertext::drop");
 	}
 }

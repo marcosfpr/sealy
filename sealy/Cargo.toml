@@ -20,7 +20,7 @@ link-cplusplus = "1.0.9"
 
 [build-dependencies]
 cmake = "0.1.46"
-bindgen = "0.69.4"
+bindgen = "0.70.1"
 
 [dev-dependencies]
 anyhow = { workspace = true } 
@@ -38,8 +38,8 @@ insecure-params = []
 [[example]]
 name = "avg_float"
 
-[[example]]
-name = "batch"
+# [[example]]
+# name = "batch"
 
 [[example]]
 name = "sum_float"
@@ -58,7 +58,7 @@ harness = false
 name = "bfv_bench"
 harness = false
 
-[[bench]]
-name = "batch_bench"
-harness = false
+# [[bench]]
+# name = "batch_bench"
+# harness = false
 
