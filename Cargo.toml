@@ -1,5 +1,8 @@
 [workspace]
-members = ["sealy", "sealy-python"] 
+members = [
+  "sealy", 
+  # "sealy-python"
+] 
 
 [workspace.dependencies]
 serde = { version = "1.0.144", features = ["derive"] }
