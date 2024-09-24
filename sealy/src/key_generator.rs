@@ -1,9 +1,12 @@
 use std::ffi::c_void;
 use std::ptr::null_mut;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 
 use crate::bindgen;
 use crate::error::*;
 use crate::serialization::CompressionType;
+use crate::try_seal;
 use crate::{Context, FromBytes, ToBytes};
 
 use serde::ser::Error;
@@ -14,11 +17,8 @@ use serde::{Serialize, Serializer};
 /// Constructing a KeyGenerator requires only a SEALContext.
 #[derive(Debug)]
 pub struct KeyGenerator {
-	handle: *mut c_void,
+	handle: AtomicPtr<c_void>,
 }
-
-unsafe impl Sync for KeyGenerator {}
-unsafe impl Send for KeyGenerator {}
 
 impl KeyGenerator {
 	/// Creates a KeyGenerator initialized with the specified SEALContext.
@@ -28,12 +28,10 @@ impl KeyGenerator {
 	pub fn new(ctx: &Context) -> Result<Self> {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe {
-			bindgen::KeyGenerator_Create1(ctx.get_handle(), &mut handle)
-		})?;
+		try_seal!(unsafe { bindgen::KeyGenerator_Create1(ctx.get_handle(), &mut handle) })?;
 
 		Ok(KeyGenerator {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
@@ -51,12 +49,12 @@ impl KeyGenerator {
 	) -> Result<Self> {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::KeyGenerator_Create2(ctx.get_handle(), secret_key.handle, &mut handle)
 		})?;
 
 		Ok(KeyGenerator {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
@@ -64,12 +62,17 @@ impl KeyGenerator {
 	pub fn secret_key(&self) -> SecretKey {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe { bindgen::KeyGenerator_SecretKey(self.handle, &mut handle) })
+		try_seal!(unsafe { bindgen::KeyGenerator_SecretKey(self.get_handle(), &mut handle) })
 			.expect("Fatal error in KeyGenerator::secret_key");
 
 		SecretKey {
 			handle,
 		}
+	}
+
+	/// Returns the handle to the underlying SEAL object.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 
 	/// Generates and returns a new public key.
@@ -93,8 +96,8 @@ impl KeyGenerator {
 	) -> PublicKey {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe {
-			bindgen::KeyGenerator_CreatePublicKey(self.handle, save_seed, &mut handle)
+		try_seal!(unsafe {
+			bindgen::KeyGenerator_CreatePublicKey(self.get_handle(), save_seed, &mut handle)
 		})
 		.expect("Fatal error in KeyGenerator::public_key");
 
@@ -128,8 +131,8 @@ impl KeyGenerator {
 	) -> Result<RelinearizationKey> {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe {
-			bindgen::KeyGenerator_CreateRelinKeys(self.handle, save_seed, &mut handle)
+		try_seal!(unsafe {
+			bindgen::KeyGenerator_CreateRelinKeys(self.get_handle(), save_seed, &mut handle)
 		})?;
 
 		Ok(RelinearizationKey {
@@ -175,8 +178,8 @@ impl KeyGenerator {
 	) -> Result<GaloisKey> {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe {
-			bindgen::KeyGenerator_CreateGaloisKeysAll(self.handle, save_seed, &mut handle)
+		try_seal!(unsafe {
+			bindgen::KeyGenerator_CreateGaloisKeysAll(self.get_handle(), save_seed, &mut handle)
 		})?;
 
 		Ok(GaloisKey {
@@ -187,7 +190,7 @@ impl KeyGenerator {
 
 impl Drop for KeyGenerator {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::KeyGenerator_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::KeyGenerator_Destroy(self.get_handle()) })
 			.expect("Fatal error in KeyGenerator::drop");
 	}
 }
@@ -205,14 +208,14 @@ impl ToBytes for PublicKey {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::PublicKey_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
 		})?;
 
 		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
 		let mut bytes_written: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::PublicKey_Save(
@@ -248,10 +251,10 @@ impl FromBytes for PublicKey {
 		let key = PublicKey::new()?;
 		let mut bytes_read = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::PublicKey_Load(
 				key.handle,
-				context.handle,
+				context.get_handle(),
 				bytes.as_ptr() as *mut u8,
 				bytes.len() as u64,
 				&mut bytes_read,
@@ -267,7 +270,7 @@ impl PublicKey {
 	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::PublicKey_Create1(&mut handle) })?;
+		try_seal!(unsafe { bindgen::PublicKey_Create1(&mut handle) })?;
 
 		Ok(Self {
 			handle,
@@ -282,7 +285,7 @@ impl PublicKey {
 
 impl Drop for PublicKey {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::PublicKey_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::PublicKey_Destroy(self.handle) })
 			.expect("Fatal error in PublicKey::drop")
 	}
 }
@@ -291,7 +294,7 @@ impl Clone for PublicKey {
 	fn clone(&self) -> Self {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::PublicKey_Create2(self.handle, &mut handle) })
+		try_seal!(unsafe { bindgen::PublicKey_Create2(self.handle, &mut handle) })
 			.expect("Fatal error in PublicKey::clone");
 
 		Self {
@@ -330,7 +333,7 @@ impl SecretKey {
 	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::SecretKey_Create1(&mut handle) })?;
+		try_seal!(unsafe { bindgen::SecretKey_Create1(&mut handle) })?;
 
 		Ok(Self {
 			handle,
@@ -357,14 +360,14 @@ impl ToBytes for SecretKey {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::SecretKey_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
 		})?;
 
 		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
 		let mut bytes_written: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::SecretKey_Save(
@@ -391,10 +394,10 @@ impl FromBytes for SecretKey {
 		let key = SecretKey::new()?;
 		let mut bytes_read = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::SecretKey_Load(
 				key.handle,
-				context.handle,
+				context.get_handle(),
 				bytes.as_ptr() as *mut u8,
 				bytes.len() as u64,
 				&mut bytes_read,
@@ -407,7 +410,7 @@ impl FromBytes for SecretKey {
 
 impl Drop for SecretKey {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::SecretKey_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::SecretKey_Destroy(self.handle) })
 			.expect("Fatal error in SecretKey::drop")
 	}
 }
@@ -432,7 +435,7 @@ impl Clone for SecretKey {
 	fn clone(&self) -> Self {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::SecretKey_Create2(self.handle, &mut handle) })
+		try_seal!(unsafe { bindgen::SecretKey_Create2(self.handle, &mut handle) })
 			.expect("Fatal error in SecretKey::clone");
 
 		Self {
@@ -499,7 +502,7 @@ impl RelinearizationKey {
 	pub fn new() -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::KSwitchKeys_Create1(&mut handle) })?;
+		try_seal!(unsafe { bindgen::KSwitchKeys_Create1(&mut handle) })?;
 
 		Ok(Self {
 			handle,
@@ -510,14 +513,14 @@ impl RelinearizationKey {
 	pub fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::KSwitchKeys_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
 		})?;
 
 		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
 		let mut bytes_written: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::KSwitchKeys_Save(
@@ -548,14 +551,14 @@ impl ToBytes for RelinearizationKey {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::KSwitchKeys_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
 		})?;
 
 		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
 		let mut bytes_written: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::KSwitchKeys_Save(
@@ -582,10 +585,10 @@ impl FromBytes for RelinearizationKey {
 		let keys = RelinearizationKey::new()?;
 		let mut write_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::KSwitchKeys_Load(
 				keys.handle,
-				context.handle,
+				context.get_handle(),
 				bytes.as_ptr() as *mut u8,
 				bytes.len() as u64,
 				&mut write_bytes,
@@ -598,7 +601,7 @@ impl FromBytes for RelinearizationKey {
 
 impl Drop for RelinearizationKey {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			// RelinKeys doesn't have a destructor, but inherits
 			// from KSwitchKeys, which does. Just call the base class's
 			// destructor.
@@ -612,7 +615,7 @@ impl Clone for RelinearizationKey {
 	fn clone(&self) -> Self {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			// RelinearizationKeys don't have any data members, so we simply call the parent
 			// class's copy constructor.
 			bindgen::KSwitchKeys_Create2(self.handle, &mut handle)
@@ -666,7 +669,7 @@ impl GaloisKey {
 	pub fn new() -> Result<GaloisKey> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe { bindgen::KSwitchKeys_Create1(&mut handle) })?;
+		try_seal!(unsafe { bindgen::KSwitchKeys_Create1(&mut handle) })?;
 
 		Ok(Self {
 			handle,
@@ -687,14 +690,14 @@ impl ToBytes for GaloisKey {
 	fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut num_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::KSwitchKeys_SaveSize(self.handle, CompressionType::ZStd as u8, &mut num_bytes)
 		})?;
 
 		let mut data: Vec<u8> = Vec::with_capacity(num_bytes as usize);
 		let mut bytes_written: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let data_ptr = data.as_mut_ptr();
 
 			bindgen::KSwitchKeys_Save(
@@ -721,10 +724,10 @@ impl FromBytes for GaloisKey {
 		let keys = GaloisKey::new()?;
 		let mut write_bytes: i64 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::KSwitchKeys_Load(
 				keys.handle,
-				context.handle,
+				context.get_handle(),
 				bytes.as_ptr() as *mut u8,
 				bytes.len() as u64,
 				&mut write_bytes,
@@ -737,7 +740,7 @@ impl FromBytes for GaloisKey {
 
 impl Drop for GaloisKey {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			// GaloisKeys doesn't have a destructor, but inherits
 			// from KSwitchKeys, which does. Just call the base class's
 			// destructor.
@@ -751,7 +754,7 @@ impl Clone for GaloisKey {
 	fn clone(&self) -> Self {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			// GaloisKeys don't have any data members, so we simply call the parent
 			// class's copy constructor.
 			bindgen::KSwitchKeys_Create2(self.handle, &mut handle)

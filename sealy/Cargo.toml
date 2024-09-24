@@ -38,8 +38,8 @@ insecure-params = []
 [[example]]
 name = "avg_float"
 
-# [[example]]
-# name = "batch"
+[[example]]
+name = "tensor"
 
 [[example]]
 name = "sum_float"
@@ -58,7 +58,7 @@ harness = false
 name = "bfv_bench"
 harness = false
 
-# [[bench]]
-# name = "batch_bench"
-# harness = false
+[[bench]]
+name = "tensor_bench"
+harness = false
 

@@ -1,8 +1,8 @@
 use rand::Rng;
 use sealy::{
-	Batch, BatchDecryptor, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder,
-	CKKSEncryptionParametersBuilder, Ciphertext, CoefficientModulusFactory, Context, DegreeType,
-	Encoder, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
+	CKKSEncoder, CKKSEncryptionParametersBuilder, Ciphertext, CoefficientModulusFactory, Context,
+	DegreeType, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel, Tensor,
+	TensorDecryptor, TensorEncoder, TensorEncryptor, TensorEvaluator,
 };
 
 fn generate_random_tensor(size: usize) -> Vec<f64> {
@@ -16,16 +16,16 @@ fn generate_random_tensor(size: usize) -> Vec<f64> {
 
 fn average_ciphertexts(
 	ctx: &Context,
-	encoder: &BatchEncoder<f64, CKKSEncoder>,
-	ciphertexts: &[Batch<Ciphertext>],
+	encoder: &TensorEncoder<CKKSEncoder>,
+	ciphertexts: &[Tensor<Ciphertext>],
 	size: usize,
-) -> Result<Batch<Ciphertext>, Error> {
-	let evaluator = BatchEvaluator::ckks(ctx)?;
+) -> Result<Tensor<Ciphertext>, Error> {
+	let evaluator = TensorEvaluator::ckks(ctx)?;
 	let cipher = evaluator.add_many(ciphertexts)?;
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; size];
-	let fraction = encoder.encode(&fraction)?;
+	let fraction = encoder.encode_f64(&fraction)?;
 
 	evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -60,13 +60,13 @@ fn main() -> Result<(), Error> {
 
 	let key_gen = KeyGenerator::new(&ctx)?;
 
-	let encoder = BatchEncoder::new(CKKSEncoder::new(&ctx, 2.0f64.powi(40))?);
+	let encoder = TensorEncoder::new(CKKSEncoder::new(&ctx, 2.0f64.powi(40))?);
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
 
-	let encryptor = BatchEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
-	let decryptor = BatchDecryptor::new(&ctx, &private_key)?;
+	let encryptor = TensorEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
+	let decryptor = TensorDecryptor::new(&ctx, &private_key)?;
 
 	let start = std::time::Instant::now();
 	let client_1_gradients = generate_random_tensor(11_000_000);
@@ -75,9 +75,9 @@ fn main() -> Result<(), Error> {
 	println!("generate time: {:?}", start.elapsed());
 
 	let start = std::time::Instant::now();
-	let client_1_encoded_gradients = encoder.encode(&client_1_gradients)?;
-	let client_2_encoded_gradients = encoder.encode(&client_2_gradients)?;
-	let client_3_encoded_gradients = encoder.encode(&client_3_gradients)?;
+	let client_1_encoded_gradients = encoder.encode_f64(&client_1_gradients)?;
+	let client_2_encoded_gradients = encoder.encode_f64(&client_2_gradients)?;
+	let client_3_encoded_gradients = encoder.encode_f64(&client_3_gradients)?;
 	println!("encode time: {:?}", start.elapsed());
 
 	let start = std::time::Instant::now();
@@ -109,7 +109,7 @@ fn main() -> Result<(), Error> {
 	println!("decrypt time: {:?}", start.elapsed());
 
 	let start = std::time::Instant::now();
-	let avg_plain = encoder.decode(&avg_dec)?;
+	let avg_plain = encoder.decode_f64(&avg_dec)?;
 	println!("decode time: {:?}", start.elapsed());
 
 	// get the first 10

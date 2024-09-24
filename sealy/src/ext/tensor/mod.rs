@@ -8,29 +8,29 @@ pub mod encoder;
 pub mod encryptor;
 pub mod evaluator;
 
-/// Struct to store a batch of elements of the same type.
+/// Struct to store a tensor of elements of the same type.
 #[derive(Debug, Clone)]
-pub struct Batch<T>(pub Vec<T>);
+pub struct Tensor<T>(pub Vec<T>);
 
-/// A trait for converting batch of objects into a list of byte arrays.
-pub trait ToBatchedBytes {
+/// A trait for converting chunk of objects into a list of byte arrays.
+pub trait ToChunkedTensor {
 	/// Returns the object as a byte array.
-	fn as_batched_bytes(&self) -> Result<Vec<Vec<u8>>>;
+	fn to_chunk(&self) -> Result<Vec<Vec<u8>>>;
 }
 
 /// A trait for converting data from a byte slice under a given SEAL context.
-pub trait FromBatchedBytes {
+pub trait FromChunkedTensor {
 	/// Deserialize an object from the given bytes using the given
 	/// context.
-	fn from_batched_bytes(
+	fn from_chunk(
 		context: &Context,
-		batched: &[Vec<u8>],
+		chunk: &[Vec<u8>],
 	) -> Result<Self>
 	where
 		Self: Sized;
 }
 
-impl<T> IntoIterator for Batch<T> {
+impl<T> IntoIterator for Tensor<T> {
 	type Item = T;
 	type IntoIter = std::vec::IntoIter<T>;
 
@@ -39,7 +39,7 @@ impl<T> IntoIterator for Batch<T> {
 	}
 }
 
-impl<'a, T> IntoIterator for &'a Batch<T> {
+impl<'a, T> IntoIterator for &'a Tensor<T> {
 	type Item = &'a T;
 	type IntoIter = std::slice::Iter<'a, T>;
 
@@ -48,8 +48,8 @@ impl<'a, T> IntoIterator for &'a Batch<T> {
 	}
 }
 
-impl<T> Batch<T> {
-	/// Returns the first element in this batch.
+impl<T> Tensor<T> {
+	/// Returns the first element in this tensor.
 	pub fn first(&self) -> Option<&T> {
 		self.get(0)
 	}
@@ -62,47 +62,47 @@ impl<T> Batch<T> {
 		self.0.get(index)
 	}
 
-	/// Returns the number of elements in this batch.
+	/// Returns the number of elements in this tensor.
 	pub fn len(&self) -> usize {
 		self.0.len()
 	}
 
-	/// Returns true if this batch contains no elements.
+	/// Returns true if this tensor contains no elements.
 	pub fn is_empty(&self) -> bool {
 		self.0.is_empty()
 	}
 
-	/// Returns an iterator over the elements of this batch.
+	/// Returns an iterator over the elements of this tensor.
 	pub fn iter(&self) -> std::slice::Iter<T> {
 		self.0.iter()
 	}
 
-	/// Returns a mutable iterator over the elements of this batch.
+	/// Returns a mutable iterator over the elements of this tensor.
 	pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
 		self.0.iter_mut()
 	}
 
-	/// Applies the given function to each element in this batch, returning a new batch with the results.
+	/// Applies the given function to each element in this tensor, returning a new tensor with the results.
 	pub fn map<U, F>(
 		&self,
 		f: F,
-	) -> Batch<U>
+	) -> Tensor<U>
 	where
 		F: FnMut(&T) -> U,
 	{
-		Batch(self.0.iter().map(f).collect())
+		Tensor(self.0.iter().map(f).collect())
 	}
 
-	/// zips two batches together, applying the given function to each pair of elements.
+	/// zips two tensors together, applying the given function to each pair of elements.
 	pub fn zip<U, V, F>(
 		&self,
-		other: &Batch<U>,
+		other: &Tensor<U>,
 		mut f: F,
-	) -> Batch<V>
+	) -> Tensor<V>
 	where
 		F: FnMut(&T, &U) -> V,
 	{
-		Batch(
+		Tensor(
 			self.0
 				.iter()
 				.zip(other.0.iter())
@@ -112,32 +112,32 @@ impl<T> Batch<T> {
 	}
 }
 
-impl<T> FromBatchedBytes for Batch<T>
+impl<T> FromChunkedTensor for Tensor<T>
 where
 	T: FromBytes<State = Context>,
 {
-	fn from_batched_bytes(
+	fn from_chunk(
 		context: &Context,
-		batched: &[Vec<u8>],
+		chunks: &[Vec<u8>],
 	) -> Result<Self> {
-		let values = batched
+		let values = chunks
 			.iter()
 			.map(|bytes| T::from_bytes(context, bytes))
 			.collect::<Result<Vec<_>>>()?;
-		Ok(Batch(values))
+		Ok(Tensor(values))
 	}
 }
 
-impl<T> ToBatchedBytes for Batch<T>
+impl<T> ToChunkedTensor for Tensor<T>
 where
 	T: ToBytes,
 {
-	fn as_batched_bytes(&self) -> Result<Vec<Vec<u8>>> {
+	fn to_chunk(&self) -> Result<Vec<Vec<u8>>> {
 		self.0.iter().map(|value| value.as_bytes()).collect()
 	}
 }
 
-impl<T> Batch<T>
+impl<T> Tensor<T>
 where
 	T: Clone,
 {
@@ -150,13 +150,13 @@ where
 	}
 }
 
-impl<T, E> Batch<std::result::Result<T, E>> {
-	/// Collects the results in this batch, returning the successful values.
-	pub fn collect(self) -> std::result::Result<Batch<T>, E> {
+impl<T, E> Tensor<std::result::Result<T, E>> {
+	/// Collects the results in this tensor, returning the successful values.
+	pub fn collect(self) -> std::result::Result<Tensor<T>, E> {
 		let values = self
 			.0
 			.into_iter()
 			.collect::<std::result::Result<Vec<_>, _>>()?;
-		Ok(Batch(values))
+		Ok(Tensor(values))
 	}
 }

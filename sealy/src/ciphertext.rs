@@ -205,7 +205,7 @@ impl FromBytes for Ciphertext {
 		try_seal!(unsafe {
 			bindgen::Ciphertext_Load(
 				ciphertext.get_handle(),
-				context.handle,
+				context.get_handle(),
 				bytes.as_ptr() as *mut u8,
 				bytes.len() as u64,
 				&mut bytes_read,

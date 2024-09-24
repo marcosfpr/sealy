@@ -1,11 +1,11 @@
 use sealy::*;
 
-pub fn run_bfv_test<T, F>(
+pub fn run_bfv_test<F>(
 	lane_bits: u32,
 	degree: DegreeType,
 	test: F,
 ) where
-	F: FnOnce(Decryptor, BFVEncoder<T>, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
+	F: FnOnce(Decryptor, BFVEncoder, Encryptor<SymAsym>, BFVEvaluator, KeyGenerator),
 {
 	let params = BFVEncryptionParametersBuilder::new()
 		.set_poly_modulus_degree(degree)

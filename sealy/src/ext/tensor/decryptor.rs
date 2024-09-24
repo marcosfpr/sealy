@@ -1,12 +1,12 @@
-use super::Batch;
+use super::Tensor;
 use crate::{Ciphertext, Context, Decryptor, Plaintext, Result, SecretKey};
 
 /// Decrypts batches of ciphertexts.
-pub struct BatchDecryptor {
+pub struct TensorDecryptor {
 	decryptor: Decryptor,
 }
 
-impl BatchDecryptor {
+impl TensorDecryptor {
 	/// Creates a new batch decryptor.
 	pub fn new(
 		ctx: &Context,
@@ -18,14 +18,14 @@ impl BatchDecryptor {
 	}
 }
 
-impl BatchDecryptor {
+impl TensorDecryptor {
 	/// Decrypts a ciphertext and returns the plaintext.
 	///
 	/// * `ciphertext` - The ciphertext to decrypt.
 	pub fn decrypt(
 		&self,
-		ciphertext_batch: &Batch<Ciphertext>,
-	) -> Result<Batch<Plaintext>> {
+		ciphertext_batch: &Tensor<Ciphertext>,
+	) -> Result<Tensor<Plaintext>> {
 		ciphertext_batch
 			.map(|ciphertext| self.decryptor.decrypt(ciphertext))
 			.collect()

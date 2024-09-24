@@ -2,8 +2,8 @@ use std::ptr::null_mut;
 
 use crate::evaluator::base::EvaluatorBase;
 use crate::{
-	bindgen, error::convert_seal_error, Ciphertext, Context, Evaluator, GaloisKey, Plaintext,
-	RelinearizationKey, Result,
+	bindgen, try_seal, Ciphertext, Context, Evaluator, GaloisKey, Plaintext, RelinearizationKey,
+	Result,
 };
 
 /// An evaluator that contains additional operations specific to the CKKS scheme.
@@ -219,7 +219,7 @@ impl Evaluator for CKKSEvaluator {
 		a: &mut Ciphertext,
 		relin_keys: &RelinearizationKey,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_Relinearize(
 				self.get_handle(),
 				a.get_handle(),
@@ -239,7 +239,7 @@ impl Evaluator for CKKSEvaluator {
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_Relinearize(
 				self.get_handle(),
 				a.get_handle(),
@@ -260,7 +260,7 @@ impl Evaluator for CKKSEvaluator {
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_RotateRows(
 				self.get_handle(),
 				a.get_handle(),
@@ -280,7 +280,7 @@ impl Evaluator for CKKSEvaluator {
 		steps: i32,
 		galois_keys: &GaloisKey,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_RotateRows(
 				self.get_handle(),
 				a.get_handle(),
@@ -301,7 +301,7 @@ impl Evaluator for CKKSEvaluator {
 	) -> Result<Ciphertext> {
 		let out = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_RotateColumns(
 				self.get_handle(),
 				a.get_handle(),
@@ -319,7 +319,7 @@ impl Evaluator for CKKSEvaluator {
 		a: &Ciphertext,
 		galois_keys: &GaloisKey,
 	) -> Result<()> {
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Evaluator_RotateColumns(
 				self.get_handle(),
 				a.get_handle(),

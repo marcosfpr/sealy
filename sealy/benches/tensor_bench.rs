@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use rand::Rng;
 use sealy::{
-	Batch, BatchEncoder, BatchEncryptor, BatchEvaluator, CKKSEncoder,
-	CKKSEncryptionParametersBuilder, Ciphertext, CoefficientModulusFactory, Context, DegreeType,
-	Encoder, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel,
+	CKKSEncoder, CKKSEncryptionParametersBuilder, Ciphertext, CoefficientModulusFactory, Context,
+	DegreeType, EncryptionParameters, Error, Evaluator, KeyGenerator, SecurityLevel, Tensor,
+	TensorEncoder, TensorEncryptor, TensorEvaluator,
 };
 
 fn generate_clients_gradients(
@@ -41,17 +41,17 @@ fn create_ckks_context(
 
 fn aggregate(
 	ctx: &Context,
-	encoder: &BatchEncoder<f64, CKKSEncoder>,
-	ciphertexts: &[Batch<Ciphertext>],
+	encoder: &TensorEncoder<CKKSEncoder>,
+	ciphertexts: &[Tensor<Ciphertext>],
 	dimension: usize,
-) -> Result<Batch<Ciphertext>, Error> {
-	let batch_evaluator = BatchEvaluator::ckks(ctx)?;
+) -> Result<Tensor<Ciphertext>, Error> {
+	let batch_evaluator = TensorEvaluator::ckks(ctx)?;
 
 	let cipher = batch_evaluator.add_many(ciphertexts)?;
 
 	let fraction = 1.0 / ciphertexts.len() as f64;
 	let fraction = vec![fraction; dimension];
-	let fraction = encoder.encode(&fraction)?;
+	let fraction = encoder.encode_f64(&fraction)?;
 
 	batch_evaluator.multiply_plain(&cipher, &fraction)
 }
@@ -76,7 +76,7 @@ fn run_benchmark(
 	let key_gen = KeyGenerator::new(&ctx).expect("Failed to create key generator");
 	let scale = 2.0f64.powi(40);
 	let encoder = CKKSEncoder::new(&ctx, scale).expect("Failed to create encoder");
-	let batch_encoder = BatchEncoder::new(encoder);
+	let batch_encoder = TensorEncoder::new(encoder);
 
 	let public_key = key_gen.create_public_key();
 	let private_key = key_gen.secret_key();
@@ -85,14 +85,14 @@ fn run_benchmark(
 	let mut plaintexts = Vec::with_capacity(num_clients);
 	for client in clients.iter() {
 		let encoded = batch_encoder
-			.encode(client)
+			.encode_f64(client)
 			.expect("Failed to encode client gradients");
 		plaintexts.push(encoded);
 	}
 
 	println!("Encrypting clients gradients...");
 	let mut ciphertexts = Vec::with_capacity(num_clients);
-	let encryptor = BatchEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)
+	let encryptor = TensorEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)
 		.expect("Failed to create encryptor");
 	for plaintext in plaintexts.iter() {
 		let ciphertext = encryptor

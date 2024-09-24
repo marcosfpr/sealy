@@ -1,12 +1,12 @@
-use super::Batch;
+use super::Tensor;
 use crate::{CKKSEvaluator, Context, Error, Evaluator, GaloisKey, RelinearizationKey, Result};
 
-/// An evaluator that evaluates batches of data.
-pub struct BatchEvaluator<E> {
+/// An evaluator that evaluates a tensor of data.
+pub struct TensorEvaluator<E> {
 	evaluator: E,
 }
 
-impl<E> BatchEvaluator<E>
+impl<E> TensorEvaluator<E>
 where
 	E: Evaluator,
 {
@@ -18,8 +18,8 @@ where
 	}
 }
 
-impl BatchEvaluator<CKKSEvaluator> {
-	/// Creates a new batch evaluator.
+impl TensorEvaluator<CKKSEvaluator> {
+	/// Creates a new tensor evaluator.
 	pub fn ckks(ctx: &Context) -> Result<Self> {
 		Ok(Self {
 			evaluator: CKKSEvaluator::new(ctx)?,
@@ -27,15 +27,15 @@ impl BatchEvaluator<CKKSEvaluator> {
 	}
 }
 
-impl<E> Evaluator for BatchEvaluator<E>
+impl<E> Evaluator for TensorEvaluator<E>
 where
 	E: Evaluator,
 	E::Ciphertext: Clone,
 	E::Plaintext: Clone,
 {
-	type Plaintext = Batch<E::Plaintext>;
+	type Plaintext = Tensor<E::Plaintext>;
 
-	type Ciphertext = Batch<E::Ciphertext>;
+	type Ciphertext = Tensor<E::Ciphertext>;
 
 	fn negate_inplace(
 		&self,
@@ -89,15 +89,15 @@ where
 		for i in 0..length {
 			let mut values = Vec::with_capacity(a.len());
 
-			for batch in a.iter() {
-				let value = batch.get_cloned(i).ok_or_else(|| Error::InvalidArgument)?;
+			for tensor in a.iter() {
+				let value = tensor.get_cloned(i).ok_or_else(|| Error::InvalidArgument)?;
 				values.push(value);
 			}
 
 			result.push(self.evaluator.add_many(values.as_slice())?);
 		}
 
-		Ok(Batch(result))
+		Ok(Tensor(result))
 	}
 
 	fn multiply_many(
@@ -111,8 +111,8 @@ where
 		for i in 0..length {
 			let mut values = Vec::with_capacity(a.len());
 
-			for batch in a.iter() {
-				let value = batch.get_cloned(i).ok_or_else(|| Error::InvalidArgument)?;
+			for tensor in a.iter() {
+				let value = tensor.get_cloned(i).ok_or_else(|| Error::InvalidArgument)?;
 				values.push(value);
 			}
 
@@ -122,7 +122,7 @@ where
 			);
 		}
 
-		Ok(Batch(result))
+		Ok(Tensor(result))
 	}
 
 	fn sub_inplace(

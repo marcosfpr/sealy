@@ -1,91 +1,18 @@
 use std::ffi::c_void;
 use std::marker::PhantomData;
 use std::ptr::null_mut;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 
 use crate::bindgen;
+use crate::component_marker;
 use crate::error::*;
 use crate::poly_array::PolynomialArray;
-use crate::{Ciphertext, Context, Plaintext, PublicKey, SecretKey};
-
-/// The components to an asymmetric encryption.
-pub struct AsymmetricComponents {
-	/// Uniform ternary polynomial.
-	///
-	/// This polynomial array should always have size one, i.e. it is a single
-	/// polynomial.
-	pub u: PolynomialArray,
-	/// Error polynomial.
-	///
-	/// This will generally have length two, if relinearization is performed after every
-	/// multiplication.
-	pub e: PolynomialArray,
-	/// Rounding component after scaling the message by delta.
-	pub r: Plaintext,
-}
-
-impl AsymmetricComponents {
-	/// Create a new AsymmetricComponents instance.
-	pub fn new(
-		u: PolynomialArray,
-		e: PolynomialArray,
-		r: Plaintext,
-	) -> Self {
-		Self {
-			u,
-			e,
-			r,
-		}
-	}
-}
-
-/// The components to a symmetric encryption.
-pub struct SymmetricComponents {
-	/// Error polynomial.
-	///
-	/// This polynomial array should always have size one, i.e. it is a single
-	/// polynomial.
-	pub e: PolynomialArray,
-	/// Rounding component after scaling the message by delta.
-	pub r: Plaintext,
-}
-
-impl SymmetricComponents {
-	/// Create a new SymmetricComponents instance.
-	pub fn new(
-		e: PolynomialArray,
-		r: Plaintext,
-	) -> Self {
-		Self {
-			e,
-			r,
-		}
-	}
-}
-
-impl core::fmt::Debug for AsymmetricComponents {
-	fn fmt(
-		&self,
-		f: &mut core::fmt::Formatter,
-	) -> core::fmt::Result {
-		f.debug_struct("AsymmetricComponents")
-			.field("u", &"<ELIDED>")
-			.field("e", &"<ELIDED>")
-			.field("r", &"<ELIDED>")
-			.finish()
-	}
-}
-
-impl core::fmt::Debug for SymmetricComponents {
-	fn fmt(
-		&self,
-		f: &mut core::fmt::Formatter,
-	) -> core::fmt::Result {
-		f.debug_struct("SymmetricComponents")
-			.field("e", &"<ELIDED>")
-			.field("r", &"<ELIDED>")
-			.finish()
-	}
-}
+use crate::try_seal;
+use crate::{
+	Asym, AsymmetricComponents, Ciphertext, Context, Plaintext, PublicKey, SecretKey, Sym, SymAsym,
+	SymmetricComponents,
+};
 
 /// Encrypts Plaintext objects into Ciphertext objects.
 ///
@@ -112,7 +39,7 @@ impl core::fmt::Debug for SymmetricComponents {
 /// "default NTT form". Decryption requires the input ciphertexts to be in the default
 /// NTT form, and will throw an exception if this is not the case.
 pub struct Encryptor<T = ()> {
-	handle: *mut c_void,
+	handle: AtomicPtr<c_void>,
 	_marker: PhantomData<T>,
 }
 
@@ -125,39 +52,12 @@ pub type AsymmetricEncryptor = Encryptor<Asym>;
 /// An encryptor capable of both symmetric and asymmetric encryptions.
 pub type SymAsymEncryptor = Encryptor<SymAsym>;
 
-mod sealed {
-	pub trait Sealed {}
-	impl Sealed for super::Sym {}
-	impl Sealed for super::Asym {}
-	impl Sealed for super::SymAsym {}
+impl<T> Encryptor<T> {
+	/// Returns the underlying pointer to the SEAL object.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
+	}
 }
-
-/// Marker traits to signify what types of enryptions are supported
-pub mod marker {
-	/// Supports symmetric encryptions.
-	pub trait Sym: super::sealed::Sealed {}
-	/// Supports asymmetric encryptions.
-	pub trait Asym: super::sealed::Sealed {}
-}
-
-/// Symmetric encryptions marker
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Sym;
-impl marker::Sym for Sym {}
-
-/// Asymmetric encryptions marker
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Asym;
-impl marker::Asym for Asym {}
-
-/// Both symmetric and asymmetric encryptions marker
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct SymAsym;
-impl marker::Sym for SymAsym {}
-impl marker::Asym for SymAsym {}
-
-unsafe impl<T: Sync> Sync for Encryptor<T> {}
-unsafe impl<T: Send> Send for Encryptor<T> {}
 
 impl Encryptor {
 	/// Creates an Encryptor instance initialized with the specified SEALContext,
@@ -173,7 +73,7 @@ impl Encryptor {
 	) -> Result<Encryptor<SymAsym>> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_Create(
 				ctx.get_handle(),
 				public_key.get_handle(),
@@ -183,7 +83,7 @@ impl Encryptor {
 		})?;
 
 		Ok(Encryptor {
-			handle,
+			handle: AtomicPtr::new(handle),
 			_marker: PhantomData,
 		})
 	}
@@ -196,7 +96,7 @@ impl Encryptor {
 	) -> Result<AsymmetricEncryptor> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_Create(
 				ctx.get_handle(),
 				public_key.get_handle(),
@@ -206,7 +106,7 @@ impl Encryptor {
 		})?;
 
 		Ok(Encryptor {
-			handle,
+			handle: AtomicPtr::new(handle),
 			_marker: PhantomData,
 		})
 	}
@@ -219,7 +119,7 @@ impl Encryptor {
 	) -> Result<SymmetricEncryptor> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_Create(
 				ctx.get_handle(),
 				null_mut(),
@@ -229,7 +129,7 @@ impl Encryptor {
 		})?;
 
 		Ok(Encryptor {
-			handle,
+			handle: AtomicPtr::new(handle),
 			_marker: PhantomData,
 		})
 	}
@@ -266,15 +166,15 @@ impl SymAsymEncryptor {
 	}
 }
 
-impl<T: marker::Asym> Encryptor<T> {
+impl<T: component_marker::Asym> Encryptor<T> {
 	/// Encrypts a plaintext with the public key and returns the ciphertext as
 	/// a serializable object.
 	///
 	/// The encryption parameters for the resulting ciphertext correspond to:
 	/// 1) in BFV, the highest (data) level in the modulus switching chain,
 	/// 2) in CKKS, the encryption parameters of the plaintext.
-	/// Dynamic memory allocations in the process are allocated from the memory
-	/// pool pointed to by the given MemoryPoolHandle.
+	///    Dynamic memory allocations in the process are allocated from the memory
+	///    pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	pub fn encrypt(
@@ -286,9 +186,9 @@ impl<T: marker::Asym> Encryptor<T> {
 		// the regular encrypt function, we skip that allocation.
 		let ciphertext = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_Encrypt(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				ciphertext.get_handle(),
 				null_mut(),
@@ -318,9 +218,9 @@ impl<T: marker::Asym> Encryptor<T> {
 		let e_destination = PolynomialArray::new()?;
 		let r_destination = Plaintext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptReturnComponents(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				true,
 				ciphertext.get_handle(),
@@ -364,7 +264,7 @@ impl<T: marker::Asym> Encryptor<T> {
 		let r_destination = Plaintext::new()?;
 
 		// We do not need the components so we do not export them.
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptReturnComponentsSetSeed(
 				self.handle,
 				plaintext.get_handle(),
@@ -409,7 +309,7 @@ impl<T: marker::Asym> Encryptor<T> {
 		let r_destination = Plaintext::new()?;
 
 		// We do not need the components so we do not export them.
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptReturnComponentsSetSeed(
 				self.handle,
 				plaintext.get_handle(),
@@ -430,7 +330,7 @@ impl<T: marker::Asym> Encryptor<T> {
 	}
 }
 
-impl<T: marker::Sym> Encryptor<T> {
+impl<T: component_marker::Sym> Encryptor<T> {
 	/// Encrypts a plaintext with the secret key and returns the ciphertext as
 	/// a serializable object.
 	///
@@ -450,9 +350,9 @@ impl<T: marker::Sym> Encryptor<T> {
 		// the regular encrypt function, we skip that allocation.
 		let ciphertext = Ciphertext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptSymmetric(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				false,
 				ciphertext.get_handle(),
@@ -489,7 +389,7 @@ impl<T: marker::Sym> Encryptor<T> {
 		let r_destination = Plaintext::new()?;
 
 		// We do not need the components so we do not export them.
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptSymmetricReturnComponentsSetSeed(
 				self.handle,
 				plaintext.get_handle(),
@@ -523,9 +423,9 @@ impl<T: marker::Sym> Encryptor<T> {
 		let e_destination = PolynomialArray::new()?;
 		let r_destination = Plaintext::new()?;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptSymmetricReturnComponents(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				ciphertext.get_handle(),
 				e_destination.get_handle(),
@@ -567,7 +467,7 @@ impl<T: marker::Sym> Encryptor<T> {
 		let r_destination = Plaintext::new()?;
 
 		// We do not need the components so we do not export them.
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptSymmetricReturnComponentsSetSeed(
 				self.handle,
 				plaintext.get_handle(),
@@ -588,7 +488,7 @@ impl<T: marker::Sym> Encryptor<T> {
 
 impl<T> Drop for Encryptor<T> {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::Encryptor_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::Encryptor_Destroy(self.get_handle()) })
 			.expect("Internal error in Enryptor::drop");
 	}
 }

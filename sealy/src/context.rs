@@ -1,9 +1,12 @@
 use std::ffi::c_int;
 use std::ffi::c_void;
 use std::ptr::null_mut;
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
 
 use crate::bindgen;
 use crate::error::*;
+use crate::try_seal;
 use crate::ContextData;
 use crate::EncryptionParameters;
 use crate::SecurityLevel;
@@ -42,11 +45,8 @@ use crate::SecurityLevel;
 /// the "data" part of the chain, i.e., the second and the last element in the full chain.
 /// The chain is a doubly linked list and is referred to as the modulus switching chain.
 pub struct Context {
-	pub(crate) handle: *mut c_void,
+	handle: AtomicPtr<c_void>,
 }
-
-unsafe impl Sync for Context {}
-unsafe impl Send for Context {}
 
 impl Context {
 	/// Creates an instance of SEALContext and performs several pre-computations
@@ -62,7 +62,7 @@ impl Context {
 	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::SEALContext_Create(
 				params.get_handle(),
 				expand_mod_chain,
@@ -72,7 +72,7 @@ impl Context {
 		})?;
 
 		Ok(Context {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
@@ -89,26 +89,26 @@ impl Context {
 	) -> Result<Self> {
 		let mut handle: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::SEALContext_Create(params.get_handle(), expand_mod_chain, 0, &mut handle)
 		})?;
 
 		Ok(Context {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
 	}
 
-	/// Returns handle to the underlying SEAL object.
-	pub fn get_handle(&self) -> *mut c_void {
-		self.handle
+	/// Returns the handle to the underlying SEAL object.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 
 	/// Returns the security level of the encryption parameters.
 	pub fn get_security_level(&self) -> Result<SecurityLevel> {
 		let mut security_level: c_int = 0;
 
-		convert_seal_error(unsafe {
-			bindgen::SEALContext_GetSecurityLevel(self.handle, &mut security_level)
+		try_seal!(unsafe {
+			bindgen::SEALContext_GetSecurityLevel(self.get_handle(), &mut security_level)
 		})?;
 
 		security_level.try_into()
@@ -118,9 +118,9 @@ impl Context {
 	pub fn get_key_parms_id(&self) -> Result<Vec<u64>> {
 		let mut parms_id: Vec<u64> =
 			Vec::with_capacity(EncryptionParameters::block_size() as usize);
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let parms_id_ptr = parms_id.as_mut_ptr();
-			bindgen::SEALContext_KeyParmsId(self.handle, parms_id_ptr)
+			bindgen::SEALContext_KeyParmsId(self.get_handle(), parms_id_ptr)
 		})?;
 		unsafe { parms_id.set_len(4) };
 		Ok(parms_id)
@@ -130,9 +130,9 @@ impl Context {
 	pub fn get_last_parms_id(&self) -> Result<Vec<u64>> {
 		let mut parms_id: Vec<u64> =
 			Vec::with_capacity(EncryptionParameters::block_size() as usize);
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let parms_id_ptr = parms_id.as_mut_ptr();
-			bindgen::SEALContext_LastParmsId(self.handle, parms_id_ptr)
+			bindgen::SEALContext_LastParmsId(self.get_handle(), parms_id_ptr)
 		})?;
 		unsafe { parms_id.set_len(EncryptionParameters::block_size() as usize) };
 		Ok(parms_id)
@@ -142,9 +142,9 @@ impl Context {
 	pub fn get_first_parms_id(&self) -> Result<Vec<u64>> {
 		let mut parms_id: Vec<u64> =
 			Vec::with_capacity(EncryptionParameters::block_size() as usize);
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let parms_id_ptr = parms_id.as_mut_ptr();
-			bindgen::SEALContext_FirstParmsId(self.handle, parms_id_ptr)
+			bindgen::SEALContext_FirstParmsId(self.get_handle(), parms_id_ptr)
 		})?;
 		unsafe { parms_id.set_len(EncryptionParameters::block_size() as usize) };
 		Ok(parms_id)
@@ -157,10 +157,10 @@ impl Context {
 	) -> Result<ContextData> {
 		let mut context_data: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			let mut parms_id = parms_id.to_vec();
 			let parms_id_ptr = parms_id.as_mut_ptr();
-			bindgen::SEALContext_GetContextData(self.handle, parms_id_ptr, &mut context_data)
+			bindgen::SEALContext_GetContextData(self.get_handle(), parms_id_ptr, &mut context_data)
 		})?;
 
 		if context_data.is_null() {
@@ -174,8 +174,8 @@ impl Context {
 	pub fn get_first_context_data(&self) -> Result<ContextData> {
 		let mut context_data: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
-			bindgen::SEALContext_FirstContextData(self.handle, &mut context_data)
+		try_seal!(unsafe {
+			bindgen::SEALContext_FirstContextData(self.get_handle(), &mut context_data)
 		})?;
 
 		if context_data.is_null() {
@@ -189,8 +189,8 @@ impl Context {
 	pub fn get_last_context_data(&self) -> Result<ContextData> {
 		let mut context_data: *mut c_void = null_mut();
 
-		convert_seal_error(unsafe {
-			bindgen::SEALContext_LastContextData(self.handle, &mut context_data)
+		try_seal!(unsafe {
+			bindgen::SEALContext_LastContextData(self.get_handle(), &mut context_data)
 		})?;
 
 		if context_data.is_null() {
@@ -203,7 +203,7 @@ impl Context {
 
 impl Drop for Context {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::SEALContext_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::SEALContext_Destroy(self.get_handle()) })
 			.expect("Internal error in Context::drop().");
 	}
 }

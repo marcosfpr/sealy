@@ -1,18 +1,18 @@
 use crate::{
-	enc_marker, Asym, AsymmetricComponents, Ciphertext, Context, Encryptor, Plaintext, PublicKey,
-	Result, SecretKey, Sym, SymAsym, SymmetricComponents,
+	component_marker, Asym, AsymmetricComponents, Ciphertext, Context, Encryptor, Plaintext,
+	PublicKey, Result, SecretKey, Sym, SymAsym, SymmetricComponents,
 };
 
-use super::Batch;
+use super::Tensor;
 
 /// Encryptor that can encrypt multiple messages at once.
-pub struct BatchEncryptor<T = ()> {
+pub struct TensorEncryptor<T = ()> {
 	encryptor: Encryptor<T>,
 	typ: std::marker::PhantomData<T>,
 }
 
-impl<T> BatchEncryptor<T> {
-	/// Creates a new BatchEncryptor instance.
+impl<T> TensorEncryptor<T> {
+	/// Creates a new tensorEncryptor instance.
 	pub fn new(encryptor: Encryptor<T>) -> Self {
 		Self {
 			encryptor,
@@ -21,7 +21,7 @@ impl<T> BatchEncryptor<T> {
 	}
 }
 
-impl BatchEncryptor {
+impl TensorEncryptor {
 	/// Creates an Encryptor instance initialized with the specified SEALContext,
 	/// public key, and secret key.
 	///
@@ -32,8 +32,8 @@ impl BatchEncryptor {
 		ctx: &Context,
 		public_key: &PublicKey,
 		secret_key: &SecretKey,
-	) -> Result<BatchEncryptor<SymAsym>> {
-		Ok(BatchEncryptor::new(Encryptor::with_public_and_secret_key(
+	) -> Result<TensorEncryptor<SymAsym>> {
+		Ok(TensorEncryptor::new(Encryptor::with_public_and_secret_key(
 			ctx, public_key, secret_key,
 		)?))
 	}
@@ -43,8 +43,8 @@ impl BatchEncryptor {
 	pub fn with_public_key(
 		ctx: &Context,
 		public_key: &PublicKey,
-	) -> Result<BatchEncryptor<Asym>> {
-		Ok(BatchEncryptor::new(Encryptor::with_public_key(
+	) -> Result<TensorEncryptor<Asym>> {
+		Ok(TensorEncryptor::new(Encryptor::with_public_key(
 			ctx, public_key,
 		)?))
 	}
@@ -54,14 +54,14 @@ impl BatchEncryptor {
 	pub fn with_secret_key(
 		ctx: &Context,
 		secret_key: &SecretKey,
-	) -> Result<BatchEncryptor<Sym>> {
-		Ok(BatchEncryptor::new(Encryptor::with_secret_key(
+	) -> Result<TensorEncryptor<Sym>> {
+		Ok(TensorEncryptor::new(Encryptor::with_secret_key(
 			ctx, secret_key,
 		)?))
 	}
 }
 
-impl<T: enc_marker::Asym> BatchEncryptor<T> {
+impl<T: component_marker::Asym> TensorEncryptor<T> {
 	/// Encrypts a plaintext with the public key and returns the ciphertext as
 	/// a serializable object.
 	///
@@ -71,12 +71,12 @@ impl<T: enc_marker::Asym> BatchEncryptor<T> {
 	/// Dynamic memory allocations in the process are allocated from the memory
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
-	/// * `plaintext_batch` - The plaintext to encrypt.
+	/// * `plaintext_tensor` - The plaintext to encrypt.
 	pub fn encrypt(
 		&self,
-		plaintext_batch: &Batch<Plaintext>,
-	) -> Result<Batch<Ciphertext>> {
-		plaintext_batch
+		plaintext_tensor: &Tensor<Plaintext>,
+	) -> Result<Tensor<Ciphertext>> {
+		plaintext_tensor
 			.map(|plaintext| self.encryptor.encrypt(plaintext))
 			.collect()
 	}
@@ -91,18 +91,18 @@ impl<T: enc_marker::Asym> BatchEncryptor<T> {
 	/// Dynamic memory allocations in the process are allocated from the memory
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
-	/// * `plaintext_batch` - The plaintext to encrypt.
+	/// * `plaintext_tensor` - The plaintext to encrypt.
 	pub fn encrypt_return_components(
 		&self,
-		plaintext_batch: &Batch<Plaintext>,
-	) -> Result<Batch<(Ciphertext, AsymmetricComponents)>> {
-		plaintext_batch
+		plaintext_tensor: &Tensor<Plaintext>,
+	) -> Result<Tensor<(Ciphertext, AsymmetricComponents)>> {
+		plaintext_tensor
 			.map(|plaintext| self.encryptor.encrypt_return_components(plaintext))
 			.collect()
 	}
 }
 
-impl<T: enc_marker::Sym> BatchEncryptor<T> {
+impl<T: component_marker::Sym> TensorEncryptor<T> {
 	/// Encrypts a plaintext with the secret key and returns the ciphertext as
 	/// a serializable object.
 	///
@@ -112,12 +112,12 @@ impl<T: enc_marker::Sym> BatchEncryptor<T> {
 	/// Dynamic memory allocations in the process are allocated from the memory
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
-	/// * `plaintext_batch` - The plaintext to encrypt.
+	/// * `plaintext_tensor` - The plaintext to encrypt.
 	pub fn encrypt_symmetric(
 		&self,
-		plaintext_batch: &Batch<Plaintext>,
-	) -> Result<Batch<Ciphertext>> {
-		plaintext_batch
+		plaintext_tensor: &Tensor<Plaintext>,
+	) -> Result<Tensor<Ciphertext>> {
+		plaintext_tensor
 			.map(|plaintext| self.encryptor.encrypt_symmetric(plaintext))
 			.collect()
 	}
@@ -131,12 +131,12 @@ impl<T: enc_marker::Sym> BatchEncryptor<T> {
 	/// 2) in CKKS, the encryption parameters of the plaintext.
 	/// pool pointed to by the given MemoryPoolHandle.
 	///
-	/// * `plaintext_batch` - The plaintext to encrypt.
+	/// * `plaintext_tensor` - The plaintext to encrypt.
 	pub fn encrypt_symmetric_return_components(
 		&self,
-		plaintext_batch: &Batch<Plaintext>,
-	) -> Result<Batch<(Ciphertext, SymmetricComponents)>> {
-		plaintext_batch
+		plaintext_tensor: &Tensor<Plaintext>,
+	) -> Result<Tensor<(Ciphertext, SymmetricComponents)>> {
+		plaintext_tensor
 			.map(|plaintext| {
 				self.encryptor
 					.encrypt_symmetric_return_components(plaintext)

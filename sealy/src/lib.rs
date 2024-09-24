@@ -71,6 +71,7 @@ mod bindgen {
 }
 
 mod ciphertext;
+mod components;
 mod context;
 mod context_data;
 mod decryptor;
@@ -88,23 +89,23 @@ mod poly_array;
 mod serialization;
 
 pub use ciphertext::Ciphertext;
+pub use components::{
+	marker as component_marker, Asym, AsymmetricComponents, Sym, SymAsym, SymmetricComponents,
+};
 pub use context::Context;
 pub use context_data::ContextData;
 pub use decryptor::Decryptor;
 pub use encoder::bfv::BFVEncoder;
 pub use encoder::ckks::CKKSEncoder;
-pub use encryptor::{
-	marker as enc_marker, Asym, AsymmetricComponents, AsymmetricEncryptor, Encryptor, Sym, SymAsym,
-	SymmetricComponents, SymmetricEncryptor,
-};
+pub use encryptor::{AsymmetricEncryptor, Encryptor, SymmetricEncryptor};
 pub use error::{Error, Result};
 pub use evaluator::bfv::BFVEvaluator;
 pub use evaluator::ckks::CKKSEvaluator;
 pub use evaluator::Evaluator;
-// pub use ext::batched::{
-// 	decryptor::BatchDecryptor, encoder::BatchEncoder, encryptor::BatchEncryptor,
-// 	evaluator::BatchEvaluator, Batch, FromBatchedBytes, ToBatchedBytes,
-// };
+pub use ext::tensor::{
+	decryptor::TensorDecryptor, encoder::TensorEncoder, encryptor::TensorEncryptor,
+	evaluator::TensorEvaluator, FromChunkedTensor, Tensor, ToChunkedTensor,
+};
 pub use key_generator::{GaloisKey, KeyGenerator, PublicKey, RelinearizationKey, SecretKey};
 pub use memory::MemoryPool;
 pub use modulus::{

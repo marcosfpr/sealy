@@ -1,10 +1,10 @@
-use std::{ffi::c_void, ptr::null_mut};
-
-use crate::{
-	bindgen,
-	error::{convert_seal_error, Result},
-	Ciphertext, Context, Plaintext, SecretKey,
+use std::{
+	ffi::c_void,
+	ptr::null_mut,
+	sync::atomic::{AtomicPtr, Ordering},
 };
+
+use crate::{bindgen, error::Result, try_seal, Ciphertext, Context, Plaintext, SecretKey};
 
 /// Decrypts Ciphertext objects into Plaintext objects. Constructing a Decryptor requires
 /// a SEALContext with valid encryption parameters, and the secret key. The Decryptor is
@@ -18,11 +18,8 @@ use crate::{
 /// "default NTT form". Decryption requires the input ciphertexts to be in the default
 /// NTT form, and will throw an exception if this is not the case.
 pub struct Decryptor {
-	handle: *mut c_void,
+	handle: AtomicPtr<c_void>,
 }
-
-unsafe impl Sync for Decryptor {}
-unsafe impl Send for Decryptor {}
 
 impl Decryptor {
 	/// Creates a Decryptor instance initialized with the specified SEALContext
@@ -36,13 +33,18 @@ impl Decryptor {
 	) -> Result<Self> {
 		let mut handle = null_mut();
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Decryptor_Create(ctx.get_handle(), secret_key.get_handle(), &mut handle)
 		})?;
 
 		Ok(Self {
-			handle,
+			handle: AtomicPtr::new(handle),
 		})
+	}
+
+	/// Returns the handle to the underlying SEAL object.
+	pub(crate) unsafe fn get_handle(&self) -> *mut c_void {
+		self.handle.load(Ordering::SeqCst)
 	}
 
 	/// Decrypts a Ciphertext and stores the result in the destination parameter.
@@ -54,8 +56,12 @@ impl Decryptor {
 	) -> Result<Plaintext> {
 		let plaintext = Plaintext::new()?;
 
-		convert_seal_error(unsafe {
-			bindgen::Decryptor_Decrypt(self.handle, ciphertext.get_handle(), plaintext.get_handle())
+		try_seal!(unsafe {
+			bindgen::Decryptor_Decrypt(
+				self.get_handle(),
+				ciphertext.get_handle(),
+				plaintext.get_handle(),
+			)
 		})?;
 
 		Ok(plaintext)
@@ -84,9 +90,9 @@ impl Decryptor {
 	) -> Result<u32> {
 		let mut noise: i32 = 0;
 
-		convert_seal_error(unsafe {
+		try_seal!(unsafe {
 			bindgen::Decryptor_InvariantNoiseBudget(
-				self.handle,
+				self.get_handle(),
 				ciphertext.get_handle(),
 				&mut noise,
 			)
@@ -112,8 +118,12 @@ impl Decryptor {
 	) -> Result<f64> {
 		let mut noise: f64 = 0f64;
 
-		convert_seal_error(unsafe {
-			bindgen::Decryptor_InvariantNoise(self.handle, ciphertext.get_handle(), &mut noise)
+		try_seal!(unsafe {
+			bindgen::Decryptor_InvariantNoise(
+				self.get_handle(),
+				ciphertext.get_handle(),
+				&mut noise,
+			)
 		})?;
 
 		Ok(noise)
@@ -122,7 +132,7 @@ impl Decryptor {
 
 impl Drop for Decryptor {
 	fn drop(&mut self) {
-		convert_seal_error(unsafe { bindgen::Decryptor_Destroy(self.handle) })
+		try_seal!(unsafe { bindgen::Decryptor_Destroy(self.get_handle()) })
 			.expect("Internal error Decryptor::drop().");
 	}
 }
