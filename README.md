@@ -2,16 +2,16 @@
 [![PyPI][pypi-badge]][pypi-url]
 [![CI][ci-badge]][ci-url]
 
-[crates-badge]: https://img.shields.io/crates/v/sealy.svg
-[crates-url]: https://crates.io/crates/sealy
-[pypi-badge]: https://img.shields.io/pypi/pyversions/sealy
-[pypi-url]: https://pypi.org/project/sealy/
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/sealy/pypublish.yml
-[ci-url]: https://github.com/marcosfpr/sealy/actions?query=+branch%3Amain
+[crates-badge]: https://img.shields.io/crates/v/seal.svg
+[crates-url]: https://crates.io/crates/seal
+[pypi-badge]: https://img.shields.io/pypi/pyversions/seal
+[pypi-url]: https://pypi.org/project/seal/
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/seal/pypublish.yml
+[ci-url]: https://github.com/marcosfpr/seal/actions?query=+branch%3Amain
 
 <br />
 <p align="center">
-  <h3 align="center">SEALy</h3>
+  <h3 align="center">seal bindings</h3>
 
   <p align="center">
     <a href="https://www.microsoft.com/en-us/research/project/microsoft-seal"><strong>Microsoft SEAL bindings for Rust and Python</strong></a>
@@ -19,11 +19,10 @@
   </p>
 </p>
 
-## 🌟 SEALy
+## 🌟 seal
 
-Microsoft SEAL bindings for Rust and Python.
-
-SEALy is a project that aims to create FFI bindings from the famous [SEAL](https://github.com/microsoft/SEAL) library for Rust and Python. The main goal of this project is to provide a simple and fast way to install SEAL for both programming languages.
+FFI bindings from the famous [SEAL](https://github.com/microsoft/SEAL) library for Rust and Python. 
+The main goal of this project is to provide a simple and fast way to install SEAL for both programming languages.
 
 ### Built With
 
@@ -35,8 +34,8 @@ Currently, this crate is available only for a few architectures. Please, make su
 
 |    System     |                                                   Support                                                  |
 | :-----------: | :--------------------------------------------------------------------------------------------------------: |
-| MacOSX aarch6 | [![sealy-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/sealy) |
-| Linux x86_64  | [![sealy-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/sealy) |
+| MacOSX aarch6 | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal) |
+| Linux x86_64  | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal) |
 
 ### Instalation
 
@@ -45,7 +44,7 @@ Currently, this crate is available only for a few architectures. Please, make su
 Make sure your OS is supported. If it is, just type:
 
 ```sh
-pip install sealy
+pip install seal
 ```
 
 If the OS/Platform that you use it is not in the supported list, feel free too try to clone this project and build yourself locally.
@@ -53,7 +52,7 @@ If the OS/Platform that you use it is not in the supported list, feel free too t
 #### Rust
 
 ```
-cargo add sealy
+cargo add seal
 ```
 
 ### Usage
@@ -109,7 +108,7 @@ print(decoded[:3]) # [2, 4, 6]
 Equivalent code from above's example, written in rust:
 
 ```rust
-use sealy::{
+use seal::{
 	BFVEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
 	Decryptor, DegreeType, Encoder, Encryptor, Evaluator, KeyGenerator, PlainModulus,
 	SecurityLevel,
@@ -160,7 +159,7 @@ fn main() -> anyhow::Result<()> {
 
 The project is in the early stages of development.
 
-See the [open issues](https://github.com/marcosfpr/sealy/issues) for a list of issues and proposed features.
+See the [open issues](https://github.com/marcosfpr/seal/issues) for a list of issues and proposed features.
 
 **OBS**: To propose new features or report bugs, check out the correct templates.
 
