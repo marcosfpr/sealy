@@ -70,7 +70,10 @@ impl PyContext {
 	}
 
 	/// Returns the ContextData given a parms_id.
-	pub fn get_context_data(&self, parms_id: Vec<u64>) -> PyResult<PyContextData> {
+	pub fn get_context_data(
+		&self,
+		parms_id: Vec<u64>,
+	) -> PyResult<PyContextData> {
 		let context_data = self.inner.get_context_data(&parms_id).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to get context data: {:?}",

@@ -1,3 +1,3 @@
 [submodule "thorn-seal/SEAL"]
-	path = seal/SEAL
+	path = seal-rs/SEAL
 	url = git@github.com:marcosfpr/SEAL.git

@@ -2,12 +2,12 @@
 [![PyPI][pypi-badge]][pypi-url]
 [![CI][ci-badge]][ci-url]
 
-[crates-badge]: https://img.shields.io/crates/v/seal.svg
-[crates-url]: https://crates.io/crates/seal
-[pypi-badge]: https://img.shields.io/pypi/pyversions/seal
-[pypi-url]: https://pypi.org/project/seal/
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/seal/pypublish.yml
-[ci-url]: https://github.com/marcosfpr/seal/actions?query=+branch%3Amain
+[crates-badge]: https://img.shields.io/crates/v/seal-rs.svg
+[crates-url]: https://crates.io/crates/seal-rs
+[pypi-badge]: https://img.shields.io/pypi/pyversions/sealy
+[pypi-url]: https://pypi.org/project/sealy/
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/seal-rs/pypublish.yml
+[ci-url]: https://github.com/marcosfpr/seal-rs/actions?query=+branch%3Amain
 
 <br />
 <p align="center">
@@ -34,8 +34,8 @@ Currently, this crate is available only for a few architectures. Please, make su
 
 |    System     |                                                   Support                                                  |
 | :-----------: | :--------------------------------------------------------------------------------------------------------: |
-| MacOSX aarch6 | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal) |
-| Linux x86_64  | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal) |
+| MacOSX aarch6 | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal-rs) |
+| Linux x86_64  | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal-rs) |
 
 ### Instalation
 
@@ -159,7 +159,7 @@ fn main() -> anyhow::Result<()> {
 
 The project is in the early stages of development.
 
-See the [open issues](https://github.com/marcosfpr/seal/issues) for a list of issues and proposed features.
+See the [open issues](https://github.com/marcosfpr/seal-rs/issues) for a list of issues and proposed features.
 
 **OBS**: To propose new features or report bugs, check out the correct templates.
 

@@ -313,7 +313,7 @@ mod tests {
 				data.push(i as u64);
 			}
 
-			let plaintext = encoder.encode(&data).unwrap();
+			let plaintext = encoder.encode_u64(&data).unwrap();
 
 			let public_key_bytes = include_bytes!("../tests/data/public_key.bin");
 			let secret_key_bytes = include_bytes!("../tests/data/secret_key.bin");
@@ -330,7 +330,7 @@ mod tests {
 				.unwrap();
 			let decrypted = decryptor.decrypt(&ciphertext).unwrap();
 
-			let data_2 = encoder.decode(&decrypted).unwrap();
+			let data_2 = encoder.decode_u64(&decrypted).unwrap();
 
 			assert_eq!(data, data_2);
 

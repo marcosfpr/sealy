@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "seal", 
+  "seal-rs", 
   "seal-py"
 ] 
 

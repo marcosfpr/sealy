@@ -247,8 +247,8 @@ impl<T: component_marker::Asym> Encryptor<T> {
 	/// The encryption parameters for the resulting ciphertext correspond to:
 	/// 1) in BFV, the highest (data) level in the modulus switching chain,
 	/// 2) in CKKS, the encryption parameters of the plaintext.
-	/// Dynamic memory allocations in the process are allocated from the memory
-	/// pool pointed to by the given MemoryPoolHandle.
+	///    Dynamic memory allocations in the process are allocated from the memory
+	///    pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	/// * `seed` - The seed to use for encryption.
@@ -266,7 +266,7 @@ impl<T: component_marker::Asym> Encryptor<T> {
 		// We do not need the components so we do not export them.
 		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptReturnComponentsSetSeed(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				false,
 				ciphertext.get_handle(),
@@ -292,8 +292,8 @@ impl<T: component_marker::Asym> Encryptor<T> {
 	/// The encryption parameters for the resulting ciphertext correspond to:
 	/// 1) in BFV, the highest (data) level in the modulus switching chain,
 	/// 2) in CKKS, the encryption parameters of the plaintext.
-	/// Dynamic memory allocations in the process are allocated from the memory
-	/// pool pointed to by the given MemoryPoolHandle.
+	///    Dynamic memory allocations in the process are allocated from the memory
+	///    pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	/// * `seed` - The seed to use for encryption.
@@ -311,7 +311,7 @@ impl<T: component_marker::Asym> Encryptor<T> {
 		// We do not need the components so we do not export them.
 		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptReturnComponentsSetSeed(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				true,
 				ciphertext.get_handle(),
@@ -373,8 +373,8 @@ impl<T: component_marker::Sym> Encryptor<T> {
 	/// The encryption parameters for the resulting ciphertext correspond to:
 	/// 1) in BFV, the highest (data) level in the modulus switching chain,
 	/// 2) in CKKS, the encryption parameters of the plaintext.
-	/// Dynamic memory allocations in the process are allocated from the memory
-	/// pool pointed to by the given MemoryPoolHandle.
+	///    Dynamic memory allocations in the process are allocated from the memory
+	///    pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	/// * `seed` - The seed to use for encryption.
@@ -391,7 +391,7 @@ impl<T: component_marker::Sym> Encryptor<T> {
 		// We do not need the components so we do not export them.
 		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptSymmetricReturnComponentsSetSeed(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				ciphertext.get_handle(),
 				e_destination.get_handle(),
@@ -451,8 +451,8 @@ impl<T: component_marker::Sym> Encryptor<T> {
 	/// The encryption parameters for the resulting ciphertext correspond to:
 	/// 1) in BFV, the highest (data) level in the modulus switching chain,
 	/// 2) in CKKS, the encryption parameters of the plaintext.
-	/// Dynamic memory allocations in the process are allocated from the memory
-	/// pool pointed to by the given MemoryPoolHandle.
+	///    Dynamic memory allocations in the process are allocated from the memory
+	///    pool pointed to by the given MemoryPoolHandle.
 	///
 	/// * `plainext` - The plaintext to encrypt.
 	/// * `seed` - The seed to use for encryption.
@@ -469,7 +469,7 @@ impl<T: component_marker::Sym> Encryptor<T> {
 		// We do not need the components so we do not export them.
 		try_seal!(unsafe {
 			bindgen::Encryptor_EncryptSymmetricReturnComponentsSetSeed(
-				self.handle,
+				self.get_handle(),
 				plaintext.get_handle(),
 				ciphertext.get_handle(),
 				e_destination.get_handle(),

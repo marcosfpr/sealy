@@ -56,7 +56,10 @@ impl PyCiphertextTensor {
 
 	/// Creates a new ciphertext batch array from a list of byte arrays.
 	#[staticmethod]
-	pub fn from_bytes_chunk(ctx: &PyContext, bytes: Vec<Vec<u8>>) -> PyResult<Self> {
+	pub fn from_bytes_chunk(
+		ctx: &PyContext,
+		bytes: Vec<Vec<u8>>,
+	) -> PyResult<Self> {
 		let batch = seal::Tensor::from_chunk(&ctx.inner, &bytes).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create ciphertext batch from bytes: {:?}",
@@ -79,7 +82,10 @@ pub struct PyTensorEncryptor {
 impl PyTensorEncryptor {
 	/// Creates a new TensorEncryptor instance with a public key.
 	#[new]
-	fn new(ctx: &PyContext, pk: &PyPublicKey) -> PyResult<Self> {
+	fn new(
+		ctx: &PyContext,
+		pk: &PyPublicKey,
+	) -> PyResult<Self> {
 		let ctx = &ctx.inner;
 		let pk = &pk.inner;
 		let inner = seal::TensorEncryptor::with_public_key(ctx, pk).map_err(|e| {
@@ -95,7 +101,10 @@ impl PyTensorEncryptor {
 
 	/// Encrypts a plaintext with the public key and returns the ciphertext as
 	/// a serializable object.
-	pub fn encrypt(&self, plaintext: PyPlaintextTensor) -> PyResult<PyCiphertextTensor> {
+	pub fn encrypt(
+		&self,
+		plaintext: PyPlaintextTensor,
+	) -> PyResult<PyCiphertextTensor> {
 		let ciphertext = self.inner.encrypt(&plaintext.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encrypt batch: {:?}",
@@ -118,7 +127,10 @@ pub struct PyTensorDecryptor {
 impl PyTensorDecryptor {
 	/// Creates a new batch decryptor.
 	#[new]
-	pub fn new(ctx: &PyContext, secret_key: &PySecretKey) -> PyResult<Self> {
+	pub fn new(
+		ctx: &PyContext,
+		secret_key: &PySecretKey,
+	) -> PyResult<Self> {
 		let inner = seal::TensorDecryptor::new(&ctx.inner, &secret_key.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create TensorDecryptor: {:?}",
@@ -131,7 +143,10 @@ impl PyTensorDecryptor {
 	}
 
 	/// Decrypts a ciphertext and returns the plaintext.
-	pub fn decrypt(&self, ciphertext_batch: &PyCiphertextTensor) -> PyResult<PyPlaintextTensor> {
+	pub fn decrypt(
+		&self,
+		ciphertext_batch: &PyCiphertextTensor,
+	) -> PyResult<PyPlaintextTensor> {
 		let plaintext = self.inner.decrypt(&ciphertext_batch.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decrypt batch: {:?}",
@@ -154,7 +169,10 @@ pub struct PyCKKSTensorEncoder {
 impl PyCKKSTensorEncoder {
 	/// Creates a new TensorEncoder.
 	#[new]
-	fn new(ctx: &PyContext, scale: f64) -> PyResult<Self> {
+	fn new(
+		ctx: &PyContext,
+		scale: f64,
+	) -> PyResult<Self> {
 		let encoder = seal::CKKSEncoder::new(&ctx.inner, scale).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to create CKKSEncoder: {:?}",
@@ -179,7 +197,10 @@ impl PyCKKSTensorEncoder {
 	///
 	/// # Returns
 	/// The encoded plaintext.
-	fn encode_float(&self, data: Vec<f64>) -> PyResult<PyPlaintextTensor> {
+	fn encode_float(
+		&self,
+		data: Vec<f64>,
+	) -> PyResult<PyPlaintextTensor> {
 		let batch = self.inner.encode_f64(&data).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to encode batch: {:?}",
@@ -198,7 +219,10 @@ impl PyCKKSTensorEncoder {
 	///
 	/// # Returns
 	/// The decoded data.
-	fn decode_float(&self, batch: PyPlaintextTensor) -> PyResult<Vec<f64>> {
+	fn decode_float(
+		&self,
+		batch: PyPlaintextTensor,
+	) -> PyResult<Vec<f64>> {
 		let data = self.inner.decode_f64(&batch.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to decode batch: {:?}",
@@ -231,7 +255,10 @@ impl PyCKKSTensorEvaluator {
 	}
 
 	/// Negates a batch of ciphertexts.
-	pub fn negate(&self, a: &PyCiphertextTensor) -> PyResult<PyCiphertextTensor> {
+	pub fn negate(
+		&self,
+		a: &PyCiphertextTensor,
+	) -> PyResult<PyCiphertextTensor> {
 		let negated = self.inner.negate(&a.inner).map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to negate batch: {:?}",
@@ -261,7 +288,10 @@ impl PyCKKSTensorEvaluator {
 	}
 
 	/// Adds many ciphertexts.
-	pub fn add_many(&self, a: Vec<PyCiphertextTensor>) -> PyResult<PyCiphertextTensor> {
+	pub fn add_many(
+		&self,
+		a: Vec<PyCiphertextTensor>,
+	) -> PyResult<PyCiphertextTensor> {
 		let mut ciphertexts = Vec::new();
 		for c in a {
 			ciphertexts.push(c.inner);
