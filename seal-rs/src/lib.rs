@@ -74,7 +74,6 @@ mod bindgen {
 mod ciphertext;
 mod components;
 mod context;
-mod context_data;
 mod decryptor;
 mod encoder;
 mod encryptor;
@@ -94,7 +93,6 @@ pub use components::{
 	marker as component_marker, Asym, AsymmetricComponents, Sym, SymAsym, SymmetricComponents,
 };
 pub use context::Context;
-pub use context_data::ContextData;
 pub use decryptor::Decryptor;
 pub use encoder::bfv::BFVEncoder;
 pub use encoder::ckks::CKKSEncoder;

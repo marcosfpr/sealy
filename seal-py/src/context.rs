@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-use crate::{context_data::PyContextData, PyEncryptionParameters, PySecurityLevel};
+use crate::{PyEncryptionParameters, PySecurityLevel};
 
 /// Performs sanity checks (validation) and pre-computations for a given set of encryption
 /// parameters. While the EncryptionParameters class is intended to be a light-weight class
@@ -69,75 +69,52 @@ impl PyContext {
 		Ok(first_parms_id)
 	}
 
-	/// Returns the ContextData given a parms_id.
-	pub fn get_context_data(
-		&self,
-		parms_id: Vec<u64>,
-	) -> PyResult<PyContextData> {
-		let context_data = self.inner.get_context_data(&parms_id).map_err(|e| {
-			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
-				"Failed to get context data: {:?}",
-				e
-			))
-		})?;
-		Ok(PyContextData {
-			inner: context_data,
-		})
-	}
-
-	/// Returns the first ContextData in the modulus switching chain.
-	pub fn get_first_context_data(&self) -> PyResult<PyContextData> {
-		let context_data = self.inner.get_first_context_data().map_err(|e| {
-			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
-				"Failed to get first context data: {:?}",
-				e
-			))
-		})?;
-		Ok(PyContextData {
-			inner: context_data,
-		})
-	}
-
-	/// Returns the last ContextData in the modulus switching chain.
-	pub fn get_last_context_data(&self) -> PyResult<PyContextData> {
-		let last_context_data = self.inner.get_last_context_data().map_err(|e| {
-			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
-				"Failed to get last context data: {:?}",
-				e
-			))
-		})?;
-		Ok(PyContextData {
-			inner: last_context_data,
-		})
-	}
-
-	pub fn __getnewargs__(&self) -> PyResult<(PyEncryptionParameters, bool, PySecurityLevel)> {
-		let ctx_data = self.inner.get_last_context_data().map_err(|e| {
-			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
-				"Failed to get last context data: {:?}",
-				e
-			))
-		})?;
-
-		let params = ctx_data.get_encryption_parameters().map_err(|e| {
+	/// Returns the encryption parameters used to create the context data.
+	pub fn get_encryption_parameters(&self) -> PyResult<PyEncryptionParameters> {
+		let encryption_parameters = self.inner.get_encryption_parameters().map_err(|e| {
 			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
 				"Failed to get encryption parameters: {:?}",
 				e
 			))
 		})?;
+		Ok(PyEncryptionParameters {
+			inner: encryption_parameters,
+		})
+	}
 
-		let params = PyEncryptionParameters {
-			inner: params,
-		};
-		let security_level = PySecurityLevel {
-			inner: self.inner.get_security_level().map_err(|e| {
+	/// Returns the total number of primes in the coefficient modulus.
+	pub fn get_total_coeff_modulus_bit_count(&self) -> PyResult<i32> {
+		let bit_count = self
+			.inner
+			.get_total_coeff_modulus_bit_count()
+			.map_err(|e| {
 				PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
-					"Failed to get security level: {:?}",
+					"Failed to get total coefficient modulus bit count: {:?}",
 					e
 				))
-			})?,
-		};
+			})?;
+		Ok(bit_count)
+	}
 
-		Ok((params, true, security_level))
+	/// Returns the security level of the encryption parameters.
+	pub fn get_security_level(&self) -> PyResult<PySecurityLevel> {
+		let security_level = self.inner.get_security_level().map_err(|e| {
+			PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+				"Failed to get security level: {:?}",
+				e
+			))
+		})?;
+
+		Ok(PySecurityLevel {
+			inner: security_level,
+		})
+	}
+
+	pub fn __getnewargs__(&self) -> PyResult<(PyEncryptionParameters, bool, PySecurityLevel)> {
+		let expand_mod_chain = true;
+		let params = self.get_encryption_parameters()?;
+		let security_level = self.get_security_level()?;
+
+		Ok((params, expand_mod_chain, security_level))
 	}
 }

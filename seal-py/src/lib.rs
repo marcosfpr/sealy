@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 
 mod ciphertext;
 mod context;
-mod context_data;
 mod decryptor;
 mod encoder;
 mod encryptor;
@@ -16,7 +15,6 @@ mod tensor;
 
 use crate::ciphertext::PyCiphertext;
 use crate::context::PyContext;
-use crate::context_data::PyContextData;
 use crate::decryptor::PyDecryptor;
 use crate::encoder::{PyBFVEncoder, PyCKKSEncoder};
 use crate::encryptor::{PyAsymmetricComponents, PyEncryptor};
@@ -46,7 +44,6 @@ fn sealy(m: &Bound<'_, PyModule>) -> PyResult<()> {
 	m.add_class::<PyPlainModulus>()?;
 	m.add_class::<PyCoefficientModulus>()?;
 	m.add_class::<PyEncryptionParameters>()?;
-	m.add_class::<PyContextData>()?;
 	m.add_class::<PyContext>()?;
 	m.add_class::<PyPublicKey>()?;
 	m.add_class::<PySecretKey>()?;

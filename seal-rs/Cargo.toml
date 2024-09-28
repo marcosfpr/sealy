@@ -50,6 +50,9 @@ name = "sum_int"
 [[example]]
 name = "multiply_plain"
 
+[[example]]
+name = "encode_float"
+
 [[bench]]
 name = "ckks_bench"
 harness = false

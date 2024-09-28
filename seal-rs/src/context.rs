@@ -7,7 +7,6 @@ use std::sync::atomic::Ordering;
 use crate::bindgen;
 use crate::error::*;
 use crate::try_seal;
-use crate::ContextData;
 use crate::EncryptionParameters;
 use crate::SecurityLevel;
 
@@ -150,11 +149,38 @@ impl Context {
 		Ok(parms_id)
 	}
 
+	/// Returns the encryption parameters used to create the context data.
+	pub fn get_encryption_parameters(&self) -> Result<EncryptionParameters> {
+		let mut parms: *mut c_void = null_mut();
+
+		try_seal!(unsafe {
+			let context_data = self.get_last_context_data()?;
+			bindgen::ContextData_Parms(context_data, &mut parms)
+		})?;
+
+		Ok(EncryptionParameters {
+			handle: parms,
+		})
+	}
+
+	/// Returns the total number of primes in the coefficient modulus.
+	pub fn get_total_coeff_modulus_bit_count(&self) -> Result<i32> {
+		let mut bit_count: i32 = 0;
+
+		try_seal!(unsafe {
+			let context_data = self.get_last_context_data()?;
+			bindgen::ContextData_TotalCoeffModulusBitCount(context_data, &mut bit_count)
+		})?;
+
+		Ok(bit_count)
+	}
+
 	/// Returns the ContextData given a parms_id.
-	pub fn get_context_data(
+	#[allow(unused)]
+	unsafe fn get_context_data(
 		&self,
 		parms_id: &[u64],
-	) -> Result<ContextData> {
+	) -> Result<*mut c_void> {
 		let mut context_data: *mut c_void = null_mut();
 
 		try_seal!(unsafe {
@@ -167,11 +193,12 @@ impl Context {
 			return Err(Error::InvalidPointer);
 		}
 
-		Ok(ContextData::new(context_data))
+		Ok(context_data)
 	}
 
 	/// Returns the first ContextData in the modulus switching chain.
-	pub fn get_first_context_data(&self) -> Result<ContextData> {
+	#[allow(unused)]
+	unsafe fn get_first_context_data(&self) -> Result<*mut c_void> {
 		let mut context_data: *mut c_void = null_mut();
 
 		try_seal!(unsafe {
@@ -182,11 +209,12 @@ impl Context {
 			return Err(Error::InvalidPointer);
 		}
 
-		Ok(ContextData::new(context_data))
+		Ok(context_data)
 	}
 
 	/// Returns the last ContextData in the modulus switching chain.
-	pub fn get_last_context_data(&self) -> Result<ContextData> {
+	#[allow(unused)]
+	unsafe fn get_last_context_data(&self) -> Result<*mut c_void> {
 		let mut context_data: *mut c_void = null_mut();
 
 		try_seal!(unsafe {
@@ -197,7 +225,7 @@ impl Context {
 			return Err(Error::InvalidPointer);
 		}
 
-		Ok(ContextData::new(context_data))
+		Ok(context_data)
 	}
 }
 
@@ -226,5 +254,27 @@ mod tests {
 		let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
 
 		std::mem::drop(ctx);
+	}
+
+	#[test]
+	fn test_can_get_encryption_parameters() {
+		let params = BFVEncryptionParametersBuilder::new()
+			.set_poly_modulus_degree(DegreeType::D1024)
+			.set_coefficient_modulus(
+				CoefficientModulusFactory::build(DegreeType::D8192, &[50, 30, 30, 50, 50]).unwrap(),
+			)
+			.set_plain_modulus_u64(1234)
+			.build()
+			.unwrap();
+
+		let ctx = Context::new(&params, false, SecurityLevel::TC128).unwrap();
+		assert_eq!(ctx.get_security_level().unwrap(), SecurityLevel::TC128);
+
+		let expected_params = ctx.get_encryption_parameters().unwrap();
+
+		assert_eq!(expected_params.get_poly_modulus_degree(), 1024);
+		assert_eq!(expected_params.get_scheme(), SchemeType::Bfv);
+		assert_eq!(expected_params.get_plain_modulus().value(), 1234);
+		assert_eq!(expected_params.get_coefficient_modulus().len(), 5);
 	}
 }

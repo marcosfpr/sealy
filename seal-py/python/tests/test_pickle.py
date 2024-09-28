@@ -35,8 +35,7 @@ def test_pickle_context():
     assert len(ctx_2.get_key_parms_id()) > 0
     assert len(ctx_2.get_last_parms_id()) > 0
 
-    ctx_data = ctx_2.get_last_context_data()
-    enc_parms = ctx_data.get_encryption_parameters()
+    enc_parms = ctx_2.get_encryption_parameters()
 
     assert enc_parms.get_poly_modulus_degree() == 1024
     assert enc_parms.get_scheme() == SchemeType.bfv()

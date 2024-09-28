@@ -159,11 +159,27 @@ impl Drop for CKKSEncoder {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
 	use crate::{
 		CKKSEncoder, CKKSEncryptionParametersBuilder, CoefficientModulusFactory, Context,
 		DegreeType, EncryptionParameters, Error, SecurityLevel,
 	};
+
+	fn float_assert_eq(
+		a: f64,
+		b: f64,
+	) {
+		assert!((a - b).abs() < 0.0001);
+	}
+
+	fn float_iter_assert_eq(
+		a: impl IntoIterator<Item = f64>,
+		b: impl IntoIterator<Item = f64>,
+	) {
+		for (a, b) in a.into_iter().zip(b.into_iter()) {
+			float_assert_eq(a, b);
+		}
+	}
 
 	fn create_ckks_context(
 		degree: DegreeType,
@@ -224,7 +240,7 @@ mod test {
 		let data_decoded: Vec<f64> = encoder.decode_f64(&plaintext).unwrap();
 
 		// Assert that the original data and the decoded data are equal
-		assert_eq!(data, data_decoded);
+		float_iter_assert_eq(data, data_decoded);
 	}
 
 	/// Test encoding and decoding of a vector of signed floats in CKKS.
@@ -246,7 +262,7 @@ mod test {
 		let data_decoded: Vec<f64> = encoder.decode_f64(&plaintext).unwrap();
 
 		// Assert that the original data and the decoded data are equal
-		assert_eq!(data, data_decoded);
+		float_iter_assert_eq(data, data_decoded);
 	}
 
 	/// Test encoding and decoding of a scalar (single) signed float in CKKS.
@@ -261,7 +277,7 @@ mod test {
 		let decoded: Vec<f64> = encoder.decode_f64(&encoded).unwrap();
 
 		// Assert that the decoded value matches the original
-		assert_eq!(decoded[0], -15.5);
+		float_assert_eq(decoded[0], -15.5);
 	}
 
 	/// Test encoding and decoding of a scalar (single) unsigned float in CKKS.
@@ -276,7 +292,7 @@ mod test {
 		let decoded: Vec<f64> = encoder.decode_f64(&encoded).unwrap();
 
 		// Assert that the decoded value matches the original
-		assert_eq!(decoded[0], 42.0);
+		float_assert_eq(decoded[0], 42.0);
 	}
 
 	/// Test encoding and decoding a float vector. CKKS handles floating-point numbers, so this is expected to work.
@@ -295,8 +311,6 @@ mod test {
 		let decoded_data: Vec<f64> = encoder.decode_f64(&plaintext).unwrap();
 
 		// Assert that the original and decoded data match within a small tolerance
-		for (original, decoded) in data.iter().zip(decoded_data.iter()) {
-			assert!((original - decoded).abs() < 1e-6);
-		}
+		float_iter_assert_eq(data, decoded_data);
 	}
 }

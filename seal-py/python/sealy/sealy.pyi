@@ -283,27 +283,6 @@ class EncryptionParameters:
         """
         ...
 
-class ContextData:
-    """
-    Represents the context data used in encryption parameters.
-    """
-
-    def get_encryption_parameters(self) -> "EncryptionParameters":
-        """
-        Get the encryption parameters from the context data.
-
-        :return: The encryption parameters.
-        """
-        ...
-
-    def get_total_coeff_modulus_bit_count(self) -> int:
-        """
-        Get the total coefficient modulus bit count from the context data.
-
-        :return: The total coefficient modulus bit count.
-        """
-        ...
-
 class Context:
     """
     Represents the context used in encryption parameters.
@@ -348,27 +327,27 @@ class Context:
         """
         ...
 
-    def get_context_data(self) -> "ContextData":
+    def get_encryption_parameters(self) -> "EncryptionParameters":
         """
-        Get the context data from the context.
+        Get the encryption parameters from the last context data.
 
-        :return: The context data.
-        """
-        ...
-
-    def get_first_context_data(self) -> "ContextData":
-        """
-        Get the first context data from the context.
-
-        :return: The first context data.
+        :return: The encryption parameters.
         """
         ...
 
-    def get_last_context_data(self) -> "ContextData":
+    def get_total_coeff_modulus_bit_count(self) -> int:
         """
-        Get the last context data from the context.
+        Get the total coefficient modulus bit count from the last context data.
 
-        :return: The last context data.
+        :return: The total coefficient modulus bit count.
+        """
+        ...
+
+    def get_security_level(self) -> "SecurityLevel":
+        """
+        Get the security level from the last context data.
+
+        :return: The security level.
         """
         ...
 
