@@ -2,12 +2,12 @@
 [![PyPI][pypi-badge]][pypi-url]
 [![CI][ci-badge]][ci-url]
 
-[crates-badge]: https://img.shields.io/crates/v/seal-rs.svg
-[crates-url]: https://crates.io/crates/seal-rs
+[crates-badge]: https://img.shields.io/crates/v/sealy.svg
+[crates-url]: https://crates.io/crates/sealy
 [pypi-badge]: https://img.shields.io/pypi/pyversions/sealy
 [pypi-url]: https://pypi.org/project/sealy/
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/seal-rs/pypublish.yml
-[ci-url]: https://github.com/marcosfpr/seal-rs/actions?query=+branch%3Amain
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/marcosfpr/sealy/pypublish.yml
+[ci-url]: https://github.com/marcosfpr/sealy/actions?query=+branch%3Amain
 
 <br />
 <p align="center">
@@ -34,8 +34,8 @@ Currently, this crate is available only for a few architectures. Please, make su
 
 |    System     |                                                   Support                                                  |
 | :-----------: | :--------------------------------------------------------------------------------------------------------: |
-| MacOSX aarch6 | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal-rs) |
-| Linux x86_64  | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/seal-rs) |
+| MacOSX aarch6 | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/sealy) |
+| Linux x86_64  | [![seal-w64](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/marcosfpr/sealy) |
 
 ### Instalation
 
@@ -44,7 +44,7 @@ Currently, this crate is available only for a few architectures. Please, make su
 Make sure your OS is supported. If it is, just type:
 
 ```sh
-pip install seal
+pip install sealy
 ```
 
 If the OS/Platform that you use it is not in the supported list, feel free too try to clone this project and build yourself locally.
@@ -52,7 +52,7 @@ If the OS/Platform that you use it is not in the supported list, feel free too t
 #### Rust
 
 ```
-cargo add seal
+cargo add sealy
 ```
 
 ### Usage
@@ -159,7 +159,7 @@ fn main() -> anyhow::Result<()> {
 
 The project is in the early stages of development.
 
-See the [open issues](https://github.com/marcosfpr/seal-rs/issues) for a list of issues and proposed features.
+See the [open issues](https://github.com/marcosfpr/sealy/issues) for a list of issues and proposed features.
 
 **OBS**: To propose new features or report bugs, check out the correct templates.
 
