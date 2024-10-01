@@ -44,7 +44,7 @@ fn main() -> Result<(), Error> {
 	let encryptor = TensorEncryptor::with_public_and_secret_key(&ctx, &public_key, &private_key)?;
 	let decryptor = TensorDecryptor::new(&ctx, &private_key)?;
 
-	let dim = 22_000_000;
+	let dim = 8_000_000;
 	let tensor = generate_random_tensor(dim);
 
 	let rounds = 10;

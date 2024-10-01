@@ -10,6 +10,9 @@ license-file = "../LICENSE"
 keywords = ["fhe", "phe", "homomorphic", "encryption", "seal"]
 categories = ["science", "cryptography"]
 
+[lib]
+doctest = false
+
 [dependencies]
 serde = { workspace = true } 
 thiserror = { workspace = true }

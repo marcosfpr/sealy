@@ -1,9 +1,8 @@
-//! This crate provides wrappers for Microsoft's SEAL Homomorphic encryption library.
 //!
 //! # Example
 //!
 //! ```rust
-//! use sealy::{
+//! use seal::{
 //!     BFVEncoder, BFVEvaluator, BfvEncryptionParametersBuilder, CoefficientModulus, Context,
 //!     Decryptor, DegreeType, Encoder, Encryptor, Evaluator, KeyGenerator, PlainModulus,
 //!     SecurityLevel,

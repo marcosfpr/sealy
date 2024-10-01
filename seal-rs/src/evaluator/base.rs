@@ -6,7 +6,6 @@ use std::sync::atomic::Ordering;
 use crate::bindgen;
 use crate::error::*;
 use crate::try_seal;
-use crate::MemoryPool;
 use crate::{Ciphertext, Context, Plaintext, RelinearizationKey};
 
 /// Provides operations on ciphertexts. Due to the properties of the encryption scheme, the arithmetic operations
@@ -174,7 +173,7 @@ impl EvaluatorBase {
 				.collect::<Vec<*mut c_void>>()
 		};
 
-		let mem = MemoryPool::new()?;
+		// let mem = MemoryPool::new()?;
 
 		try_seal!(unsafe {
 			bindgen::Evaluator_MultiplyMany(
@@ -183,7 +182,8 @@ impl EvaluatorBase {
 				a_ptr.as_mut_ptr(),
 				relin_keys.get_handle(),
 				c.get_handle(),
-				mem.get_handle(),
+				null_mut(),
+				// mem.get_handle(),
 			)
 		})?;
 

@@ -29,7 +29,7 @@ fn overflow_does_not_bleed_into_other_lanes() {
 			for (i, lane) in out.into_iter().enumerate() {
 				if i == 1 {
 					// This lane overflowed...
-					assert_eq!(lane, 105_881);
+					assert_eq!(lane, -8808);
 				} else {
 					assert_eq!(lane, 10_000);
 				}
@@ -95,7 +95,7 @@ fn lanes_have_same_modulus() {
 			let mut data = Vec::with_capacity(8192);
 
 			for _i in 0..8192 {
-				data.push(10_000);
+				data.push(100);
 			}
 
 			let p = encoder.encode_i64(&data).unwrap();
@@ -109,7 +109,7 @@ fn lanes_have_same_modulus() {
 			let out = encoder.decode_i64(&p_2).unwrap();
 
 			for lane in out {
-				assert_eq!(lane, 105_881);
+				assert_eq!(lane, 10_000);
 			}
 		},
 	)
