@@ -1,7 +1,7 @@
 [workspace]
 members = [
-  "seal-rs", 
-  "seal-py"
+  "sealy", 
+  "sealy-py"
 ] 
 
 [workspace.dependencies]

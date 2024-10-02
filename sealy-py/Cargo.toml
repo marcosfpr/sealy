@@ -1,0 +1,24 @@
+[package]
+name = "sealy-py"
+version = "0.2.0"
+edition = "2021"
+authors = ["marcosfpr <mfprezende@gmail.com>"]
+description = "Python bindings for the SEALy library"
+repository = "https://github.com/marcosfpr/sealy"
+readme = "../README.md"
+license-file = "../LICENSE"
+keywords = ["fhe", "homomorphic", "encryption", "ckks", "bfv", "seal", "ai", "machine-learning"]
+categories = ["science", "cryptography"]
+
+[lib]
+name = "sealy"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22.0", features = ["extension-module"] }
+
+sealy = { path = "../sealy" }
+
+
+[dev-dependencies]
+
