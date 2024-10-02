@@ -26,7 +26,7 @@ The main goal of this project is to provide a simple and fast way to install SEA
 
 ### Built With
 
-The SEAL bindings are a continuation from the [seal_fhe](https://github.com/sunscreen-tech/sunscreen/tree/d9f64f4283b7a4471dd0247b6f5ef769051a649f/seal_fhe) crate, with the support for the CKKS scheme and the addition of new features like batch encoders, that allow us to overcome the size barriers of the ciphertext tensors and create AI applications easily with high-dimensional encrypted ciphertext.
+The SEAL bindings are a continuation from the [seal_fhe](https://github.com/sunscreen-tech/sunscreen/tree/d9f64f4283b7a4471dd0247b6f5ef769051a649f/seal_fhe) crate, with the support for the CKKS scheme and the addition of new features like tensor encoders, that allow us to overcome the size barriers of the ciphertext tensors and create AI applications easily with high-dimensional encrypted ciphertext.
 
 ### Prerequisites
 
@@ -91,14 +91,14 @@ evaluator = BFVEvaluator(ctx)
 plaintext = [1, 2, 3]
 factor = [2, 2, 2]
 
-encoded_plaintext = encoder.encode(plaintext)
-encoded_factor = encoder.encode(factor)
+encoded_plaintext = encoder.encode_int(plaintext)
+encoded_factor = encoder.encode_int(factor)
 
 ciphertext = encryptor.encrypt(encoded_plaintext)
 ciphertext_result = evaluator.multiply_plain(ciphertext, encoded_factor)
 
 decrypted = decryptor.decrypt(ciphertext_result)
-decoded = encoder.decode(decrypted)
+decoded = encoder.decode_int(decrypted)
 
 print(decoded[:3]) # [2, 4, 6]
 ```
@@ -138,14 +138,14 @@ fn main() -> anyhow::Result<()> {
 	let plaintext: Vec<i64> = vec![1, 2, 3];
 	let factor = vec![2, 2, 2];
 
-	let encoded_plaintext = encoder.encode(&plaintext)?;
-	let encoded_factor = encoder.encode(&factor)?;
+	let encoded_plaintext = encoder.encode_u64(&plaintext)?;
+	let encoded_factor = encoder.encode_u64(&factor)?;
 
 	let ciphertext = encryptor.encrypt(&encoded_plaintext)?;
 	let ciphertext_result = evaluator.multiply_plain(&ciphertext, &encoded_factor)?;
 
 	let decrypted = decryptor.decrypt(&ciphertext_result)?;
-	let decoded = encoder.decode(&decrypted);
+	let decoded = encoder.decode_u64(&decrypted);
 
 	println!("{:?}", &decoded.into_iter().take(3).collect::<Vec<_>>()); // [2, 4, 6]
 
