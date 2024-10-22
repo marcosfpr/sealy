@@ -1,6 +1,6 @@
 [package]
 name = "sealy-py"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["marcosfpr <mfprezende@gmail.com>"]
 description = "Python bindings for the SEALy library"
