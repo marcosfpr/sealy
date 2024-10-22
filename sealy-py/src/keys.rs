@@ -188,7 +188,7 @@ impl PyRelinearizationKey {
 #[derive(Debug, Clone)]
 #[pyclass(module = "sealy", name = "GaloisKey")]
 pub struct PyGaloisKey {
-	inner: sealy::GaloisKey,
+	pub(crate) inner: sealy::GaloisKey,
 }
 
 #[pymethods]

@@ -1131,6 +1131,22 @@ class BFVEvaluator:
         """
         ...
 
+    def rotate_rows(
+        self, ciphertext: "Ciphertext", steps: int, galois_key: "GaloisKey"
+    ) -> "Ciphertext":
+        """
+        Rotates the rows of the given ciphertext.
+
+        Parameters:
+        ciphertext (Ciphertext): The ciphertext to rotate.
+        steps (int): The number of steps to rotate.
+        galois_key (GaloisKey): The Galois key to use.
+
+        Returns:
+        Ciphertext: The rotated ciphertext.
+        """
+        ...
+
 class CKKSEvaluator:
     """
     Evaluates operations on BFV ciphertexts.

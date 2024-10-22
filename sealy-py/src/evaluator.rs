@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
 use crate::{
-	ciphertext::PyCiphertext, context::PyContext, keys::PyRelinearizationKey,
+	ciphertext::PyCiphertext, context::PyContext, keys::PyGaloisKey, keys::PyRelinearizationKey,
 	plaintext::PyPlaintext,
 };
 use sealy::Evaluator;
@@ -208,6 +208,26 @@ impl PyBFVEvaluator {
 			})?;
 		Ok(PyCiphertext {
 			inner: relinearized,
+		})
+	}
+
+	pub fn rotate_rows(
+		&self,
+		a: &PyCiphertext,
+		steps: i32,
+		galois_keys: &PyGaloisKey,
+	) -> PyResult<PyCiphertext> {
+		let rotated = self
+			.inner
+			.rotate_rows(&a.inner, steps, &galois_keys.inner)
+			.map_err(|e| {
+				PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+					"Failed to rotate rows: {:?}",
+					e
+				))
+			})?;
+		Ok(PyCiphertext {
+			inner: rotated,
 		})
 	}
 }
